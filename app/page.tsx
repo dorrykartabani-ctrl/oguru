@@ -74,16 +74,17 @@ export default function Page() {
         />
 
         <p
-          style={{
-            marginTop: '8px',
-            fontSize: '13px',
-            color: '#44483a',
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            fontWeight: 600,
-            textAlign: 'center',
-          }}
-        >
+  style={{
+    marginTop: '8px',
+    fontSize: '13px',
+    color: '#44483a',
+    letterSpacing: '0.25em',
+    textTransform: 'uppercase',
+    fontWeight: 600,
+    textAlign: 'center',
+    fontFamily: 'var(--font-label), system-ui, sans-serif',
+  }}
+>
           Ai Assisted Vendor Marketing and Ordering
         </p>
       </div>
