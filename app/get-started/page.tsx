@@ -13,12 +13,10 @@ export default function GetStartedPage() {
         display: 'flex',
         flexDirection: 'column',
         padding: '24px',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
-      {/* Decorative background */}
       <div
         style={{
           position: 'absolute',
@@ -46,7 +44,6 @@ export default function GetStartedPage() {
         }}
       />
 
-      {/* Header */}
       <div
         style={{
           paddingTop: '48px',
@@ -58,22 +55,18 @@ export default function GetStartedPage() {
         <img
           src="/logo.png"
           alt="OGuru"
-          style={{
-            width: '80px',
-            height: 'auto',
-            marginBottom: '16px',
-          }}
+          style={{ width: '80px', height: 'auto', marginBottom: '16px' }}
         />
 
         <h1
           style={{
-            fontFamily: 'var(--font-display), system-ui, sans-serif',
             fontSize: '28px',
             fontWeight: 700,
             color: '#1b1c19',
             margin: 0,
             marginBottom: '8px',
             letterSpacing: '-0.02em',
+            fontFamily: 'var(--font-display), system-ui, sans-serif',
           }}
         >
           Welcome to OGuru
@@ -81,7 +74,6 @@ export default function GetStartedPage() {
 
         <p
           style={{
-            fontFamily: 'var(--font-display), system-ui, sans-serif',
             fontSize: '16px',
             color: '#44483a',
             margin: 0,
@@ -95,7 +87,6 @@ export default function GetStartedPage() {
         </p>
       </div>
 
-      {/* Path selection cards */}
       <div
         style={{
           flex: 1,
@@ -111,7 +102,6 @@ export default function GetStartedPage() {
           alignSelf: 'center',
         }}
       >
-        {/* Customer Card */}
         <button
           onClick={() => router.push('/home')}
           style={{
@@ -153,20 +143,19 @@ export default function GetStartedPage() {
             <div style={{ flex: 1 }}>
               <h2
                 style={{
-                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                   fontSize: '20px',
                   fontWeight: 700,
                   color: '#1b1c19',
                   margin: 0,
                   marginBottom: '6px',
                   letterSpacing: '-0.01em',
+                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                 }}
               >
-                I'm here to shop
+                I&apos;m here to shop
               </h2>
               <p
                 style={{
-                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                   fontSize: '14px',
                   color: '#44483a',
                   margin: 0,
@@ -176,19 +165,12 @@ export default function GetStartedPage() {
                 Discover vendors, pre-order, and send gifts to friends
               </p>
             </div>
-            <div
-              style={{
-                fontSize: '20px',
-                color: '#4a6410',
-                marginTop: '18px',
-              }}
-            >
+            <div style={{ fontSize: '20px', color: '#4a6410', marginTop: '18px' }}>
               →
             </div>
           </div>
         </button>
 
-        {/* Vendor Card */}
         <button
           onClick={() => router.push('/vendor')}
           style={{
@@ -230,43 +212,35 @@ export default function GetStartedPage() {
             <div style={{ flex: 1 }}>
               <h2
                 style={{
-                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                   fontSize: '20px',
                   fontWeight: 700,
                   color: '#1b1c19',
                   margin: 0,
                   marginBottom: '6px',
                   letterSpacing: '-0.01em',
+                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                 }}
               >
-                I'm a vendor
+                I&apos;m a vendor
               </h2>
               <p
                 style={{
-                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                   fontSize: '14px',
                   color: '#44483a',
                   margin: 0,
                   lineHeight: '20px',
                 }}
               >
-                Reach new customers, use Ai to grow your business
+                List your products, reach customers, grow your business
               </p>
             </div>
-            <div
-              style={{
-                fontSize: '20px',
-                color: '#924700',
-                marginTop: '18px',
-              }}
-            >
+            <div style={{ fontSize: '20px', color: '#924700', marginTop: '18px' }}>
               →
             </div>
           </div>
         </button>
       </div>
 
-      {/* Footer note */}
       <p
         style={{
           textAlign: 'center',
