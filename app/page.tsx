@@ -84,7 +84,7 @@ export default function Page() {
             textAlign: 'center',
           }}
         >
-          Organic Marketplace
+          Ai Assisted Vendor Marketing and Ordering
         </p>
       </div>
 
