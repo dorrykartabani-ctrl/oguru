@@ -10,68 +10,70 @@ export default function Page() {
         justifyContent: 'center',
         padding: '16px',
         fontFamily: 'system-ui, -apple-system, sans-serif',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
-      {/* Logo circle */}
+      {/* Decorative background circles */}
       <div
         style={{
-          width: '160px',
-          height: '160px',
+          position: 'absolute',
+          top: '20%',
+          left: '-80px',
+          width: '256px',
+          height: '256px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(74, 100, 16, 0.1)',
+          background: 'rgba(74, 100, 16, 0.05)',
+          filter: 'blur(60px)',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '20%',
+          right: '-80px',
+          width: '256px',
+          height: '256px',
+          borderRadius: '50%',
+          background: 'rgba(146, 71, 0, 0.05)',
+          filter: 'blur(60px)',
+        }}
+      />
+
+      {/* Logo with fade-in animation */}
+      <div
+        style={{
+          animation: 'fadeInScale 0.8s ease-out',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '32px',
         }}
       >
-        <svg
-          width="120"
-          height="120"
-          viewBox="0 0 100 100"
-          fill="none"
+        <img
+          src="/logo.png"
+          alt="OGuru"
+          style={{
+            width: '240px',
+            height: 'auto',
+            maxWidth: '80vw',
+          }}
+        />
+
+        {/* Tagline */}
+        <p
+          style={{
+            marginTop: '8px',
+            fontSize: '13px',
+            color: '#44483a',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            fontWeight: 600,
+            textAlign: 'center',
+          }}
         >
-          <circle cx="50" cy="50" r="35" fill="#4a6410" opacity="0.15" />
-          <circle cx="50" cy="50" r="25" fill="#4a6410" opacity="0.3" />
-          <circle cx="50" cy="50" r="18" fill="#77574d" />
-          <circle cx="43" cy="46" r="2" fill="#fbf9f4" />
-          <circle cx="57" cy="46" r="2" fill="#fbf9f4" />
-          <path
-            d="M 42 54 Q 50 60 58 54"
-            stroke="#fbf9f4"
-            strokeWidth="2"
-            fill="none"
-            strokeLinecap="round"
-          />
-        </svg>
+          Organic Marketplace
+        </p>
       </div>
-
-      {/* App name */}
-      <h1
-        style={{
-          fontSize: '56px',
-          fontWeight: 700,
-          color: '#77574d',
-          margin: 0,
-          letterSpacing: '-0.02em',
-        }}
-      >
-        OGuru
-      </h1>
-
-      {/* Tagline */}
-      <p
-        style={{
-          marginTop: '12px',
-          fontSize: '12px',
-          color: '#44483a',
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-        }}
-      >
-        Organic Marketplace
-      </p>
 
       {/* Loading dots */}
       <div
@@ -80,6 +82,7 @@ export default function Page() {
           bottom: '64px',
           display: 'flex',
           gap: '8px',
+          animation: 'fadeIn 1s ease-out 0.3s both',
         }}
       >
         <div
@@ -115,6 +118,14 @@ export default function Page() {
         @keyframes pulse {
           0%, 100% { opacity: 0.3; transform: scale(0.8); }
           50% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fadeInScale {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
         }
       `}</style>
     </main>
