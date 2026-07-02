@@ -7,7 +7,7 @@ const slides = [
   {
     emoji: '🌾',
     title: 'Real food. Real people.',
-    description: 'Discover local artisans, farmers, and cafés. Every vendor on OGuru is verified and vetted.',
+    description: 'Discover local artisans and cafés. Every vendor on OGuru is verified and vetted.',
   },
   {
     emoji: '⚡',
@@ -16,13 +16,13 @@ const slides = [
   },
   {
     emoji: '📈',
-    title: 'Grow your business',
+    title: 'Ai Grows your business',
     description: 'Vendors reach local customers, run smart campaigns, and let AI handle the marketing.',
   },
   {
     emoji: '🌿',
     title: 'Better together',
-    description: 'Join a community that celebrates local, organic, and artisan producers.',
+    description: 'Join a community that celebrates local stores.',
   },
 ];
 
@@ -54,7 +54,6 @@ export default function WelcomePage() {
         display: 'flex',
         flexDirection: 'column',
         padding: '24px',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -104,6 +103,7 @@ export default function WelcomePage() {
             textTransform: 'uppercase',
             fontWeight: 600,
             margin: 0,
+            fontFamily: 'var(--font-label), system-ui, sans-serif',
           }}
         >
           {currentSlide + 1} of {slides.length}
@@ -152,26 +152,24 @@ export default function WelcomePage() {
             animation: 'fadeInScale 0.5s ease-out',
           }}
         >
-          <span style={{ fontSize: '96px', lineHeight: 1 }}>
-            {slide.emoji}
-          </span>
+          <span style={{ fontSize: '96px', lineHeight: 1 }}>{slide.emoji}</span>
         </div>
 
         <h1
-  style={{
-    fontSize: '32px',
-    fontWeight: 700,
-    color: '#1b1c19',
-    margin: 0,
-    marginBottom: '16px',
-    letterSpacing: '-0.02em',
-    maxWidth: '400px',
-    animation: 'fadeInUp 0.5s ease-out 0.1s both',
-    fontFamily: 'var(--font-display), system-ui, sans-serif',
-  }}
->
-  {slide.title}
-</h1>
+          style={{
+            fontSize: '32px',
+            fontWeight: 700,
+            color: '#1b1c19',
+            margin: 0,
+            marginBottom: '16px',
+            letterSpacing: '-0.02em',
+            maxWidth: '400px',
+            animation: 'fadeInUp 0.5s ease-out 0.1s both',
+            fontFamily: 'var(--font-display), system-ui, sans-serif',
+          }}
+        >
+          {slide.title}
+        </h1>
 
         <p
           style={{
@@ -226,7 +224,7 @@ export default function WelcomePage() {
           fontWeight: 600,
           cursor: 'pointer',
           letterSpacing: '0.05em',
-          fontFamily: 'inherit',
+          fontFamily: 'var(--font-label), system-ui, sans-serif',
           transition: 'transform 0.15s ease',
           marginBottom: '24px',
           position: 'relative',
