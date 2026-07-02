@@ -67,6 +67,7 @@ export default function GetStartedPage() {
 
         <h1
           style={{
+            fontFamily: 'var(--font-display), system-ui, sans-serif',
             fontSize: '28px',
             fontWeight: 700,
             color: '#1b1c19',
@@ -80,6 +81,7 @@ export default function GetStartedPage() {
 
         <p
           style={{
+            fontFamily: 'var(--font-display), system-ui, sans-serif',
             fontSize: '16px',
             color: '#44483a',
             margin: 0,
@@ -151,6 +153,7 @@ export default function GetStartedPage() {
             <div style={{ flex: 1 }}>
               <h2
                 style={{
+                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                   fontSize: '20px',
                   fontWeight: 700,
                   color: '#1b1c19',
@@ -163,6 +166,7 @@ export default function GetStartedPage() {
               </h2>
               <p
                 style={{
+                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                   fontSize: '14px',
                   color: '#44483a',
                   margin: 0,
@@ -226,6 +230,7 @@ export default function GetStartedPage() {
             <div style={{ flex: 1 }}>
               <h2
                 style={{
+                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                   fontSize: '20px',
                   fontWeight: 700,
                   color: '#1b1c19',
@@ -238,13 +243,14 @@ export default function GetStartedPage() {
               </h2>
               <p
                 style={{
+                  fontFamily: 'var(--font-display), system-ui, sans-serif',
                   fontSize: '14px',
                   color: '#44483a',
                   margin: 0,
                   lineHeight: '20px',
                 }}
               >
-                List your products, reach customers, grow your business
+                Reach new customers, use Ai to grow your business
               </p>
             </div>
             <div
