@@ -1,4 +1,18 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
 export default function Page() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.push('/welcome');
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [router]);
+
   return (
     <main
       style={{
@@ -40,7 +54,7 @@ export default function Page() {
         }}
       />
 
-      {/* Logo with fade-in animation */}
+      {/* Logo */}
       <div
         style={{
           animation: 'fadeInScale 0.8s ease-out',
@@ -59,7 +73,6 @@ export default function Page() {
           }}
         />
 
-        {/* Tagline */}
         <p
           style={{
             marginTop: '8px',
@@ -71,7 +84,7 @@ export default function Page() {
             textAlign: 'center',
           }}
         >
-          Ai assisted Marketing and Oredering
+          Organic Marketplace
         </p>
       </div>
 
@@ -85,33 +98,9 @@ export default function Page() {
           animation: 'fadeIn 1s ease-out 0.3s both',
         }}
       >
-        <div
-          style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#4a6410',
-            animation: 'pulse 1.5s ease-in-out infinite',
-          }}
-        />
-        <div
-          style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#4a6410',
-            animation: 'pulse 1.5s ease-in-out 0.2s infinite',
-          }}
-        />
-        <div
-          style={{
-            width: '8px',
-            height: '8px',
-            borderRadius: '50%',
-            backgroundColor: '#4a6410',
-            animation: 'pulse 1.5s ease-in-out 0.4s infinite',
-          }}
-        />
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4a6410', animation: 'pulse 1.5s ease-in-out infinite' }} />
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4a6410', animation: 'pulse 1.5s ease-in-out 0.2s infinite' }} />
+        <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4a6410', animation: 'pulse 1.5s ease-in-out 0.4s infinite' }} />
       </div>
 
       <style>{`
