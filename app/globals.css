@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: #fbf9f4;
+    color: #1b1c19;
+    font-family: var(--font-body), system-ui, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    color: #1b1c19;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply bg-primary text-on-primary font-label font-semibold text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all hover:bg-primary-container active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-secondary text-secondary font-label font-semibold text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all hover:bg-secondary-container/30 active:scale-[0.98] disabled:opacity-50;
+  }
+
+  .btn-tertiary {
+    @apply bg-tertiary text-on-tertiary font-label font-semibold text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all hover:bg-tertiary-container active:scale-[0.98] disabled:opacity-50;
+  }
+
+  /* Cards */
+  .card-organic {
+    @apply bg-surface-container-lowest border border-secondary/10 rounded-lg shadow-organic-sm transition-all duration-200 hover:shadow-organic;
+  }
+
+  /* Chips */
+  .chip {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-label font-semibold uppercase tracking-wider bg-primary/10 text-primary;
+  }
+
+  .chip-tertiary {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-label font-semibold uppercase tracking-wider bg-tertiary/10 text-tertiary;
+  }
+}
