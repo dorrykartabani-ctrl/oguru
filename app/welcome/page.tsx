@@ -5,24 +5,24 @@ import { useRouter } from 'next/navigation';
 
 const slides = [
   {
-    emoji: '🌿',
-    title: 'Fresh, local, delivered',
-    description: 'Discover artisans, farmers, and cafés in your area. Real food from real people.',
+    emoji: '🌾',
+    title: 'Real food. Real people.',
+    description: 'Discover local artisans, farmers, and cafés. Every vendor on OGuru is verified and vetted.',
   },
   {
     emoji: '⚡',
     title: 'Skip the queue',
-    description: 'Pre-order your favourites and pick them up when they\'re ready. No more waiting.',
+    description: 'Pre-order from your favourites, gift treats to friends, and never miss a fresh drop.',
   },
   {
-    emoji: '🎁',
-    title: 'Gift to friends',
-    description: 'Send a coffee, a loaf of bread, or a bunch of flowers to anyone. Any occasion.',
+    emoji: '📈',
+    title: 'Grow your business',
+    description: 'Vendors reach local customers, run smart campaigns, and let AI handle the marketing.',
   },
   {
-    emoji: '👥',
-    title: 'Join the community',
-    description: 'Follow local vendors, share discoveries, and organise group orders with friends.',
+    emoji: '🌿',
+    title: 'Better together',
+    description: 'Join a community that celebrates local, organic, and artisan producers.',
   },
 ];
 
@@ -34,14 +34,14 @@ export default function WelcomePage() {
 
   const handleNext = () => {
     if (isLastSlide) {
-      router.push('/signup');
+      router.push('/get-started');
     } else {
       setCurrentSlide(currentSlide + 1);
     }
   };
 
   const handleSkip = () => {
-    router.push('/signup');
+    router.push('/get-started');
   };
 
   const slide = slides[currentSlide];
@@ -59,7 +59,6 @@ export default function WelcomePage() {
         overflow: 'hidden',
       }}
     >
-      {/* Decorative background */}
       <div
         style={{
           position: 'absolute',
@@ -87,7 +86,6 @@ export default function WelcomePage() {
         }}
       />
 
-      {/* Top bar with skip button and progress */}
       <div
         style={{
           display: 'flex',
@@ -128,7 +126,6 @@ export default function WelcomePage() {
         </button>
       </div>
 
-      {/* Main content area */}
       <div
         style={{
           flex: 1,
@@ -142,7 +139,6 @@ export default function WelcomePage() {
         }}
         key={currentSlide}
       >
-        {/* Emoji illustration */}
         <div
           style={{
             width: '200px',
@@ -161,7 +157,6 @@ export default function WelcomePage() {
           </span>
         </div>
 
-        {/* Title */}
         <h1
           style={{
             fontSize: '32px',
@@ -177,7 +172,6 @@ export default function WelcomePage() {
           {slide.title}
         </h1>
 
-        {/* Description */}
         <p
           style={{
             fontSize: '17px',
@@ -192,7 +186,6 @@ export default function WelcomePage() {
         </p>
       </div>
 
-      {/* Progress dots */}
       <div
         style={{
           display: 'flex',
@@ -217,7 +210,6 @@ export default function WelcomePage() {
         ))}
       </div>
 
-      {/* Next / Get Started button */}
       <button
         onClick={handleNext}
         style={{
@@ -234,7 +226,7 @@ export default function WelcomePage() {
           cursor: 'pointer',
           letterSpacing: '0.05em',
           fontFamily: 'inherit',
-          transition: 'all 0.2s ease',
+          transition: 'transform 0.15s ease',
           marginBottom: '24px',
           position: 'relative',
           zIndex: 1,
