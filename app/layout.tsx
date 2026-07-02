@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Be_Vietnam_Pro, Manrope, Hanken_Grotesk } from 'next/font/google';
+import './globals.css';
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['latin'],
