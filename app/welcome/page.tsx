@@ -158,19 +158,20 @@ export default function WelcomePage() {
         </div>
 
         <h1
-          style={{
-            fontSize: '32px',
-            fontWeight: 700,
-            color: '#1b1c19',
-            margin: 0,
-            marginBottom: '16px',
-            letterSpacing: '-0.02em',
-            maxWidth: '400px',
-            animation: 'fadeInUp 0.5s ease-out 0.1s both',
-          }}
-        >
-          {slide.title}
-        </h1>
+  style={{
+    fontSize: '32px',
+    fontWeight: 700,
+    color: '#1b1c19',
+    margin: 0,
+    marginBottom: '16px',
+    letterSpacing: '-0.02em',
+    maxWidth: '400px',
+    animation: 'fadeInUp 0.5s ease-out 0.1s both',
+    fontFamily: 'var(--font-display), system-ui, sans-serif',
+  }}
+>
+  {slide.title}
+</h1>
 
         <p
           style={{
