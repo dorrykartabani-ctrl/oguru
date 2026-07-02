@@ -26,6 +26,20 @@ const hankenGrotesk = Hanken_Grotesk({
 export const metadata: Metadata = {
   title: 'OGuru — Organic Marketplace',
   description: 'Discover local artisans, farmers, and cafés. Pre-order, gift, and grow together.',
+  manifest: '/manifest.json',
+  applicationName: 'OGuru',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'OGuru',
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: '/icon-192.png',
+    apple: '/icon-192.png',
+  },
 };
 
 export const viewport: Viewport = {
@@ -34,6 +48,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -46,18 +61,14 @@ export default function RootLayout({
       lang="en"
       className={`${beVietnamPro.variable} ${manrope.variable} ${hankenGrotesk.variable}`}
     >
-      <body
-        style={{
-          margin: 0,
-          padding: 0,
-          fontFamily: 'var(--font-body), system-ui, -apple-system, sans-serif',
-          backgroundColor: '#fbf9f4',
-          color: '#1b1c19',
-          WebkitFontSmoothing: 'antialiased',
-        }}
-      >
-        {children}
-      </body>
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="OGuru" />
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }
