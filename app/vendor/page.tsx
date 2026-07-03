@@ -9,12 +9,10 @@ import {
   BarChart3,
   UserCheck,
   RefreshCw,
-  ArrowUpRight,
   Check,
   Lightbulb,
   ShoppingBag,
   Menu,
-  ArrowRight,
 } from 'lucide-react';
 
 export default function VendorLandingPage() {
@@ -23,7 +21,7 @@ export default function VendorLandingPage() {
   return (
     <main className="bg-surface text-on-background min-h-screen">
       {/* Top Nav */}
-      <header className="bg-surface-container-low sticky top-0 z-50 shadow-sm w-full">
+      <header className="bg-surface-container-low/95 backdrop-blur-md sticky top-0 z-50 shadow-sm w-full">
         <nav className="flex justify-between items-center px-4 md:px-10 py-2 w-full max-w-[1280px] mx-auto h-20">
           <button
             onClick={() => router.push('/get-started')}
@@ -56,61 +54,59 @@ export default function VendorLandingPage() {
         </nav>
       </header>
 
-      {/* Hero */}
-      <section className="relative pt-12 pb-20 md:pt-24 md:pb-32 overflow-hidden">
-        <div className="absolute inset-0 organic-grain" />
+      {/* Hero — Full-width background image */}
+      <section className="relative overflow-hidden">
+        {/* Background image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: "url('/images/hero-cafe.jpg')",
+          }}
+        />
 
-        <div className="max-w-[1280px] mx-auto px-4 md:px-10 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-label font-semibold uppercase tracking-wider">
-                <Sparkles size={16} />
-                AI-powered local growth
-              </div>
+        {/* Dark gradient overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
 
-              <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-on-surface leading-tight tracking-tight">
-                Grow your local business with{' '}
-                <span className="text-primary italic">AI-powered</span> marketing
-              </h1>
+        {/* Subtle organic texture on top */}
+        <div className="absolute inset-0 organic-grain opacity-10" />
 
-              <p className="text-lg text-on-surface-variant max-w-xl leading-relaxed">
-                Bridge the gap between your craft and local customers. Let smart insights, automated campaigns, and community-driven discovery do the heavy lifting — so you can focus on what you love.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button
-                  onClick={() => router.push('/vendor/apply')}
-                  className="bg-primary text-on-primary font-label font-bold px-8 py-4 rounded-xl text-base shadow-lg hover:scale-105 transition-transform active:scale-95"
-                >
-                  Join the Network
-                </button>
-                <button
-                  onClick={() => router.push('/vendor/demo')}
-                  className="border-2 border-secondary text-secondary font-label font-bold px-8 py-4 rounded-xl text-base hover:bg-secondary/5 transition-colors"
-                >
-                  Book a Demo
-                </button>
-              </div>
+        {/* Content */}
+        <div className="relative z-10 max-w-[1280px] mx-auto px-4 md:px-10 py-20 md:py-32 lg:py-40 min-h-[600px] md:min-h-[700px] flex items-center">
+          <div className="max-w-3xl space-y-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-label font-semibold uppercase tracking-wider">
+              <Sparkles size={16} />
+              AI-powered local growth
             </div>
 
-            {/* Hero visual — placeholder */}
-            <div className="relative group">
-              <div className="absolute -inset-4 bg-primary/10 rounded-[2rem] blur-3xl group-hover:bg-primary/20 transition-all duration-700" />
-              <div className="relative bg-surface rounded-[2rem] border border-outline/10 p-4 shadow-2xl overflow-hidden">
-                <div className="w-full h-[300px] md:h-[450px] rounded-[1.5rem] bg-gradient-to-br from-primary/20 via-secondary-container to-tertiary/10 flex items-center justify-center">
-                  <div className="text-center space-y-4 p-8">
-                    <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
-                      <TrendingUp size={40} className="text-primary" />
-                    </div>
-                    <p className="text-on-surface-variant font-label uppercase tracking-widest text-xs">
-                      Hero Image Placeholder
-                    </p>
-                  </div>
-                </div>
-              </div>
+            <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-white leading-tight tracking-tight">
+              Grow your local business with{' '}
+              <span className="text-primary-fixed italic">AI-powered</span>{' '}
+              marketing
+            </h1>
+
+            <p className="text-lg md:text-xl text-white/85 max-w-2xl leading-relaxed">
+              Bridge the gap between your craft and local customers. Let smart insights, automated campaigns, and community-driven discovery do the heavy lifting.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <button
+                onClick={() => router.push('/vendor/apply')}
+                className="bg-primary text-on-primary font-label font-bold px-8 py-4 rounded-xl text-base shadow-2xl hover:scale-105 transition-transform active:scale-95"
+              >
+                Join the Network
+              </button>
+              <button
+                onClick={() => router.push('/vendor/demo')}
+                className="bg-white/10 backdrop-blur-md border-2 border-white/30 text-white font-label font-bold px-8 py-4 rounded-xl text-base hover:bg-white/20 transition-colors"
+              >
+                Book a Demo
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Bottom fade to next section */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-surface pointer-events-none" />
       </section>
 
       {/* Social Proof */}
@@ -121,21 +117,11 @@ export default function VendorLandingPage() {
               Trusted by local artisans and vendors
             </p>
             <div className="flex flex-wrap justify-center gap-6 md:gap-10 grayscale opacity-40">
-              <span className="font-display font-bold text-lg md:text-xl">
-                Cafés
-              </span>
-              <span className="font-display font-bold text-lg md:text-xl">
-                Bakeries
-              </span>
-              <span className="font-display font-bold text-lg md:text-xl">
-                Roasters
-              </span>
-              <span className="font-display font-bold text-lg md:text-xl">
-                Farmers
-              </span>
-              <span className="font-display font-bold text-lg md:text-xl">
-                Makers
-              </span>
+              <span className="font-display font-bold text-lg md:text-xl">Cafés</span>
+              <span className="font-display font-bold text-lg md:text-xl">Bakeries</span>
+              <span className="font-display font-bold text-lg md:text-xl">Roasters</span>
+              <span className="font-display font-bold text-lg md:text-xl">Farmers</span>
+              <span className="font-display font-bold text-lg md:text-xl">Makers</span>
             </div>
           </div>
         </div>
@@ -228,7 +214,6 @@ export default function VendorLandingPage() {
         <div className="max-w-[1280px] mx-auto px-4 md:px-10">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             <div className="relative order-2 lg:order-1 mx-auto">
-              {/* Phone Mockup */}
               <div className="relative mx-auto border-on-surface bg-on-background border-[14px] rounded-[2.5rem] h-[520px] md:h-[600px] w-[260px] md:w-[300px] shadow-2xl">
                 <div className="h-[32px] w-[3px] bg-outline absolute -left-[17px] top-[72px] rounded-l-lg" />
                 <div className="h-[46px] w-[3px] bg-outline absolute -left-[17px] top-[124px] rounded-l-lg" />
@@ -236,7 +221,6 @@ export default function VendorLandingPage() {
                 <div className="h-[64px] w-[3px] bg-outline absolute -right-[17px] top-[142px] rounded-r-lg" />
 
                 <div className="rounded-[2rem] overflow-hidden w-full h-full bg-white relative">
-                  {/* App Header */}
                   <div className="px-6 py-6 md:py-8 bg-primary text-white space-y-1">
                     <p className="text-[10px] opacity-80 uppercase tracking-widest font-bold font-label">
                       Good morning,
@@ -246,7 +230,6 @@ export default function VendorLandingPage() {
                     </h4>
                   </div>
 
-                  {/* App Content */}
                   <div className="p-4 space-y-4">
                     <div className="bg-secondary-container p-4 rounded-2xl">
                       <div className="flex items-center gap-2 mb-2">
@@ -288,9 +271,7 @@ export default function VendorLandingPage() {
                           <ShoppingBag size={14} className="text-tertiary" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold">
-                            New follower
-                          </p>
+                          <p className="text-[10px] font-bold">New follower</p>
                           <p className="text-[8px] text-on-surface-variant">
                             Sarah started following you
                           </p>
