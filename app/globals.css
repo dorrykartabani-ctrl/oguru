@@ -17,19 +17,13 @@
     padding: 0;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display), system-ui, sans-serif;
     color: #1b1c19;
   }
 }
 
 @layer components {
-  /* Buttons */
   .btn-primary {
     @apply bg-primary text-on-primary font-label font-semibold text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all hover:bg-primary-container active:scale-[0.98] disabled:opacity-50;
   }
@@ -42,17 +36,31 @@
     @apply bg-tertiary text-on-tertiary font-label font-semibold text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all hover:bg-tertiary-container active:scale-[0.98] disabled:opacity-50;
   }
 
-  /* Cards */
   .card-organic {
     @apply bg-surface-container-lowest border border-secondary/10 rounded-lg shadow-organic-sm transition-all duration-200 hover:shadow-organic;
   }
 
-  /* Chips */
   .chip {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-label font-semibold uppercase tracking-wider bg-primary/10 text-primary;
   }
 
   .chip-tertiary {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-label font-semibold uppercase tracking-wider bg-tertiary/10 text-tertiary;
+  }
+
+  /* Organic grain texture overlay */
+  .organic-grain {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.04;
+    pointer-events: none;
+  }
+
+  /* Bento card hover effect */
+  .bento-card {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  }
+  .bento-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(93, 64, 55, 0.08);
   }
 }
