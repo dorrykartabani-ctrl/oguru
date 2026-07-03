@@ -1,628 +1,478 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-
-const valueProps = [
-  {
-    icon: '📊',
-    title: 'Ready-made audience',
-    description: 'Hundreds of organic shoppers in your area are already looking for vendors like you.',
-    color: '#4a6410',
-    bgColor: 'rgba(74, 100, 16, 0.1)',
-  },
-  {
-    icon: '🤖',
-    title: 'AI marketing assistant',
-    description: 'Auto-generate campaigns, social posts, and promotions. Marketing on autopilot.',
-    color: '#924700',
-    bgColor: 'rgba(146, 71, 0, 0.1)',
-  },
-  {
-    icon: '📈',
-    title: 'Smart customer insights',
-    description: 'See what your customers love, when they buy, and how to bring them back.',
-    color: '#77574d',
-    bgColor: 'rgba(119, 87, 77, 0.1)',
-  },
-  {
-    icon: '🎁',
-    title: 'Gifting drives discovery',
-    description: 'Customers gift your products to friends, introducing you to new audiences.',
-    color: '#4a6410',
-    bgColor: 'rgba(74, 100, 16, 0.1)',
-  },
-];
-
-const steps = [
-  {
-    number: '01',
-    title: 'Apply & get verified',
-    description: 'Quick application, human review. We ensure quality for everyone.',
-  },
-  {
-    number: '02',
-    title: 'Connect your POS',
-    description: 'Sync menu from Square, Toast, or others. Or add products manually.',
-  },
-  {
-    number: '03',
-    title: 'Start receiving orders',
-    description: 'Customers pre-order, gift, and follow you. Payments go through your POS.',
-  },
-];
-
-const testimonials = [
-  {
-    quote: 'OGuru brought us 30 new regulars in the first month. The AI writes better captions than I do!',
-    author: 'Sarah',
-    business: 'BrewHouse Café',
-    emoji: '☕',
-  },
-  {
-    quote: 'The gifting feature is brilliant. My honey gets sent as thank-you gifts constantly now.',
-    author: 'Marcus',
-    business: 'Wildflower Apiary',
-    emoji: '🍯',
-  },
-];
+import {
+  Sparkles,
+  TrendingUp,
+  Megaphone,
+  Gift,
+  BarChart3,
+  UserCheck,
+  RefreshCw,
+  ArrowUpRight,
+  Check,
+  Lightbulb,
+  ShoppingBag,
+  Menu,
+  ArrowRight,
+} from 'lucide-react';
 
 export default function VendorLandingPage() {
   const router = useRouter();
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#fbf9f4',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Decorative background */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '5%',
-          right: '-150px',
-          width: '400px',
-          height: '400px',
-          borderRadius: '50%',
-          background: 'rgba(74, 100, 16, 0.05)',
-          filter: 'blur(80px)',
-          pointerEvents: 'none',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          top: '40%',
-          left: '-150px',
-          width: '400px',
-          height: '400px',
-          borderRadius: '50%',
-          background: 'rgba(146, 71, 0, 0.05)',
-          filter: 'blur(80px)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Top nav */}
-      <nav
-        style={{
-          padding: '16px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          position: 'relative',
-          zIndex: 10,
-        }}
-      >
-        <button
-          onClick={() => router.push('/get-started')}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#44483a',
-            fontSize: '14px',
-            fontWeight: 500,
-            cursor: 'pointer',
-            padding: '8px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            fontFamily: 'inherit',
-          }}
-        >
-          ← Back
-        </button>
-
-        <img
-          src="/logo.png"
-          alt="OGuru"
-          style={{ height: '32px', width: 'auto' }}
-        />
-
-        <button
-          onClick={() => router.push('/vendor/login')}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#4a6410',
-            fontSize: '14px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            padding: '8px 0',
-            fontFamily: 'inherit',
-          }}
-        >
-          Sign in
-        </button>
-      </nav>
-
-      <div
-        style={{
-          maxWidth: '480px',
-          margin: '0 auto',
-          padding: '0 24px',
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        {/* Hero Section */}
-        <section
-          style={{
-            paddingTop: '32px',
-            paddingBottom: '48px',
-            textAlign: 'center',
-            animation: 'fadeInUp 0.6s ease-out',
-          }}
-        >
-          <div
-            style={{
-              display: 'inline-block',
-              padding: '6px 14px',
-              backgroundColor: 'rgba(74, 100, 16, 0.1)',
-              color: '#4a6410',
-              borderRadius: '999px',
-              fontSize: '12px',
-              fontWeight: 600,
-              letterSpacing: '0.1em',
-              textTransform: 'uppercase',
-              marginBottom: '24px',
-              fontFamily: 'var(--font-label), system-ui, sans-serif',
-            }}
-          >
-            🌾 For Vendors
-          </div>
-
-          <h1
-            style={{
-              fontSize: '40px',
-              fontWeight: 700,
-              color: '#1b1c19',
-              margin: 0,
-              marginBottom: '16px',
-              letterSpacing: '-0.02em',
-              lineHeight: '48px',
-              fontFamily: 'var(--font-display), system-ui, sans-serif',
-            }}
-          >
-            Grow your business the organic way
-          </h1>
-
-          <p
-            style={{
-              fontSize: '17px',
-              lineHeight: '26px',
-              color: '#44483a',
-              margin: 0,
-              marginBottom: '32px',
-            }}
-          >
-            Reach local customers who value quality, authenticity, and craft. Let AI handle the marketing so you can focus on what you do best.
-          </p>
-
+    <main className="bg-surface text-on-background min-h-screen">
+      {/* Top Nav */}
+      <header className="bg-surface-container-low sticky top-0 z-50 shadow-sm w-full">
+        <nav className="flex justify-between items-center px-4 md:px-10 py-2 w-full max-w-[1280px] mx-auto h-20">
           <button
-            onClick={() => router.push('/vendor/apply')}
-            style={{
-              width: '100%',
-              padding: '18px 24px',
-              backgroundColor: '#4a6410',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              letterSpacing: '0.05em',
-              fontFamily: 'var(--font-label), system-ui, sans-serif',
-              transition: 'transform 0.15s ease, box-shadow 0.2s ease',
-              boxShadow: '0 4px 12px rgba(74, 100, 16, 0.25)',
-            }}
-            onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
-            onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+            onClick={() => router.push('/get-started')}
+            className="flex items-center gap-3"
           >
-            Apply Now →
+            <img src="/logo.png" alt="OGuru" className="h-12 w-auto" />
+            <span className="font-display text-2xl font-bold text-primary hidden sm:inline">
+              OGuru
+            </span>
           </button>
 
-          <p
-            style={{
-              fontSize: '13px',
-              color: '#757969',
-              marginTop: '16px',
-              margin: '16px 0 0 0',
-            }}
-          >
-            Free to join · No monthly fees during beta
-          </p>
-        </section>
-
-        {/* Value Props Section */}
-        <section
-          style={{
-            paddingBottom: '48px',
-          }}
-        >
-          <h2
-            style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#4a6410',
-              margin: 0,
-              marginBottom: '20px',
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              textAlign: 'center',
-              fontFamily: 'var(--font-label), system-ui, sans-serif',
-            }}
-          >
-            Why OGuru?
-          </h2>
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-            }}
-          >
-            {valueProps.map((prop, index) => (
-              <div
-                key={index}
-                style={{
-                  backgroundColor: '#ffffff',
-                  padding: '24px',
-                  borderRadius: '16px',
-                  border: '1px solid rgba(119, 87, 77, 0.1)',
-                  display: 'flex',
-                  gap: '16px',
-                  alignItems: 'flex-start',
-                  boxShadow: '0 2px 8px rgba(93, 64, 55, 0.04)',
-                  animation: `fadeInUp 0.5s ease-out ${0.1 * index}s both`,
-                }}
-              >
-                <div
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '12px',
-                    backgroundColor: prop.bgColor,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '24px',
-                    flexShrink: 0,
-                  }}
-                >
-                  {prop.icon}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <h3
-                    style={{
-                      fontSize: '17px',
-                      fontWeight: 700,
-                      color: '#1b1c19',
-                      margin: 0,
-                      marginBottom: '4px',
-                      letterSpacing: '-0.01em',
-                      fontFamily: 'var(--font-display), system-ui, sans-serif',
-                    }}
-                  >
-                    {prop.title}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: '14px',
-                      lineHeight: '20px',
-                      color: '#44483a',
-                      margin: 0,
-                    }}
-                  >
-                    {prop.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* How It Works Section */}
-        <section style={{ paddingBottom: '48px' }}>
-          <h2
-            style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#4a6410',
-              margin: 0,
-              marginBottom: '20px',
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              textAlign: 'center',
-              fontFamily: 'var(--font-label), system-ui, sans-serif',
-            }}
-          >
-            How it works
-          </h2>
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '20px',
-            }}
-          >
-            {steps.map((step, index) => (
-              <div
-                key={index}
-                style={{
-                  display: 'flex',
-                  gap: '20px',
-                  alignItems: 'flex-start',
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: '32px',
-                    fontWeight: 700,
-                    color: '#c5c8b6',
-                    fontFamily: 'var(--font-display), system-ui, sans-serif',
-                    lineHeight: 1,
-                    flexShrink: 0,
-                    minWidth: '48px',
-                  }}
-                >
-                  {step.number}
-                </div>
-                <div style={{ flex: 1, paddingTop: '4px' }}>
-                  <h3
-                    style={{
-                      fontSize: '17px',
-                      fontWeight: 700,
-                      color: '#1b1c19',
-                      margin: 0,
-                      marginBottom: '4px',
-                      letterSpacing: '-0.01em',
-                      fontFamily: 'var(--font-display), system-ui, sans-serif',
-                    }}
-                  >
-                    {step.title}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: '14px',
-                      lineHeight: '20px',
-                      color: '#44483a',
-                      margin: 0,
-                    }}
-                  >
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section style={{ paddingBottom: '48px' }}>
-          <h2
-            style={{
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#4a6410',
-              margin: 0,
-              marginBottom: '20px',
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              textAlign: 'center',
-              fontFamily: 'var(--font-label), system-ui, sans-serif',
-            }}
-          >
-            From our vendors
-          </h2>
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-            }}
-          >
-            {testimonials.map((testimonial, index) => (
-              <div
-                key={index}
-                style={{
-                  backgroundColor: 'rgba(74, 100, 16, 0.05)',
-                  padding: '24px',
-                  borderRadius: '16px',
-                  border: '1px solid rgba(74, 100, 16, 0.1)',
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: '15px',
-                    lineHeight: '22px',
-                    color: '#1b1c19',
-                    margin: 0,
-                    marginBottom: '12px',
-                    fontStyle: 'italic',
-                  }}
-                >
-                  &ldquo;{testimonial.quote}&rdquo;
-                </p>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(74, 100, 16, 0.15)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '16px',
-                    }}
-                  >
-                    {testimonial.emoji}
-                  </div>
-                  <div>
-                    <p
-                      style={{
-                        fontSize: '13px',
-                        fontWeight: 600,
-                        color: '#1b1c19',
-                        margin: 0,
-                      }}
-                    >
-                      {testimonial.author}
-                    </p>
-                    <p
-                      style={{
-                        fontSize: '12px',
-                        color: '#757969',
-                        margin: 0,
-                      }}
-                    >
-                      {testimonial.business}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Final CTA */}
-        <section
-          style={{
-            paddingBottom: '48px',
-            textAlign: 'center',
-          }}
-        >
-          <div
-            style={{
-              padding: '32px 24px',
-              background: 'linear-gradient(135deg, #4a6410 0%, #627e29 100%)',
-              borderRadius: '20px',
-              color: '#ffffff',
-              boxShadow: '0 8px 24px rgba(74, 100, 16, 0.25)',
-            }}
-          >
-            <h2
-              style={{
-                fontSize: '24px',
-                fontWeight: 700,
-                margin: 0,
-                marginBottom: '8px',
-                letterSpacing: '-0.02em',
-                fontFamily: 'var(--font-display), system-ui, sans-serif',
-              }}
-            >
-              Ready to grow?
-            </h2>
-            <p
-              style={{
-                fontSize: '15px',
-                margin: 0,
-                marginBottom: '24px',
-                opacity: 0.9,
-                lineHeight: '22px',
-              }}
-            >
-              Apply in under 5 minutes. Get verified. Start selling.
-            </p>
+          <div className="hidden md:flex items-center gap-8 text-sm font-label font-semibold text-on-surface-variant">
+            <a href="#platform" className="hover:text-primary transition-colors">
+              Platform
+            </a>
+            <a href="#how" className="hover:text-primary transition-colors">
+              How it works
+            </a>
             <button
               onClick={() => router.push('/vendor/apply')}
-              style={{
-                width: '100%',
-                padding: '16px 24px',
-                backgroundColor: '#ffffff',
-                color: '#4a6410',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                letterSpacing: '0.05em',
-                fontFamily: 'var(--font-label), system-ui, sans-serif',
-                transition: 'transform 0.15s ease',
-              }}
-              onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
-              onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+              className="bg-primary text-on-primary px-6 py-3 rounded-full hover:bg-primary-container transition-all shadow-md text-sm"
             >
-              Apply Now →
+              Get Started
             </button>
           </div>
 
-          <p
-            style={{
-              fontSize: '13px',
-              color: '#757969',
-              marginTop: '20px',
-              margin: '20px 0 0 0',
-            }}
-          >
-            Already a vendor?{' '}
-            <button
-              onClick={() => router.push('/vendor/login')}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#4a6410',
-                fontWeight: 600,
-                cursor: 'pointer',
-                padding: 0,
-                fontFamily: 'inherit',
-                fontSize: '13px',
-                textDecoration: 'underline',
-              }}
-            >
-              Sign in here
-            </button>
-          </p>
-        </section>
-      </div>
+          <button className="md:hidden p-2 text-on-surface-variant">
+            <Menu size={24} />
+          </button>
+        </nav>
+      </header>
 
-      <style>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+      {/* Hero */}
+      <section className="relative pt-12 pb-20 md:pt-24 md:pb-32 overflow-hidden">
+        <div className="absolute inset-0 organic-grain" />
+
+        <div className="max-w-[1280px] mx-auto px-4 md:px-10 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-label font-semibold uppercase tracking-wider">
+                <Sparkles size={16} />
+                AI-powered local growth
+              </div>
+
+              <h1 className="font-display font-bold text-4xl md:text-5xl lg:text-6xl text-on-surface leading-tight tracking-tight">
+                Grow your local business with{' '}
+                <span className="text-primary italic">AI-powered</span> marketing
+              </h1>
+
+              <p className="text-lg text-on-surface-variant max-w-xl leading-relaxed">
+                Bridge the gap between your craft and local customers. Let smart insights, automated campaigns, and community-driven discovery do the heavy lifting — so you can focus on what you love.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={() => router.push('/vendor/apply')}
+                  className="bg-primary text-on-primary font-label font-bold px-8 py-4 rounded-xl text-base shadow-lg hover:scale-105 transition-transform active:scale-95"
+                >
+                  Join the Network
+                </button>
+                <button
+                  onClick={() => router.push('/vendor/demo')}
+                  className="border-2 border-secondary text-secondary font-label font-bold px-8 py-4 rounded-xl text-base hover:bg-secondary/5 transition-colors"
+                >
+                  Book a Demo
+                </button>
+              </div>
+            </div>
+
+            {/* Hero visual — placeholder */}
+            <div className="relative group">
+              <div className="absolute -inset-4 bg-primary/10 rounded-[2rem] blur-3xl group-hover:bg-primary/20 transition-all duration-700" />
+              <div className="relative bg-surface rounded-[2rem] border border-outline/10 p-4 shadow-2xl overflow-hidden">
+                <div className="w-full h-[300px] md:h-[450px] rounded-[1.5rem] bg-gradient-to-br from-primary/20 via-secondary-container to-tertiary/10 flex items-center justify-center">
+                  <div className="text-center space-y-4 p-8">
+                    <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
+                      <TrendingUp size={40} className="text-primary" />
+                    </div>
+                    <p className="text-on-surface-variant font-label uppercase tracking-widest text-xs">
+                      Hero Image Placeholder
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof */}
+      <section className="bg-surface-container py-12 border-y border-outline/5">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-10">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8 opacity-75">
+            <p className="text-xs font-label font-semibold text-on-surface-variant tracking-widest uppercase text-center md:text-left">
+              Trusted by local artisans and vendors
+            </p>
+            <div className="flex flex-wrap justify-center gap-6 md:gap-10 grayscale opacity-40">
+              <span className="font-display font-bold text-lg md:text-xl">
+                Cafés
+              </span>
+              <span className="font-display font-bold text-lg md:text-xl">
+                Bakeries
+              </span>
+              <span className="font-display font-bold text-lg md:text-xl">
+                Roasters
+              </span>
+              <span className="font-display font-bold text-lg md:text-xl">
+                Farmers
+              </span>
+              <span className="font-display font-bold text-lg md:text-xl">
+                Makers
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bento Grid — Core Features */}
+      <section id="platform" className="py-16 md:py-24 bg-surface">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-10">
+          <div className="text-center mb-12 md:mb-16 space-y-4">
+            <h2 className="font-display font-semibold text-3xl md:text-4xl text-on-surface">
+              Precision tools for modern vendors
+            </h2>
+            <p className="text-base text-on-surface-variant max-w-2xl mx-auto">
+              Our &ldquo;Organic Tech&rdquo; approach combines the warmth of the local market with the analytical power of high-level logistics.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Smart Insights — wide card */}
+            <div className="md:col-span-8 bento-card bg-surface-container-low rounded-3xl p-6 md:p-8 border border-outline/5 flex flex-col md:flex-row gap-6 md:gap-8 items-center">
+              <div className="flex-1 space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                  <BarChart3 size={24} />
+                </div>
+                <h3 className="font-display font-semibold text-2xl text-on-surface">
+                  Smart Insights
+                </h3>
+                <p className="text-on-surface-variant leading-relaxed">
+                  See what&apos;s coming before it happens. Our smart assistant watches trends, weather, and local events so you&apos;re always prepared for the busy moments.
+                </p>
+              </div>
+              <div className="flex-1 w-full h-40 md:h-48 bg-white/50 rounded-2xl border border-outline/5 overflow-hidden p-4">
+                <div className="w-full h-full flex items-end gap-2">
+                  <div className="w-1/6 bg-primary/20 h-[30%] rounded-t-lg" />
+                  <div className="w-1/6 bg-primary/30 h-[45%] rounded-t-lg" />
+                  <div className="w-1/6 bg-primary/40 h-[20%] rounded-t-lg" />
+                  <div className="w-1/6 bg-primary/60 h-[80%] rounded-t-lg animate-pulse" />
+                  <div className="w-1/6 bg-primary/40 h-[60%] rounded-t-lg" />
+                  <div className="w-1/6 bg-primary/20 h-[40%] rounded-t-lg" />
+                </div>
+              </div>
+            </div>
+
+            {/* Automated Campaigns */}
+            <div className="md:col-span-4 bento-card bg-secondary-container rounded-3xl p-6 md:p-8 border border-outline/5 flex flex-col justify-between min-h-[280px]">
+              <div className="w-12 h-12 rounded-2xl bg-secondary/20 flex items-center justify-center text-on-secondary-container">
+                <Megaphone size={24} />
+              </div>
+              <div className="mt-8 space-y-4">
+                <h3 className="font-display font-semibold text-2xl text-on-secondary-container">
+                  Automated Campaigns
+                </h3>
+                <p className="text-on-secondary-container/80 leading-relaxed">
+                  Reach lapsed customers with AI-optimised messaging that converts — without spending your day writing captions.
+                </p>
+              </div>
+            </div>
+
+            {/* Gifting Drives Growth */}
+            <div className="md:col-span-6 bento-card bg-surface-container-highest rounded-3xl p-6 md:p-8 border border-outline/5">
+              <div className="w-12 h-12 rounded-2xl bg-tertiary/10 flex items-center justify-center text-tertiary mb-6">
+                <Gift size={24} />
+              </div>
+              <h3 className="font-display font-semibold text-2xl text-on-surface mb-3">
+                Gifting Drives Growth
+              </h3>
+              <p className="text-on-surface-variant leading-relaxed">
+                Your customers gift your products to friends, introducing you to new audiences organically. Word of mouth, amplified.
+              </p>
+            </div>
+
+            {/* Customer CRM */}
+            <div className="md:col-span-6 bento-card bg-surface-container-low rounded-3xl p-6 md:p-8 border border-outline/5">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-6">
+                <UserCheck size={24} />
+              </div>
+              <h3 className="font-display font-semibold text-2xl text-on-surface mb-3">
+                Know Your Regulars
+              </h3>
+              <p className="text-on-surface-variant leading-relaxed">
+                See who your top customers are, what they love, and when they haven&apos;t visited in a while. Bring them back with a tap.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Dashboard Preview */}
+      <section className="py-16 md:py-24 bg-surface-container-low overflow-hidden">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div className="relative order-2 lg:order-1 mx-auto">
+              {/* Phone Mockup */}
+              <div className="relative mx-auto border-on-surface bg-on-background border-[14px] rounded-[2.5rem] h-[520px] md:h-[600px] w-[260px] md:w-[300px] shadow-2xl">
+                <div className="h-[32px] w-[3px] bg-outline absolute -left-[17px] top-[72px] rounded-l-lg" />
+                <div className="h-[46px] w-[3px] bg-outline absolute -left-[17px] top-[124px] rounded-l-lg" />
+                <div className="h-[46px] w-[3px] bg-outline absolute -left-[17px] top-[178px] rounded-l-lg" />
+                <div className="h-[64px] w-[3px] bg-outline absolute -right-[17px] top-[142px] rounded-r-lg" />
+
+                <div className="rounded-[2rem] overflow-hidden w-full h-full bg-white relative">
+                  {/* App Header */}
+                  <div className="px-6 py-6 md:py-8 bg-primary text-white space-y-1">
+                    <p className="text-[10px] opacity-80 uppercase tracking-widest font-bold font-label">
+                      Good morning,
+                    </p>
+                    <h4 className="font-display font-semibold text-lg">
+                      Café Artisan
+                    </h4>
+                  </div>
+
+                  {/* App Content */}
+                  <div className="p-4 space-y-4">
+                    <div className="bg-secondary-container p-4 rounded-2xl">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb size={14} className="text-primary" />
+                        <span className="text-[10px] font-bold text-on-secondary-container font-label">
+                          AI INSIGHT
+                        </span>
+                      </div>
+                      <p className="text-sm font-bold text-on-secondary-container leading-tight">
+                        Rush expected at 6:00 PM
+                      </p>
+                      <p className="text-[10px] text-on-secondary-container/70 mt-1">
+                        Local concert nearby + warm weather
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-surface-container p-3 rounded-xl border border-outline/5">
+                        <p className="text-[8px] uppercase font-bold text-on-surface-variant font-label">
+                          Live Orders
+                        </p>
+                        <p className="text-xl font-bold text-primary font-display">
+                          12
+                        </p>
+                      </div>
+                      <div className="bg-surface-container p-3 rounded-xl border border-outline/5">
+                        <p className="text-[8px] uppercase font-bold text-on-surface-variant font-label">
+                          Active Promos
+                        </p>
+                        <p className="text-xl font-bold text-tertiary font-display">
+                          3
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-outline/10 p-3 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-tertiary/20 flex items-center justify-center">
+                          <ShoppingBag size={14} className="text-tertiary" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold">
+                            New follower
+                          </p>
+                          <p className="text-[8px] text-on-surface-variant">
+                            Sarah started following you
+                          </p>
+                        </div>
+                      </div>
+                      <button className="bg-primary text-white text-[10px] px-2 py-1 rounded-md font-label font-semibold">
+                        View
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] md:w-[500px] h-[400px] md:h-[500px] bg-primary/5 rounded-full blur-3xl" />
+            </div>
+
+            <div className="space-y-8 order-1 lg:order-2">
+              <h2 className="font-display font-semibold text-3xl md:text-4xl text-on-surface leading-tight tracking-tight">
+                Your entire business in the{' '}
+                <span className="text-primary italic">palm of your hand</span>
+              </h2>
+              <p className="text-lg text-on-surface-variant leading-relaxed">
+                The OGuru Vendor Dashboard is more than a tool — it&apos;s a digital partner that understands your business better than a spreadsheet ever could.
+              </p>
+              <ul className="space-y-4">
+                {[
+                  'Live orders and pickup queue at a glance',
+                  'AI writes your marketing so you don\'t have to',
+                  'Follower CRM to bring back regulars',
+                  'Gift orders drive new customer discovery',
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-start gap-4">
+                    <div className="mt-1 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <Check size={14} />
+                    </div>
+                    <span className="text-base text-on-surface">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how" className="py-16 md:py-24 bg-surface">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-10">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="font-display font-semibold text-3xl md:text-4xl text-on-surface">
+              Go live in minutes
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 md:gap-12 relative">
+            <div className="hidden md:block absolute top-10 left-1/4 right-1/4 h-[2px] bg-outline/10 -z-10" />
+
+            {[
+              {
+                icon: UserCheck,
+                title: '1. Apply',
+                desc: 'Tell us about your business and your values. Takes under 5 minutes.',
+                filled: false,
+              },
+              {
+                icon: RefreshCw,
+                title: '2. Sync your menu',
+                desc: 'Import from your POS or add products manually. AI helps write descriptions.',
+                filled: false,
+              },
+              {
+                icon: TrendingUp,
+                title: '3. Grow',
+                desc: 'Open your doors to the OGuru community. Watch orders flow in.',
+                filled: true,
+              },
+            ].map((step, i) => {
+              const Icon = step.icon;
+              return (
+                <div key={i} className="text-center space-y-4 group">
+                  <div
+                    className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center border border-outline/5 shadow-sm group-hover:scale-110 transition-transform ${
+                      step.filled
+                        ? 'bg-primary text-on-primary shadow-lg'
+                        : 'bg-surface-container text-primary'
+                    }`}
+                  >
+                    <Icon size={32} />
+                  </div>
+                  <h4 className="font-display font-semibold text-xl">
+                    {step.title}
+                  </h4>
+                  <p className="text-on-surface-variant">{step.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-16 md:py-24 max-w-[1280px] mx-auto px-4 md:px-10 mb-12">
+        <div className="relative bg-on-surface text-on-primary rounded-[2rem] md:rounded-[3rem] overflow-hidden p-8 md:p-16 lg:p-24 text-center space-y-6 md:space-y-8">
+          <div className="absolute inset-0 organic-grain" />
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/20 to-transparent opacity-50" />
+
+          <div className="relative z-10 space-y-6">
+            <h2 className="font-display font-bold text-3xl md:text-5xl max-w-3xl mx-auto leading-tight tracking-tight text-white">
+              Join the OGuru network today
+            </h2>
+            <p className="text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
+              Secure your spot in the future of local commerce. Free during beta.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <button
+                onClick={() => router.push('/vendor/apply')}
+                className="w-full sm:w-auto bg-primary text-on-primary font-label font-bold px-10 py-5 rounded-2xl text-base shadow-xl hover:bg-primary-container transition-colors"
+              >
+                Get Started Now
+              </button>
+              <button
+                onClick={() => router.push('/vendor/demo')}
+                className="w-full sm:w-auto bg-white/10 backdrop-blur-md text-white border border-white/20 font-label font-bold px-10 py-5 rounded-2xl text-base hover:bg-white/20 transition-colors"
+              >
+                Speak with an Agent
+              </button>
+            </div>
+            <p className="text-xs font-label text-white/50 uppercase tracking-widest pt-2">
+              No credit card required • Cancel anytime
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-surface-container-highest py-12 md:py-16">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-10 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+          <div className="col-span-2 md:col-span-1 space-y-6">
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="OGuru" className="h-8 w-auto" />
+              <span className="font-display text-xl font-bold text-on-surface">
+                OGuru
+              </span>
+            </div>
+            <p className="text-on-surface-variant text-sm">
+              The organic tech platform for local artisans.
+            </p>
+          </div>
+
+          {[
+            {
+              title: 'Product',
+              links: ['Dashboard', 'Marketing Suite', 'Analytics'],
+            },
+            {
+              title: 'Company',
+              links: ['About Us', 'Sustainability', 'Contact'],
+            },
+            {
+              title: 'Support',
+              links: ['Help Centre', 'Terms', 'Privacy'],
+            },
+          ].map((section, i) => (
+            <div key={i} className="space-y-4">
+              <p className="text-xs font-label font-bold text-on-surface uppercase tracking-wider">
+                {section.title}
+              </p>
+              <ul className="space-y-2 text-on-surface-variant text-sm">
+                {section.links.map((link, j) => (
+                  <li key={j}>
+                    <a href="#" className="hover:text-primary transition-colors">
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="max-w-[1280px] mx-auto px-4 md:px-10 mt-12 md:mt-16 pt-8 border-t border-outline/10 text-center text-on-surface-variant text-xs font-label uppercase tracking-widest">
+          © 2024 OGuru. Locally sourced tech for global growth.
+        </div>
+      </footer>
     </main>
   );
 }
