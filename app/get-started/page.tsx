@@ -172,7 +172,7 @@ export default function GetStartedPage() {
         </button>
 
         <button
-          onClick={() => router.push('/vendor')}
+          onClick={() => router.push('/vendor/apply')}
           style={{
             padding: '28px 24px',
             backgroundColor: '#ffffff',
