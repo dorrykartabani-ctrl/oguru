@@ -5,114 +5,117 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ArrowRight,
+  User,
   Store,
-  MapPin,
-  Settings,
   ShieldCheck,
   Check,
-  Coffee,
-  Wheat,
-  Beef,
-  Apple,
-  Sparkles,
+  Upload,
+  FileText,
+  X,
+  Globe,
 } from 'lucide-react';
 
 type FormData = {
-  // Step 1
-  businessName: string;
-  businessType: string;
-  aboutStory: string;
-  specialty: string;
-  // Step 2
-  address: string;
-  city: string;
-  postcode: string;
-  openingHours: string;
-  // Step 3
-  usesPos: string;
-  posSystem: string;
-  menuSize: string;
-  instagram: string;
-  // Step 4
+  // Owner
   ownerName: string;
   ownerRole: string;
-  email: string;
-  phone: string;
+  ownerEmail: string;
+  ownerPhone: string;
+
+  // Business
+  businessCountry: string;
+  businessName: string;
+  businessAddress: string;
+  businessCity: string;
+  businessPostcode: string;
+  businessPhone: string;
+  businessEmail: string;
+  businessRegNumber: string;
+  documentName: string;
+
+  // Agreements
   agreedToTerms: boolean;
+  agreedToDataPolicy: boolean;
 };
 
-const businessTypes = [
-  { id: 'cafe', label: 'Café', icon: Coffee },
-  { id: 'bakery', label: 'Bakery', icon: Wheat },
-  { id: 'butcher', label: 'Butcher / Deli', icon: Beef },
-  { id: 'farm', label: 'Farm / Producer', icon: Apple },
-  { id: 'other', label: 'Something else', icon: Sparkles },
-];
-
-const posOptions = [
-  'Square',
-  'Toast',
-  'Lightspeed',
-  'Clover',
-  'Zettle',
-  'Other',
-  "I'm not sure",
-];
-
-const menuSizes = [
-  'Under 10 items',
-  '10 - 30 items',
-  '30 - 50 items',
-  '50+ items',
+// Countries we support at launch and near-term expansion
+const countries = [
+  { code: 'GB', flag: '🇬🇧', name: 'United Kingdom', postcodeLabel: 'Postcode', currency: 'GBP', symbol: '£' },
+  { code: 'US', flag: '🇺🇸', name: 'United States', postcodeLabel: 'ZIP Code', currency: 'USD', symbol: '$' },
+  { code: 'AU', flag: '🇦🇺', name: 'Australia', postcodeLabel: 'Postcode', currency: 'AUD', symbol: '$' },
+  { code: 'NZ', flag: '🇳🇿', name: 'New Zealand', postcodeLabel: 'Postcode', currency: 'NZD', symbol: '$' },
+  { code: 'CA', flag: '🇨🇦', name: 'Canada', postcodeLabel: 'Postal Code', currency: 'CAD', symbol: '$' },
+  { code: 'IE', flag: '🇮🇪', name: 'Ireland', postcodeLabel: 'Eircode', currency: 'EUR', symbol: '€' },
+  { code: 'DE', flag: '🇩🇪', name: 'Germany', postcodeLabel: 'PLZ', currency: 'EUR', symbol: '€' },
+  { code: 'FR', flag: '🇫🇷', name: 'France', postcodeLabel: 'Code Postal', currency: 'EUR', symbol: '€' },
+  { code: 'NL', flag: '🇳🇱', name: 'Netherlands', postcodeLabel: 'Postcode', currency: 'EUR', symbol: '€' },
+  { code: 'ES', flag: '🇪🇸', name: 'Spain', postcodeLabel: 'Código Postal', currency: 'EUR', symbol: '€' },
+  { code: 'IT', flag: '🇮🇹', name: 'Italy', postcodeLabel: 'CAP', currency: 'EUR', symbol: '€' },
+  { code: 'SE', flag: '🇸🇪', name: 'Sweden', postcodeLabel: 'Postnummer', currency: 'SEK', symbol: 'kr' },
 ];
 
 export default function VendorApplyPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>({
-    businessName: '',
-    businessType: '',
-    aboutStory: '',
-    specialty: '',
-    address: '',
-    city: '',
-    postcode: '',
-    openingHours: '',
-    usesPos: '',
-    posSystem: '',
-    menuSize: '',
-    instagram: '',
     ownerName: '',
     ownerRole: '',
-    email: '',
-    phone: '',
+    ownerEmail: '',
+    ownerPhone: '',
+    businessCountry: 'GB', // Default to UK
+    businessName: '',
+    businessAddress: '',
+    businessCity: '',
+    businessPostcode: '',
+    businessPhone: '',
+    businessEmail: '',
+    businessRegNumber: '',
+    documentName: '',
     agreedToTerms: false,
+    agreedToDataPolicy: false,
   });
 
-  const totalSteps = 4;
+  const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
+
+  const selectedCountry =
+    countries.find((c) => c.code === formData.businessCountry) || countries[0];
 
   const updateField = (field: keyof FormData, value: string | boolean) => {
     setFormData({ ...formData, [field]: value });
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      updateField('documentName', file.name);
+    }
+  };
+
   const canProceed = () => {
     if (step === 1) {
-      return formData.businessName && formData.businessType && formData.aboutStory;
-    }
-    if (step === 2) {
-      return formData.address && formData.city && formData.postcode;
-    }
-    if (step === 3) {
-      return formData.usesPos && formData.menuSize;
-    }
-    if (step === 4) {
       return (
         formData.ownerName &&
-        formData.email &&
-        formData.phone &&
-        formData.agreedToTerms
+        formData.ownerRole &&
+        formData.ownerEmail &&
+        formData.ownerPhone
       );
+    }
+    if (step === 2) {
+      return (
+        formData.businessCountry &&
+        formData.businessName &&
+        formData.businessAddress &&
+        formData.businessCity &&
+        formData.businessPostcode &&
+        formData.businessPhone &&
+        formData.businessEmail &&
+        formData.businessRegNumber
+      );
+    }
+    if (step === 3) {
+      return formData.agreedToTerms && formData.agreedToDataPolicy;
     }
     return false;
   };
@@ -122,7 +125,6 @@ export default function VendorApplyPage() {
       setStep(step + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      // Submit application
       router.push('/vendor/pending');
     }
   };
@@ -136,13 +138,19 @@ export default function VendorApplyPage() {
     }
   };
 
-  const stepIcons = [Store, MapPin, Settings, ShieldCheck];
-  const stepTitles = [
-    'About your business',
-    'Location & hours',
-    'Your setup',
-    'Verification',
+  const stepIcons = [User, Store, ShieldCheck];
+  const stepTitles = ['About you', 'Your business', 'Review & submit'];
+  const stepSubtitles = [
+    'Tell us who\'s applying.',
+    'Verify your business details.',
+    'Almost there — confirm and submit.',
   ];
+
+  const inputClass =
+    'w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all';
+
+  const labelClass =
+    'block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider';
 
   return (
     <main className="min-h-screen bg-surface">
@@ -170,7 +178,6 @@ export default function VendorApplyPage() {
             </button>
           </div>
 
-          {/* Progress bar */}
           <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
             <div
               className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
@@ -180,7 +187,7 @@ export default function VendorApplyPage() {
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Main */}
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {/* Step header */}
         <div className="mb-8 md:mb-10">
@@ -194,371 +201,438 @@ export default function VendorApplyPage() {
             {stepTitles[step - 1]}
           </h1>
           <p className="text-base text-on-surface-variant mt-2">
-            {step === 1 && 'Tell us about what you do.'}
-            {step === 2 && 'Where can customers find you?'}
-            {step === 3 && 'Help us understand your workflow.'}
-            {step === 4 && 'Almost done — a few final details.'}
+            {stepSubtitles[step - 1]}
           </p>
         </div>
 
-        {/* Form content */}
         <div className="space-y-6">
-          {/* STEP 1 */}
+          {/* STEP 1 — OWNER */}
           {step === 1 && (
             <>
               <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  Business name
-                </label>
-                <input
-                  type="text"
-                  value={formData.businessName}
-                  onChange={(e) => updateField('businessName', e.target.value)}
-                  placeholder="e.g., BrewHouse Café"
-                  className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-3 uppercase tracking-wider">
-                  What kind of business?
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {businessTypes.map((type) => {
-                    const Icon = type.icon;
-                    const isSelected = formData.businessType === type.id;
-                    return (
-                      <button
-                        key={type.id}
-                        type="button"
-                        onClick={() => updateField('businessType', type.id)}
-                        className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
-                          isSelected
-                            ? 'border-primary bg-primary/5'
-                            : 'border-outline-variant bg-surface-container-lowest hover:border-primary/40'
-                        }`}
-                      >
-                        <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                            isSelected
-                              ? 'bg-primary text-on-primary'
-                              : 'bg-primary/10 text-primary'
-                          }`}
-                        >
-                          <Icon size={20} />
-                        </div>
-                        <span
-                          className={`text-sm font-semibold ${
-                            isSelected ? 'text-primary' : 'text-on-surface'
-                          }`}
-                        >
-                          {type.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  Tell your story
-                </label>
-                <textarea
-                  value={formData.aboutStory}
-                  onChange={(e) => updateField('aboutStory', e.target.value)}
-                  placeholder="What's the heart of your business? What do you love about what you do?"
-                  rows={4}
-                  className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  What makes you special?
-                </label>
-                <input
-                  type="text"
-                  value={formData.specialty}
-                  onChange={(e) => updateField('specialty', e.target.value)}
-                  placeholder="e.g., Single origin coffee, sourdough, organic produce"
-                  className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-                <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
-                  Optional — helps us feature you to the right customers
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* STEP 2 */}
-          {step === 2 && (
-            <>
-              <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  Street address
-                </label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => updateField('address', e.target.value)}
-                  placeholder="e.g., 123 Main Street"
-                  className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => updateField('city', e.target.value)}
-                    placeholder="London"
-                    className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                    Postcode
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.postcode}
-                    onChange={(e) => updateField('postcode', e.target.value)}
-                    placeholder="EC1V 9BH"
-                    className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  General opening hours
-                </label>
-                <textarea
-                  value={formData.openingHours}
-                  onChange={(e) => updateField('openingHours', e.target.value)}
-                  placeholder="e.g., Mon-Fri 7am-5pm, Sat-Sun 8am-4pm"
-                  rows={3}
-                  className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
-                />
-                <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
-                  You can set detailed hours later in your dashboard
-                </p>
-              </div>
-
-              <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                  <MapPin size={16} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-on-surface">
-                    Your address stays private
-                  </p>
-                  <p className="text-xs text-on-surface-variant mt-1">
-                    We only show your general neighbourhood publicly until customers confirm pickup.
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* STEP 3 */}
-          {step === 3 && (
-            <>
-              <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-3 uppercase tracking-wider">
-                  Do you use a POS system?
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {['Yes', 'No', 'Not sure'].map((option) => {
-                    const isSelected = formData.usesPos === option;
-                    return (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => updateField('usesPos', option)}
-                        className={`p-4 rounded-2xl border-2 transition-all text-sm font-semibold ${
-                          isSelected
-                            ? 'border-primary bg-primary/5 text-primary'
-                            : 'border-outline-variant bg-surface-container-lowest text-on-surface hover:border-primary/40'
-                        } ${option === 'Not sure' ? 'col-span-2 md:col-span-1' : ''}`}
-                      >
-                        {option}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {formData.usesPos === 'Yes' && (
-                <div>
-                  <label className="block text-sm font-label font-semibold text-on-surface mb-3 uppercase tracking-wider">
-                    Which one?
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {posOptions.map((pos) => {
-                      const isSelected = formData.posSystem === pos;
-                      return (
-                        <button
-                          key={pos}
-                          type="button"
-                          onClick={() => updateField('posSystem', pos)}
-                          className={`p-3 rounded-xl border-2 transition-all text-sm font-medium ${
-                            isSelected
-                              ? 'border-primary bg-primary/5 text-primary'
-                              : 'border-outline-variant bg-surface-container-lowest text-on-surface hover:border-primary/40'
-                          }`}
-                        >
-                          {pos}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-3 uppercase tracking-wider">
-                  How many products / menu items?
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  {menuSizes.map((size) => {
-                    const isSelected = formData.menuSize === size;
-                    return (
-                      <button
-                        key={size}
-                        type="button"
-                        onClick={() => updateField('menuSize', size)}
-                        className={`p-4 rounded-2xl border-2 transition-all text-sm font-semibold ${
-                          isSelected
-                            ? 'border-primary bg-primary/5 text-primary'
-                            : 'border-outline-variant bg-surface-container-lowest text-on-surface hover:border-primary/40'
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  Instagram handle
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-base">
-                    @
-                  </span>
-                  <input
-                    type="text"
-                    value={formData.instagram}
-                    onChange={(e) => updateField('instagram', e.target.value)}
-                    placeholder="brewhousecafe"
-                    className="w-full pl-9 pr-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                  />
-                </div>
-                <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
-                  Optional — helps us verify your business faster
-                </p>
-              </div>
-            </>
-          )}
-
-          {/* STEP 4 */}
-          {step === 4 && (
-            <>
-              <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  Your name
-                </label>
+                <label className={labelClass}>Full name</label>
                 <input
                   type="text"
                   value={formData.ownerName}
                   onChange={(e) => updateField('ownerName', e.target.value)}
                   placeholder="Sarah Mitchell"
-                  className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  Your role
-                </label>
+                <label className={labelClass}>Your role</label>
                 <input
                   type="text"
                   value={formData.ownerRole}
                   onChange={(e) => updateField('ownerRole', e.target.value)}
-                  placeholder="e.g., Owner, Manager, Head Baker"
-                  className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  placeholder="Owner, Manager, Head Baker..."
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  Email
-                </label>
+                <label className={labelClass}>Personal email</label>
                 <input
                   type="email"
-                  value={formData.email}
-                  onChange={(e) => updateField('email', e.target.value)}
-                  placeholder="sarah@brewhouse.co.uk"
-                  className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  value={formData.ownerEmail}
+                  onChange={(e) => updateField('ownerEmail', e.target.value)}
+                  placeholder="sarah@email.com"
+                  className={inputClass}
+                />
+                <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
+                  We&apos;ll send you the approval decision here
+                </p>
+              </div>
+
+              <div>
+                <label className={labelClass}>Personal phone</label>
+                <input
+                  type="tel"
+                  value={formData.ownerPhone}
+                  onChange={(e) => updateField('ownerPhone', e.target.value)}
+                  placeholder="+44 7700 900123"
+                  className={inputClass}
+                />
+                <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
+                  Kept private — never shown to customers
+                </p>
+              </div>
+
+              <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                  <ShieldCheck size={16} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-on-surface">
+                    Your personal info stays private
+                  </p>
+                  <p className="text-xs text-on-surface-variant mt-1">
+                    Only your business details are shown publicly on OGuru.
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* STEP 2 — BUSINESS */}
+          {step === 2 && (
+            <>
+              {/* Country selector — first field */}
+              <div className="relative">
+                <label className={labelClass}>Country</label>
+                <button
+                  type="button"
+                  onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
+                  className={`${inputClass} flex items-center justify-between text-left`}
+                >
+                  <span className="flex items-center gap-3">
+                    <span className="text-2xl">{selectedCountry.flag}</span>
+                    <span className="font-medium">{selectedCountry.name}</span>
+                    <span className="text-sm text-on-surface-variant">
+                      · {selectedCountry.currency}
+                    </span>
+                  </span>
+                  <Globe size={18} className="text-on-surface-variant" />
+                </button>
+
+                {countryDropdownOpen && (
+                  <>
+                    {/* Backdrop */}
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setCountryDropdownOpen(false)}
+                    />
+                    {/* Dropdown */}
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-organic-lg z-50 max-h-80 overflow-y-auto">
+                      {countries.map((country) => (
+                        <button
+                          key={country.code}
+                          type="button"
+                          onClick={() => {
+                            updateField('businessCountry', country.code);
+                            setCountryDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 transition-colors text-left ${
+                            country.code === formData.businessCountry
+                              ? 'bg-primary/10'
+                              : ''
+                          }`}
+                        >
+                          <span className="text-2xl">{country.flag}</span>
+                          <div className="flex-1">
+                            <p className="font-medium text-on-surface">
+                              {country.name}
+                            </p>
+                            <p className="text-xs text-on-surface-variant">
+                              {country.currency} · {country.symbol}
+                            </p>
+                          </div>
+                          {country.code === formData.businessCountry && (
+                            <Check size={18} className="text-primary" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
+                  Sets your currency, timezone, and tax handling
+                </p>
+              </div>
+
+              <div>
+                <label className={labelClass}>Business name</label>
+                <input
+                  type="text"
+                  value={formData.businessName}
+                  onChange={(e) => updateField('businessName', e.target.value)}
+                  placeholder="e.g., BrewHouse Café"
+                  className={inputClass}
+                />
+                <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
+                  This is what customers will see
+                </p>
+              </div>
+
+              <div>
+                <label className={labelClass}>Business address</label>
+                <input
+                  type="text"
+                  value={formData.businessAddress}
+                  onChange={(e) => updateField('businessAddress', e.target.value)}
+                  placeholder="123 Main Street"
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>City</label>
+                  <input
+                    type="text"
+                    value={formData.businessCity}
+                    onChange={(e) => updateField('businessCity', e.target.value)}
+                    placeholder="London"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    {selectedCountry.postcodeLabel}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.businessPostcode}
+                    onChange={(e) =>
+                      updateField('businessPostcode', e.target.value)
+                    }
+                    placeholder={
+                      selectedCountry.code === 'US'
+                        ? '10001'
+                        : selectedCountry.code === 'GB'
+                          ? 'EC1V 9BH'
+                          : selectedCountry.code === 'AU'
+                            ? '2000'
+                            : 'Postal code'
+                    }
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="bg-secondary-container/40 border border-secondary/20 rounded-2xl p-4 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center text-secondary flex-shrink-0">
+                  <Store size={16} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-on-secondary-container">
+                    Your address will be public
+                  </p>
+                  <p className="text-xs text-on-secondary-container/80 mt-1">
+                    Customers need to know where to visit and pick up orders. Your address appears on your store page and maps.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>Business phone</label>
+                <input
+                  type="tel"
+                  value={formData.businessPhone}
+                  onChange={(e) => updateField('businessPhone', e.target.value)}
+                  placeholder="+44 20 7000 0000"
+                  className={inputClass}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-label font-semibold text-on-surface mb-2 uppercase tracking-wider">
-                  Phone
-                </label>
+                <label className={labelClass}>Business email</label>
                 <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => updateField('phone', e.target.value)}
-                  placeholder="+44 7700 900123"
-                  className="w-full px-4 py-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-base text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  type="email"
+                  value={formData.businessEmail}
+                  onChange={(e) => updateField('businessEmail', e.target.value)}
+                  placeholder="hello@brewhouse.co.uk"
+                  className={inputClass}
                 />
               </div>
 
-              <div className="bg-secondary-container/50 border border-secondary/20 rounded-2xl p-4">
-                <p className="text-sm font-semibold text-on-secondary-container mb-2">
+              <div>
+                <label className={labelClass}>
+                  Business registration number
+                </label>
+                <input
+                  type="text"
+                  value={formData.businessRegNumber}
+                  onChange={(e) =>
+                    updateField('businessRegNumber', e.target.value)
+                  }
+                  placeholder="e.g., 12345678"
+                  className={inputClass}
+                />
+                <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
+                  Companies House, ABN, EIN, or equivalent for your country
+                </p>
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  Verification document{' '}
+                  <span className="text-on-surface-variant lowercase font-normal normal-case ml-1">
+                    (optional)
+                  </span>
+                </label>
+
+                {!formData.documentName ? (
+                  <label className="flex flex-col items-center justify-center gap-3 px-4 py-8 bg-surface-container-lowest border-2 border-dashed border-outline-variant rounded-xl cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                      <Upload size={24} />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-on-surface">
+                        Upload a document
+                      </p>
+                      <p className="text-xs text-on-surface-variant mt-1">
+                        Business registration, food hygiene cert, or licence
+                      </p>
+                    </div>
+                    <input
+                      type="file"
+                      onChange={handleFileUpload}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                    />
+                  </label>
+                ) : (
+                  <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <FileText size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-on-surface truncate">
+                        {formData.documentName}
+                      </p>
+                      <p className="text-xs text-on-surface-variant">Uploaded</p>
+                    </div>
+                    <button
+                      onClick={() => updateField('documentName', '')}
+                      className="w-8 h-8 rounded-lg hover:bg-error/10 hover:text-error text-on-surface-variant flex items-center justify-center transition-colors flex-shrink-0"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                )}
+
+                <p className="text-xs text-on-surface-variant mt-2 ml-1">
+                  Speeds up approval, but not required
+                </p>
+              </div>
+            </>
+          )}
+
+          {/* STEP 3 — REVIEW */}
+          {step === 3 && (
+            <>
+              <div className="bg-surface-container-lowest border border-outline/10 rounded-2xl p-6 space-y-6">
+                <div>
+                  <p className="text-xs font-label font-semibold text-outline uppercase tracking-widest mb-3">
+                    Applicant
+                  </p>
+                  <div className="space-y-1.5">
+                    <p className="font-semibold text-on-surface">
+                      {formData.ownerName || 'Not provided'}
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      {formData.ownerRole}
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      {formData.ownerEmail}
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      {formData.ownerPhone}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="h-px bg-outline/10" />
+
+                <div>
+                  <p className="text-xs font-label font-semibold text-outline uppercase tracking-widest mb-3">
+                    Business
+                  </p>
+                  <div className="space-y-1.5">
+                    <p className="font-semibold text-on-surface flex items-center gap-2">
+                      <span className="text-lg">{selectedCountry.flag}</span>
+                      {formData.businessName || 'Not provided'}
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      {formData.businessAddress}
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      {formData.businessCity}, {formData.businessPostcode}
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      {selectedCountry.name} · {selectedCountry.currency}
+                    </p>
+                    <p className="text-sm text-on-surface-variant pt-2">
+                      {formData.businessPhone}
+                    </p>
+                    <p className="text-sm text-on-surface-variant">
+                      {formData.businessEmail}
+                    </p>
+                    <p className="text-sm text-on-surface-variant pt-2">
+                      Reg: {formData.businessRegNumber}
+                    </p>
+                    {formData.documentName && (
+                      <div className="flex items-center gap-2 pt-2">
+                        <FileText size={14} className="text-primary" />
+                        <span className="text-sm text-primary font-semibold">
+                          {formData.documentName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-secondary-container/40 border border-secondary/20 rounded-2xl p-5">
+                <p className="text-sm font-semibold text-on-secondary-container mb-3">
                   What happens next?
                 </p>
                 <ul className="space-y-2 text-sm text-on-secondary-container/80">
                   <li className="flex items-start gap-2">
-                    <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                    <Check
+                      size={16}
+                      className="text-primary flex-shrink-0 mt-0.5"
+                    />
                     We&apos;ll review your application within 48 hours
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
-                    You&apos;ll get an email with next steps
+                    <Check
+                      size={16}
+                      className="text-primary flex-shrink-0 mt-0.5"
+                    />
+                    You&apos;ll get an email at{' '}
+                    <strong>{formData.ownerEmail || 'your address'}</strong>
                   </li>
                   <li className="flex items-start gap-2">
-                    <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
-                    Once approved, we&apos;ll help you set up your store
+                    <Check
+                      size={16}
+                      className="text-primary flex-shrink-0 mt-0.5"
+                    />
+                    Once approved, you can log in and complete your store profile
                   </li>
                 </ul>
               </div>
 
-              <label className="flex items-start gap-3 cursor-pointer">
+              <label className="flex items-start gap-3 cursor-pointer p-4 rounded-xl hover:bg-surface-container-low transition-colors">
                 <input
                   type="checkbox"
                   checked={formData.agreedToTerms}
                   onChange={(e) => updateField('agreedToTerms', e.target.checked)}
-                  className="mt-1 w-5 h-5 rounded border-2 border-outline-variant text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer accent-primary"
+                  className="mt-1 w-5 h-5 rounded border-2 border-outline-variant text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer accent-primary flex-shrink-0"
                 />
                 <span className="text-sm text-on-surface leading-relaxed">
-                  I agree to OGuru&apos;s{' '}
+                  I agree to the OGuru{' '}
                   <a href="#" className="text-primary font-semibold underline">
-                    Vendor Terms
-                  </a>{' '}
-                  and{' '}
+                    Vendor Terms of Service
+                  </a>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer p-4 rounded-xl hover:bg-surface-container-low transition-colors">
+                <input
+                  type="checkbox"
+                  checked={formData.agreedToDataPolicy}
+                  onChange={(e) =>
+                    updateField('agreedToDataPolicy', e.target.checked)
+                  }
+                  className="mt-1 w-5 h-5 rounded border-2 border-outline-variant text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer accent-primary flex-shrink-0"
+                />
+                <span className="text-sm text-on-surface leading-relaxed">
+                  I agree to the{' '}
                   <a href="#" className="text-primary font-semibold underline">
-                    Privacy Policy
+                    Privacy & Data Policy
                   </a>
                 </span>
               </label>
@@ -566,7 +640,7 @@ export default function VendorApplyPage() {
           )}
         </div>
 
-        {/* Bottom action */}
+        {/* Bottom actions */}
         <div className="mt-10 flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
           <button
             onClick={handleBack}
