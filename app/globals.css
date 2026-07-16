@@ -47,6 +47,14 @@
   .chip-tertiary {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-label font-semibold uppercase tracking-wider bg-tertiary/10 text-tertiary;
   }
+  /* Hide scrollbar utility */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 
   /* Organic grain texture overlay */
   .organic-grain {
