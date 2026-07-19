@@ -66,8 +66,6 @@ const options = [
     href: '#',
   },
 ];
-];
-
 export default function VendorMenuEmptyPage() {
   const router = useRouter();
 
