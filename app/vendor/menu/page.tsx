@@ -9,6 +9,7 @@ import {
   MoreHorizontal,
   Bell,
   RefreshCw,
+  FileSpreadsheet,
   LayoutTemplate,
   Pencil,
   MessageCircle,
@@ -31,6 +32,14 @@ const options = [
     time: '2 min',
     highlight: true,
     href: '/vendor/menu/sync',
+  },
+  {
+    icon: FileSpreadsheet,
+    title: 'Import a CSV file',
+    subtitle: 'Upload your existing menu spreadsheet',
+    time: '3 min',
+    highlight: false,
+    href: '/vendor/menu/import',
   },
   {
     icon: LayoutTemplate,
@@ -56,6 +65,7 @@ const options = [
     highlight: false,
     href: '#',
   },
+];
 ];
 
 export default function VendorMenuEmptyPage() {
