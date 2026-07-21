@@ -153,6 +153,8 @@ export default function VendorApplyPage() {
     setError(null);
 
     try {
+      console.log('Step 1: Creating auth account...');
+
       // Step 1: Create auth account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.ownerEmail,
@@ -164,13 +166,41 @@ export default function VendorApplyPage() {
         },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Failed to create account');
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw new Error(`Signup failed: ${authError.message}`);
+      }
+      if (!authData.user) {
+        throw new Error('Failed to create account — no user returned');
+      }
+
+      console.log('Step 1 complete. User ID:', authData.user.id);
+
+      // Give Supabase a moment to establish the session
+      console.log('Step 2: Waiting for session...');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Verify session is active
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.warn('No session yet, trying to sign in explicitly...');
+        // Try to sign in explicitly if signUp didn't create a session
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.ownerEmail,
+          password: formData.password,
+        });
+        if (signInError) {
+          console.error('Sign in error:', signInError);
+          throw new Error(`Auto login failed: ${signInError.message}`);
+        }
+      }
+      console.log('Step 2 complete. Session established.');
 
       const userId = authData.user.id;
 
-      // Step 2: Update profile with phone
-      await supabase
+      // Step 3: Update profile with phone
+      console.log('Step 3: Updating profile...');
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           full_name: formData.ownerName,
@@ -179,9 +209,16 @@ export default function VendorApplyPage() {
         })
         .eq('id', userId);
 
-      // Step 3: Upload document if provided
+      if (profileError) {
+        console.error('Profile update error:', profileError);
+        throw new Error(`Profile update failed: ${profileError.message}`);
+      }
+      console.log('Step 3 complete.');
+
+      // Step 4: Upload document if provided
       let docUrl = null;
       if (formData.documentFile) {
+        console.log('Step 4: Uploading document...');
         const fileExt = formData.documentFile.name.split('.').pop();
         const filePath = `${userId}/verification-${Date.now()}.${fileExt}`;
 
@@ -189,58 +226,89 @@ export default function VendorApplyPage() {
           .from('verification-documents')
           .upload(filePath, formData.documentFile);
 
-        if (!uploadError) {
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          // Don't fail the whole submission for document upload
+          console.warn('Document upload failed, continuing...');
+        } else {
           docUrl = filePath;
+          console.log('Step 4 complete. Document uploaded to:', filePath);
         }
       }
 
-      // Step 4: Create business record
+      // Step 5: Create business record
+      console.log('Step 5: Creating business record...');
+      const businessData = {
+        owner_id: userId,
+        legal_name: formData.businessName,
+        registration_number: formData.businessRegNumber,
+        owner_full_name: formData.ownerName,
+        owner_role: formData.ownerRole,
+        owner_email: formData.ownerEmail,
+        owner_phone: formData.ownerPhone,
+        business_email: formData.businessEmail,
+        business_phone: formData.businessPhone,
+        country_code: 'AU',
+        currency: 'AUD',
+        timezone: 'Australia/Sydney',
+        status: 'pending',
+        verification_doc_url: docUrl,
+        verification_doc_name: formData.documentName || null,
+      };
+      console.log('Business data to insert:', businessData);
+
       const { data: business, error: businessError } = await supabase
         .from('businesses')
-        .insert({
-          owner_id: userId,
-          legal_name: formData.businessName,
-          registration_number: formData.businessRegNumber,
-          owner_full_name: formData.ownerName,
-          owner_role: formData.ownerRole,
-          owner_email: formData.ownerEmail,
-          owner_phone: formData.ownerPhone,
-          business_email: formData.businessEmail,
-          business_phone: formData.businessPhone,
-          country_code: 'AU',
-          currency: 'AUD',
-          timezone: 'Australia/Sydney',
-          status: 'pending',
-          verification_doc_url: docUrl,
-          verification_doc_name: formData.documentName || null,
-        })
+        .insert(businessData)
         .select()
         .single();
 
-      if (businessError) throw businessError;
+      if (businessError) {
+        console.error('Business insert error:', businessError);
+        console.error('Error details:', {
+          code: businessError.code,
+          message: businessError.message,
+          details: businessError.details,
+          hint: businessError.hint,
+        });
+        throw new Error(`Business creation failed: ${businessError.message}`);
+      }
+      if (!business) {
+        throw new Error('Business created but no data returned');
+      }
+      console.log('Step 5 complete. Business ID:', business.id);
 
-      // Step 5: Create primary location
+      // Step 6: Create primary location
+      console.log('Step 6: Creating location...');
+      const locationData = {
+        business_id: business.id,
+        name: formData.businessName,
+        is_primary: true,
+        address_line_1: formData.businessAddress,
+        city: formData.businessCity,
+        postcode: formData.businessPostcode,
+        country_code: 'AU',
+        is_active: true,
+        is_accepting_orders: false,
+      };
+      console.log('Location data to insert:', locationData);
+
       const { error: locationError } = await supabase
         .from('locations')
-        .insert({
-          business_id: business.id,
-          name: formData.businessName,
-          is_primary: true,
-          address_line_1: formData.businessAddress,
-          city: formData.businessCity,
-          postcode: formData.businessPostcode,
-          country_code: 'AU',
-          is_active: true,
-          is_accepting_orders: false, // Not accepting until approved
-        });
+        .insert(locationData);
 
-      if (locationError) throw locationError;
+      if (locationError) {
+        console.error('Location insert error:', locationError);
+        throw new Error(`Location creation failed: ${locationError.message}`);
+      }
+      console.log('Step 6 complete. Application submitted successfully!');
 
-      // Success!
+      // Success! Redirect
       router.push('/vendor/pending');
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Something went wrong';
+      console.error('Submission failed:', err);
       setError(message);
       setSubmitting(false);
     }
