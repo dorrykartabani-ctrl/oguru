@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,14 +14,20 @@ import {
   FileText,
   X,
   Globe,
+  Loader2,
+  AlertCircle,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 type FormData = {
-  // Owner
+  // Owner + Auth
   ownerName: string;
   ownerRole: string;
   ownerEmail: string;
   ownerPhone: string;
+  password: string;
+  confirmPassword: string;
 
   // Business
   businessCountry: string;
@@ -32,38 +39,53 @@ type FormData = {
   businessEmail: string;
   businessRegNumber: string;
   documentName: string;
+  documentFile: File | null;
 
   // Agreements
   agreedToTerms: boolean;
   agreedToDataPolicy: boolean;
 };
 
-// Countries we support at launch and near-term expansion
+// Australia only for launch, others go to waitlist
 const countries = [
-  { code: 'GB', flag: '🇬🇧', name: 'United Kingdom', postcodeLabel: 'Postcode', currency: 'GBP', symbol: '£' },
-  { code: 'US', flag: '🇺🇸', name: 'United States', postcodeLabel: 'ZIP Code', currency: 'USD', symbol: '$' },
-  { code: 'AU', flag: '🇦🇺', name: 'Australia', postcodeLabel: 'Postcode', currency: 'AUD', symbol: '$' },
-  { code: 'NZ', flag: '🇳🇿', name: 'New Zealand', postcodeLabel: 'Postcode', currency: 'NZD', symbol: '$' },
-  { code: 'CA', flag: '🇨🇦', name: 'Canada', postcodeLabel: 'Postal Code', currency: 'CAD', symbol: '$' },
-  { code: 'IE', flag: '🇮🇪', name: 'Ireland', postcodeLabel: 'Eircode', currency: 'EUR', symbol: '€' },
-  { code: 'DE', flag: '🇩🇪', name: 'Germany', postcodeLabel: 'PLZ', currency: 'EUR', symbol: '€' },
-  { code: 'FR', flag: '🇫🇷', name: 'France', postcodeLabel: 'Code Postal', currency: 'EUR', symbol: '€' },
-  { code: 'NL', flag: '🇳🇱', name: 'Netherlands', postcodeLabel: 'Postcode', currency: 'EUR', symbol: '€' },
-  { code: 'ES', flag: '🇪🇸', name: 'Spain', postcodeLabel: 'Código Postal', currency: 'EUR', symbol: '€' },
-  { code: 'IT', flag: '🇮🇹', name: 'Italy', postcodeLabel: 'CAP', currency: 'EUR', symbol: '€' },
-  { code: 'SE', flag: '🇸🇪', name: 'Sweden', postcodeLabel: 'Postnummer', currency: 'SEK', symbol: 'kr' },
+  {
+    code: 'AU',
+    flag: '🇦🇺',
+    name: 'Australia',
+    postcodeLabel: 'Postcode',
+    currency: 'AUD',
+    symbol: '$',
+    timezone: 'Australia/Sydney',
+    available: true,
+  },
+];
+
+const waitlistCountries = [
+  { code: 'US', flag: '🇺🇸', name: 'United States' },
+  { code: 'GB', flag: '🇬🇧', name: 'United Kingdom' },
+  { code: 'NZ', flag: '🇳🇿', name: 'New Zealand' },
+  { code: 'CA', flag: '🇨🇦', name: 'Canada' },
+  { code: 'IE', flag: '🇮🇪', name: 'Ireland' },
 ];
 
 export default function VendorApplyPage() {
   const router = useRouter();
+  const supabase = createClient();
+
   const [step, setStep] = useState(1);
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState<FormData>({
     ownerName: '',
     ownerRole: '',
     ownerEmail: '',
     ownerPhone: '',
-    businessCountry: 'GB', // Default to UK
+    password: '',
+    confirmPassword: '',
+    businessCountry: 'AU',
     businessName: '',
     businessAddress: '',
     businessCity: '',
@@ -72,23 +94,27 @@ export default function VendorApplyPage() {
     businessEmail: '',
     businessRegNumber: '',
     documentName: '',
+    documentFile: null,
     agreedToTerms: false,
     agreedToDataPolicy: false,
   });
 
   const totalSteps = 3;
   const progress = (step / totalSteps) * 100;
+  const selectedCountry = countries[0];
 
-  const selectedCountry =
-    countries.find((c) => c.code === formData.businessCountry) || countries[0];
-
-  const updateField = (field: keyof FormData, value: string | boolean) => {
+  const updateField = <K extends keyof FormData>(
+    field: K,
+    value: FormData[K]
+  ) => {
     setFormData({ ...formData, [field]: value });
+    if (error) setError(null);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      updateField('documentFile', file);
       updateField('documentName', file.name);
     }
   };
@@ -99,7 +125,9 @@ export default function VendorApplyPage() {
         formData.ownerName &&
         formData.ownerRole &&
         formData.ownerEmail &&
-        formData.ownerPhone
+        formData.ownerPhone &&
+        formData.password.length >= 8 &&
+        formData.password === formData.confirmPassword
       );
     }
     if (step === 2) {
@@ -120,12 +148,110 @@ export default function VendorApplyPage() {
     return false;
   };
 
+  const submitApplication = async () => {
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      // Step 1: Create auth account
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.ownerEmail,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.ownerName,
+          },
+        },
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Failed to create account');
+
+      const userId = authData.user.id;
+
+      // Step 2: Update profile with phone
+      await supabase
+        .from('profiles')
+        .update({
+          full_name: formData.ownerName,
+          phone: formData.ownerPhone,
+          role: 'vendor',
+        })
+        .eq('id', userId);
+
+      // Step 3: Upload document if provided
+      let docUrl = null;
+      if (formData.documentFile) {
+        const fileExt = formData.documentFile.name.split('.').pop();
+        const filePath = `${userId}/verification-${Date.now()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('verification-documents')
+          .upload(filePath, formData.documentFile);
+
+        if (!uploadError) {
+          docUrl = filePath;
+        }
+      }
+
+      // Step 4: Create business record
+      const { data: business, error: businessError } = await supabase
+        .from('businesses')
+        .insert({
+          owner_id: userId,
+          legal_name: formData.businessName,
+          registration_number: formData.businessRegNumber,
+          owner_full_name: formData.ownerName,
+          owner_role: formData.ownerRole,
+          owner_email: formData.ownerEmail,
+          owner_phone: formData.ownerPhone,
+          business_email: formData.businessEmail,
+          business_phone: formData.businessPhone,
+          country_code: 'AU',
+          currency: 'AUD',
+          timezone: 'Australia/Sydney',
+          status: 'pending',
+          verification_doc_url: docUrl,
+          verification_doc_name: formData.documentName || null,
+        })
+        .select()
+        .single();
+
+      if (businessError) throw businessError;
+
+      // Step 5: Create primary location
+      const { error: locationError } = await supabase
+        .from('locations')
+        .insert({
+          business_id: business.id,
+          name: formData.businessName,
+          is_primary: true,
+          address_line_1: formData.businessAddress,
+          city: formData.businessCity,
+          postcode: formData.businessPostcode,
+          country_code: 'AU',
+          is_active: true,
+          is_accepting_orders: false, // Not accepting until approved
+        });
+
+      if (locationError) throw locationError;
+
+      // Success!
+      router.push('/vendor/pending');
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Something went wrong';
+      setError(message);
+      setSubmitting(false);
+    }
+  };
+
   const handleNext = () => {
     if (step < totalSteps) {
       setStep(step + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      router.push('/vendor/pending');
+      submitApplication();
     }
   };
 
@@ -141,7 +267,7 @@ export default function VendorApplyPage() {
   const stepIcons = [User, Store, ShieldCheck];
   const stepTitles = ['About you', 'Your business', 'Review & submit'];
   const stepSubtitles = [
-    'Tell us who\'s applying.',
+    "Create your account and tell us who's applying.",
     'Verify your business details.',
     'Almost there — confirm and submit.',
   ];
@@ -160,7 +286,8 @@ export default function VendorApplyPage() {
           <div className="flex items-center justify-between mb-3">
             <button
               onClick={handleBack}
-              className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-sm font-label font-semibold"
+              disabled={submitting}
+              className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-sm font-label font-semibold disabled:opacity-50"
             >
               <ArrowLeft size={18} />
               Back
@@ -172,7 +299,8 @@ export default function VendorApplyPage() {
 
             <button
               onClick={() => router.push('/vendor')}
-              className="text-sm text-on-surface-variant hover:text-primary transition-colors font-label"
+              disabled={submitting}
+              className="text-sm text-on-surface-variant hover:text-primary transition-colors font-label disabled:opacity-50"
             >
               Save & exit
             </button>
@@ -205,8 +333,26 @@ export default function VendorApplyPage() {
           </p>
         </div>
 
+        {/* Error banner */}
+        {error && (
+          <div className="mb-6 p-4 bg-error-container border border-error/20 rounded-xl flex items-start gap-3">
+            <AlertCircle
+              size={20}
+              className="text-error flex-shrink-0 mt-0.5"
+            />
+            <div>
+              <p className="text-sm font-semibold text-on-error-container">
+                Something went wrong
+              </p>
+              <p className="text-sm text-on-error-container/80 mt-0.5">
+                {error}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-6">
-          {/* STEP 1 — OWNER */}
+          {/* STEP 1 — OWNER + AUTH */}
           {step === 1 && (
             <>
               <div>
@@ -217,6 +363,7 @@ export default function VendorApplyPage() {
                   onChange={(e) => updateField('ownerName', e.target.value)}
                   placeholder="Sarah Mitchell"
                   className={inputClass}
+                  disabled={submitting}
                 />
               </div>
 
@@ -228,6 +375,7 @@ export default function VendorApplyPage() {
                   onChange={(e) => updateField('ownerRole', e.target.value)}
                   placeholder="Owner, Manager, Head Baker..."
                   className={inputClass}
+                  disabled={submitting}
                 />
               </div>
 
@@ -239,9 +387,11 @@ export default function VendorApplyPage() {
                   onChange={(e) => updateField('ownerEmail', e.target.value)}
                   placeholder="sarah@email.com"
                   className={inputClass}
+                  disabled={submitting}
                 />
                 <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
-                  We&apos;ll send you the approval decision here
+                  This is your login email. We&apos;ll send approval decision
+                  here.
                 </p>
               </div>
 
@@ -251,12 +401,59 @@ export default function VendorApplyPage() {
                   type="tel"
                   value={formData.ownerPhone}
                   onChange={(e) => updateField('ownerPhone', e.target.value)}
-                  placeholder="+44 7700 900123"
+                  placeholder="+61 400 000 000"
                   className={inputClass}
+                  disabled={submitting}
                 />
                 <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
                   Kept private — never shown to customers
                 </p>
+              </div>
+
+              <div>
+                <label className={labelClass}>Create password</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={(e) => updateField('password', e.target.value)}
+                    placeholder="At least 8 characters"
+                    className={inputClass}
+                    disabled={submitting}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary p-1"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {formData.password && formData.password.length < 8 && (
+                  <p className="text-xs text-error mt-1.5 ml-1">
+                    Password must be at least 8 characters
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className={labelClass}>Confirm password</label>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={(e) =>
+                    updateField('confirmPassword', e.target.value)
+                  }
+                  placeholder="Type your password again"
+                  className={inputClass}
+                  disabled={submitting}
+                />
+                {formData.confirmPassword &&
+                  formData.password !== formData.confirmPassword && (
+                    <p className="text-xs text-error mt-1.5 ml-1">
+                      Passwords don&apos;t match
+                    </p>
+                  )}
               </div>
 
               <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-start gap-3">
@@ -278,13 +475,14 @@ export default function VendorApplyPage() {
           {/* STEP 2 — BUSINESS */}
           {step === 2 && (
             <>
-              {/* Country selector — first field */}
+              {/* Country selector — Australia only for launch */}
               <div className="relative">
                 <label className={labelClass}>Country</label>
                 <button
                   type="button"
                   onClick={() => setCountryDropdownOpen(!countryDropdownOpen)}
                   className={`${inputClass} flex items-center justify-between text-left`}
+                  disabled={submitting}
                 >
                   <span className="flex items-center gap-3">
                     <span className="text-2xl">{selectedCountry.flag}</span>
@@ -298,46 +496,73 @@ export default function VendorApplyPage() {
 
                 {countryDropdownOpen && (
                   <>
-                    {/* Backdrop */}
                     <div
                       className="fixed inset-0 z-40"
                       onClick={() => setCountryDropdownOpen(false)}
                     />
-                    {/* Dropdown */}
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-organic-lg z-50 max-h-80 overflow-y-auto">
-                      {countries.map((country) => (
-                        <button
-                          key={country.code}
-                          type="button"
-                          onClick={() => {
-                            updateField('businessCountry', country.code);
-                            setCountryDropdownOpen(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-primary/5 transition-colors text-left ${
-                            country.code === formData.businessCountry
-                              ? 'bg-primary/10'
-                              : ''
-                          }`}
-                        >
-                          <span className="text-2xl">{country.flag}</span>
-                          <div className="flex-1">
-                            <p className="font-medium text-on-surface">
-                              {country.name}
-                            </p>
-                            <p className="text-xs text-on-surface-variant">
-                              {country.currency} · {country.symbol}
-                            </p>
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-organic-lg z-50 max-h-96 overflow-y-auto">
+                      {/* Available */}
+                      <div className="p-2 border-b border-outline-variant">
+                        <p className="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-wider px-2 py-1">
+                          Available now
+                        </p>
+                        {countries.map((country) => (
+                          <button
+                            key={country.code}
+                            type="button"
+                            onClick={() => {
+                              updateField('businessCountry', country.code);
+                              setCountryDropdownOpen(false);
+                            }}
+                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/5 transition-colors text-left ${
+                              country.code === formData.businessCountry
+                                ? 'bg-primary/10'
+                                : ''
+                            }`}
+                          >
+                            <span className="text-2xl">{country.flag}</span>
+                            <div className="flex-1">
+                              <p className="font-medium text-on-surface">
+                                {country.name}
+                              </p>
+                              <p className="text-xs text-on-surface-variant">
+                                {country.currency}
+                              </p>
+                            </div>
+                            {country.code === formData.businessCountry && (
+                              <Check size={18} className="text-primary" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Waitlist */}
+                      <div className="p-2">
+                        <p className="text-[10px] font-label font-bold text-on-surface-variant uppercase tracking-wider px-2 py-1">
+                          Coming soon
+                        </p>
+                        {waitlistCountries.map((country) => (
+                          <div
+                            key={country.code}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 opacity-60 cursor-not-allowed"
+                          >
+                            <span className="text-2xl">{country.flag}</span>
+                            <div className="flex-1">
+                              <p className="font-medium text-on-surface-variant text-sm">
+                                {country.name}
+                              </p>
+                              <p className="text-xs text-on-surface-variant">
+                                Join waitlist
+                              </p>
+                            </div>
                           </div>
-                          {country.code === formData.businessCountry && (
-                            <Check size={18} className="text-primary" />
-                          )}
-                        </button>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </>
                 )}
                 <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
-                  Sets your currency, timezone, and tax handling
+                  Currently launching in Australia
                 </p>
               </div>
 
@@ -347,8 +572,9 @@ export default function VendorApplyPage() {
                   type="text"
                   value={formData.businessName}
                   onChange={(e) => updateField('businessName', e.target.value)}
-                  placeholder="e.g., BrewHouse Café"
+                  placeholder="e.g., Café Artisan"
                   className={inputClass}
+                  disabled={submitting}
                 />
                 <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
                   This is what customers will see
@@ -360,43 +586,40 @@ export default function VendorApplyPage() {
                 <input
                   type="text"
                   value={formData.businessAddress}
-                  onChange={(e) => updateField('businessAddress', e.target.value)}
-                  placeholder="123 Main Street"
+                  onChange={(e) =>
+                    updateField('businessAddress', e.target.value)
+                  }
+                  placeholder="123 Bondi Road"
                   className={inputClass}
+                  disabled={submitting}
                 />
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>City</label>
+                  <label className={labelClass}>City / Suburb</label>
                   <input
                     type="text"
                     value={formData.businessCity}
-                    onChange={(e) => updateField('businessCity', e.target.value)}
-                    placeholder="London"
+                    onChange={(e) =>
+                      updateField('businessCity', e.target.value)
+                    }
+                    placeholder="Sydney"
                     className={inputClass}
+                    disabled={submitting}
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>
-                    {selectedCountry.postcodeLabel}
-                  </label>
+                  <label className={labelClass}>Postcode</label>
                   <input
                     type="text"
                     value={formData.businessPostcode}
                     onChange={(e) =>
                       updateField('businessPostcode', e.target.value)
                     }
-                    placeholder={
-                      selectedCountry.code === 'US'
-                        ? '10001'
-                        : selectedCountry.code === 'GB'
-                          ? 'EC1V 9BH'
-                          : selectedCountry.code === 'AU'
-                            ? '2000'
-                            : 'Postal code'
-                    }
+                    placeholder="2026"
                     className={inputClass}
+                    disabled={submitting}
                   />
                 </div>
               </div>
@@ -410,7 +633,8 @@ export default function VendorApplyPage() {
                     Your address will be public
                   </p>
                   <p className="text-xs text-on-secondary-container/80 mt-1">
-                    Customers need to know where to visit and pick up orders. Your address appears on your store page and maps.
+                    Customers need to know where to visit and pick up orders.
+                    Your address appears on your store page and maps.
                   </p>
                 </div>
               </div>
@@ -420,9 +644,12 @@ export default function VendorApplyPage() {
                 <input
                   type="tel"
                   value={formData.businessPhone}
-                  onChange={(e) => updateField('businessPhone', e.target.value)}
-                  placeholder="+44 20 7000 0000"
+                  onChange={(e) =>
+                    updateField('businessPhone', e.target.value)
+                  }
+                  placeholder="+61 2 9000 0000"
                   className={inputClass}
+                  disabled={submitting}
                 />
               </div>
 
@@ -431,27 +658,29 @@ export default function VendorApplyPage() {
                 <input
                   type="email"
                   value={formData.businessEmail}
-                  onChange={(e) => updateField('businessEmail', e.target.value)}
-                  placeholder="hello@brewhouse.co.uk"
+                  onChange={(e) =>
+                    updateField('businessEmail', e.target.value)
+                  }
+                  placeholder="hello@cafeartisan.com.au"
                   className={inputClass}
+                  disabled={submitting}
                 />
               </div>
 
               <div>
-                <label className={labelClass}>
-                  Business registration number
-                </label>
+                <label className={labelClass}>ABN</label>
                 <input
                   type="text"
                   value={formData.businessRegNumber}
                   onChange={(e) =>
                     updateField('businessRegNumber', e.target.value)
                   }
-                  placeholder="e.g., 12345678"
+                  placeholder="12 345 678 901"
                   className={inputClass}
+                  disabled={submitting}
                 />
                 <p className="text-xs text-on-surface-variant mt-1.5 ml-1">
-                  Companies House, ABN, EIN, or equivalent for your country
+                  Australian Business Number
                 </p>
               </div>
 
@@ -473,7 +702,7 @@ export default function VendorApplyPage() {
                         Upload a document
                       </p>
                       <p className="text-xs text-on-surface-variant mt-1">
-                        Business registration, food hygiene cert, or licence
+                        ABN registration, food licence, insurance certificate
                       </p>
                     </div>
                     <input
@@ -481,6 +710,7 @@ export default function VendorApplyPage() {
                       onChange={handleFileUpload}
                       accept=".pdf,.jpg,.jpeg,.png"
                       className="hidden"
+                      disabled={submitting}
                     />
                   </label>
                 ) : (
@@ -492,10 +722,16 @@ export default function VendorApplyPage() {
                       <p className="text-sm font-semibold text-on-surface truncate">
                         {formData.documentName}
                       </p>
-                      <p className="text-xs text-on-surface-variant">Uploaded</p>
+                      <p className="text-xs text-on-surface-variant">
+                        Ready to upload
+                      </p>
                     </div>
                     <button
-                      onClick={() => updateField('documentName', '')}
+                      onClick={() => {
+                        updateField('documentName', '');
+                        updateField('documentFile', null);
+                      }}
+                      disabled={submitting}
                       className="w-8 h-8 rounded-lg hover:bg-error/10 hover:text-error text-on-surface-variant flex items-center justify-center transition-colors flex-shrink-0"
                     >
                       <X size={16} />
@@ -516,7 +752,7 @@ export default function VendorApplyPage() {
               <div className="bg-surface-container-lowest border border-outline/10 rounded-2xl p-6 space-y-6">
                 <div>
                   <p className="text-xs font-label font-semibold text-outline uppercase tracking-widest mb-3">
-                    Applicant
+                    Applicant & Login
                   </p>
                   <div className="space-y-1.5">
                     <p className="font-semibold text-on-surface">
@@ -530,6 +766,9 @@ export default function VendorApplyPage() {
                     </p>
                     <p className="text-sm text-on-surface-variant">
                       {formData.ownerPhone}
+                    </p>
+                    <p className="text-xs text-on-surface-variant pt-1 italic">
+                      Login email: {formData.ownerEmail}
                     </p>
                   </div>
                 </div>
@@ -561,7 +800,7 @@ export default function VendorApplyPage() {
                       {formData.businessEmail}
                     </p>
                     <p className="text-sm text-on-surface-variant pt-2">
-                      Reg: {formData.businessRegNumber}
+                      ABN: {formData.businessRegNumber}
                     </p>
                     {formData.documentName && (
                       <div className="flex items-center gap-2 pt-2">
@@ -592,15 +831,14 @@ export default function VendorApplyPage() {
                       size={16}
                       className="text-primary flex-shrink-0 mt-0.5"
                     />
-                    You&apos;ll get an email at{' '}
-                    <strong>{formData.ownerEmail || 'your address'}</strong>
+                    You&apos;ll be logged in and can track your status
                   </li>
                   <li className="flex items-start gap-2">
                     <Check
                       size={16}
                       className="text-primary flex-shrink-0 mt-0.5"
                     />
-                    Once approved, you can log in and complete your store profile
+                    Once approved, you can complete your store profile
                   </li>
                 </ul>
               </div>
@@ -609,7 +847,10 @@ export default function VendorApplyPage() {
                 <input
                   type="checkbox"
                   checked={formData.agreedToTerms}
-                  onChange={(e) => updateField('agreedToTerms', e.target.checked)}
+                  onChange={(e) =>
+                    updateField('agreedToTerms', e.target.checked)
+                  }
+                  disabled={submitting}
                   className="mt-1 w-5 h-5 rounded border-2 border-outline-variant text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer accent-primary flex-shrink-0"
                 />
                 <span className="text-sm text-on-surface leading-relaxed">
@@ -627,6 +868,7 @@ export default function VendorApplyPage() {
                   onChange={(e) =>
                     updateField('agreedToDataPolicy', e.target.checked)
                   }
+                  disabled={submitting}
                   className="mt-1 w-5 h-5 rounded border-2 border-outline-variant text-primary focus:ring-2 focus:ring-primary/20 cursor-pointer accent-primary flex-shrink-0"
                 />
                 <span className="text-sm text-on-surface leading-relaxed">
@@ -644,7 +886,8 @@ export default function VendorApplyPage() {
         <div className="mt-10 flex flex-col-reverse sm:flex-row gap-3 sm:justify-between">
           <button
             onClick={handleBack}
-            className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-outline-variant text-on-surface rounded-xl font-label font-semibold text-sm uppercase tracking-wider hover:bg-surface-container transition-colors"
+            disabled={submitting}
+            className="flex items-center justify-center gap-2 px-6 py-4 border-2 border-outline-variant text-on-surface rounded-xl font-label font-semibold text-sm uppercase tracking-wider hover:bg-surface-container transition-colors disabled:opacity-50"
           >
             <ArrowLeft size={18} />
             {step === 1 ? 'Cancel' : 'Back'}
@@ -652,15 +895,26 @@ export default function VendorApplyPage() {
 
           <button
             onClick={handleNext}
-            disabled={!canProceed()}
+            disabled={!canProceed() || submitting}
             className={`flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-label font-semibold text-sm uppercase tracking-wider transition-all shadow-lg ${
-              canProceed()
+              canProceed() && !submitting
                 ? 'bg-primary text-on-primary hover:scale-[1.02] active:scale-[0.98]'
                 : 'bg-surface-container-highest text-on-surface-variant/50 cursor-not-allowed shadow-none'
             }`}
           >
-            {step === totalSteps ? 'Submit application' : 'Continue'}
-            {step < totalSteps && <ArrowRight size={18} />}
+            {submitting ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Creating account...
+              </>
+            ) : step === totalSteps ? (
+              'Submit application'
+            ) : (
+              <>
+                Continue
+                <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </div>
       </div>
