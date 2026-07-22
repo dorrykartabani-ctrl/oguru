@@ -81,6 +81,24 @@ export type Location = {
   updated_at: string;
 };
 
+export type Product = {
+  id: string;
+  location_id: string;
+  business_id: string;
+  name: string;
+  description: string | null;
+  price_cents: number;
+  category: string;
+  image_url: string | null;
+  is_available: boolean;
+  is_giftable: boolean;
+  dietary_tags: string[];
+  pos_item_id: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type WaitlistSignup = {
   id: string;
   email: string;
