@@ -1,7 +1,15 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import type { Business, Location, Profile } from '@/lib/supabase/types';
 import {
+  Home,
+  BarChart3,
+  UtensilsCrossed,
+  Megaphone,
+  MoreHorizontal,
   Bell,
   Sun,
   Sparkles,
@@ -10,109 +18,192 @@ import {
   TrendingUp,
   Gift,
   UserPlus,
-  Megaphone,
-  PlusCircle,
-  BarChart3,
-  MessageSquare,
-  Home,
-  ShoppingBag,
-  UtensilsCrossed,
-  MoreHorizontal,
-  Plus,
-  ChevronRight,
-  Coffee,
-  Croissant,
-  ShoppingCart,
+  Clock,
+  Loader2,
+  LogOut,
 } from 'lucide-react';
 
-const orders = [
-  {
-    id: '#847',
-    customer: 'Sarah M.',
-    items: 'Oat Flat White + Croissant',
-    time: '8:00 AM',
-    status: 'preparing',
-    isGift: false,
-    icon: Coffee,
-  },
-  {
-    id: '#846',
-    customer: 'James L.',
-    items: '2x Avocado Toast',
-    time: '7:55 AM',
-    status: 'pending',
-    isGift: false,
-    icon: Croissant,
-  },
-  {
-    id: '#845',
-    customer: 'Emma R.',
-    items: 'Matcha Latte',
-    time: '7:45 AM',
-    status: 'preparing',
-    isGift: true,
-    icon: Coffee,
-  },
+const navItems = [
+  { icon: Home, label: 'Home', active: true, href: '/vendor/dashboard' },
+  { icon: BarChart3, label: 'Insights', active: false, href: '#' },
+  { icon: UtensilsCrossed, label: 'Menu', active: false, href: '/vendor/menu' },
+  { icon: Megaphone, label: 'Marketing', active: false, href: '#' },
+  { icon: MoreHorizontal, label: 'More', active: false, href: '#' },
 ];
 
+// Mock data (will become real when we build these features)
 const stats = [
-  {
-    label: 'Live Orders',
-    value: '12',
-    change: '+3',
-    trend: 'up',
-    color: 'primary',
-  },
-  {
-    label: 'Revenue',
-    value: '£186',
-    change: '+12%',
-    trend: 'up',
-    color: 'primary',
-  },
-  {
-    label: 'Followers',
-    value: '2,847',
-    change: '+12',
-    trend: 'up',
-    color: 'primary',
-  },
-  {
-    label: 'Gifts Pending',
-    value: '8',
-    change: '',
-    trend: 'gift',
-    color: 'secondary',
-  },
+  { label: 'Followers', value: '0', change: 'No followers yet', trend: 'neutral' },
+  { label: 'Nearby', value: '0', change: 'coming soon', trend: 'neutral' },
+  { label: 'Gifts Sent', value: '0', change: 'this week', trend: 'neutral' },
+  { label: 'Regulars', value: '0', change: 'loyal visitors', trend: 'neutral' },
 ];
 
-const quickActions = [
-  { icon: Megaphone, label: 'Promo' },
-  { icon: PlusCircle, label: 'Product' },
-  { icon: BarChart3, label: 'Insights' },
-  { icon: MessageSquare, label: 'Chat' },
+const campaigns = [
+  { name: 'No active campaigns yet', subtext: 'Create your first', orders: 0 },
 ];
 
 const recommendations = [
   {
-    icon: UserPlus,
-    label: 'Send win-back offer',
-    subtext: '3 top customers away',
+    icon: Sparkles,
+    title: 'Complete your profile',
+    description: 'Add photos, description, and opening hours to attract customers.',
+    cta: 'Complete profile',
     bg: 'bg-primary text-on-primary',
+    ctaClass: 'bg-white/20 hover:bg-white/30',
+    href: '#',
+  },
+  {
+    icon: UtensilsCrossed,
+    title: 'Set up your menu',
+    description: 'Add products so customers can start ordering from your store.',
+    cta: 'Add products',
+    bg: 'bg-secondary-container text-on-secondary-container',
+    ctaClass: 'bg-tertiary-container text-white',
+    href: '/vendor/menu',
   },
   {
     icon: TrendingUp,
-    label: 'Boost afternoon sales',
-    subtext: 'Post before 2pm',
-    bg: 'bg-secondary-container text-on-secondary-container',
+    title: 'Boost your visibility',
+    description: 'Connect your Instagram to auto-share your products with followers.',
+    cta: 'Connect social',
+    bg: 'bg-surface-container-low border border-outline-variant text-on-surface',
+    ctaClass: 'border border-outline text-on-surface-variant hover:bg-surface-variant',
+    href: '#',
   },
 ];
 
+// Get time-based greeting
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+};
+
+// Get initials from name
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
+};
+
+// Format currency
+const formatCurrency = (amount: number, currency: string) => {
+  return new Intl.NumberFormat('en-AU', {
+    style: 'currency',
+    currency: currency || 'AUD',
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
+
 export default function VendorDashboardPage() {
   const router = useRouter();
+  const supabase = createClient();
+
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [location, setLocation] = useState<Location | null>(null);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      // Check if user is logged in
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/login');
+        return;
+      }
+
+      // Load profile
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileData) {
+        setProfile(profileData);
+      }
+
+      // Load business
+      const { data: businessData } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('owner_id', user.id)
+        .single();
+
+      if (!businessData) {
+        // No business — send to apply
+        router.push('/vendor/apply');
+        return;
+      }
+
+      // Check status
+      if (businessData.status !== 'approved') {
+        router.push('/vendor/pending');
+        return;
+      }
+
+      setBusiness(businessData);
+
+      // Load primary location
+      const { data: locationData } = await supabase
+        .from('locations')
+        .select('*')
+        .eq('business_id', businessData.id)
+        .eq('is_primary', true)
+        .single();
+
+      if (locationData) {
+        setLocation(locationData);
+      }
+    } catch (err) {
+      console.error('Error loading dashboard:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-surface flex flex-col items-center justify-center">
+        <Loader2 size={40} className="text-primary animate-spin mb-4" />
+        <p className="text-on-surface-variant">Loading your dashboard...</p>
+      </main>
+    );
+  }
+
+  // Shouldn't reach here (redirects above), but safety check
+  if (!business || !profile) {
+    return null;
+  }
+
+  const greeting = getGreeting();
+  const businessInitials = getInitials(business.legal_name);
+  const profileInitials = profile.full_name
+    ? getInitials(profile.full_name)
+    : 'V';
+  const firstName = profile.full_name?.split(' ')[0] || 'there';
 
   return (
-    <main className="min-h-screen bg-surface pb-24 md:pb-8">
+    <main className="min-h-screen bg-surface text-on-surface pb-24 md:pb-8">
       {/* Grainy texture overlay */}
       <div
         className="fixed inset-0 pointer-events-none z-[100] opacity-[0.03]"
@@ -121,330 +212,217 @@ export default function VendorDashboardPage() {
         }}
       />
 
-      {/* Top App Bar */}
-      <header className="w-full sticky top-0 z-40 bg-surface-container-low/95 backdrop-blur-md shadow-organic-sm">
-        <div className="max-w-[1200px] mx-auto px-4 md:px-10 py-4 flex justify-between items-center gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden">
-              <img
-                src="/logo.png"
-                alt="OGuru"
-                className="w-6 h-6 object-contain"
-              />
-            </div>
-            <span className="font-display text-2xl font-bold text-primary tracking-tight">
-              OGuru
-            </span>
+      {/* Top App Bar (mobile only) */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-40 flex justify-between items-center px-4 h-16 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-display font-bold text-sm">
+            {businessInitials}
           </div>
-
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-2">
-            {[
-              { icon: Home, label: 'Home', active: true },
-              { icon: ShoppingBag, label: 'Orders' },
-              { icon: UtensilsCrossed, label: 'Menu' },
-              { icon: Megaphone, label: 'Marketing' },
-            ].map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <a
-                  key={i}
-                  href="#"
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-label text-sm font-semibold uppercase tracking-wider transition-colors ${
-                    item.active
-                      ? 'text-primary'
-                      : 'text-on-surface-variant hover:bg-surface-container-high hover:text-primary'
-                  }`}
-                >
-                  <Icon size={20} />
-                  {item.label}
-                </a>
-              );
-            })}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <button className="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 relative">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-tertiary" />
-            </button>
-            <button className="hidden md:flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg font-label text-sm font-semibold uppercase tracking-wider hover:bg-primary-container transition-all active:scale-95">
-              <Plus size={18} />
-              New Product
-            </button>
-          </div>
+          <h1 className="font-display text-lg font-bold text-primary truncate max-w-[180px]">
+            {business.legal_name}
+          </h1>
         </div>
+        <button className="w-10 h-10 flex items-center justify-center rounded-full text-primary hover:bg-surface-container transition-colors active:scale-95 relative">
+          <Bell size={20} />
+          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-tertiary-container" />
+        </button>
       </header>
 
-      {/* Main content */}
-      <div className="max-w-[1200px] mx-auto px-4 md:px-10 py-6 md:py-10 space-y-6 md:space-y-10">
-        {/* Greeting */}
-        <section className="flex justify-between items-start md:items-end gap-4">
-          <div className="space-y-2 flex-1">
-            <p className="font-label text-xs font-semibold text-secondary uppercase tracking-widest">
-              Good morning, Sarah
-            </p>
-            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-semibold text-on-surface tracking-tight leading-tight">
-              Your store is blooming today
+      {/* Side Navigation (tablet + desktop) */}
+      <aside className="hidden md:flex flex-col h-screen fixed left-0 top-0 p-4 bg-surface-container-low border-r border-outline-variant w-64 z-40">
+        <div className="flex items-center gap-3 mb-8 px-2">
+          <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-display font-bold text-sm">
+            {businessInitials}
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-display text-base text-primary font-bold leading-tight truncate">
+              {business.legal_name}
             </h1>
-            <div className="w-24 h-1 bg-primary-container rounded-full mt-3" />
+            <p className="text-xs text-on-surface-variant">Vendor Dashboard</p>
           </div>
+        </div>
 
-          <div className="flex items-center gap-1.5 bg-surface-container text-on-surface px-3 py-2 rounded-full border border-outline-variant flex-shrink-0">
-            <Sun size={16} className="text-tertiary" />
-            <span className="font-label text-xs font-semibold uppercase tracking-wider">
-              18°C
-            </span>
+        <nav className="flex-1 space-y-1">
+          {navItems.map((item, i) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={i}
+                onClick={() => item.href !== '#' && router.push(item.href)}
+                className={`w-full flex items-center gap-3 rounded-lg px-4 py-3 transition-all font-medium text-left ${
+                  item.active
+                    ? 'bg-primary-container text-on-primary-container font-bold'
+                    : 'text-on-surface-variant hover:bg-surface-variant'
+                }`}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="mt-auto pt-6 border-t border-outline-variant">
+          <div className="flex items-center gap-3 px-2 mb-3">
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm flex-shrink-0">
+              {profileInitials}
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-bold truncate">
+                {profile.full_name || 'Vendor'}
+              </p>
+              <p className="text-xs text-on-surface-variant truncate">
+                {business.owner_role}
+              </p>
+            </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-2 text-xs text-on-surface-variant hover:text-primary transition-colors px-2 py-1 font-label"
+          >
+            <LogOut size={14} />
+            Log out
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="md:ml-64 pt-20 md:pt-8 px-4 md:px-8 lg:px-12 max-w-screen-xl mx-auto">
+        {/* Greeting */}
+        <section className="mb-6 md:mb-8">
+          <h2 className="font-display text-3xl md:text-4xl font-semibold text-on-surface leading-tight">
+            {greeting}, {firstName}.
+          </h2>
+          <p className="font-display text-2xl md:text-3xl font-semibold text-primary mt-1 leading-tight">
+            Your community is growing 🌱
+          </p>
+          {location && (
+            <p className="text-sm text-on-surface-variant mt-3">
+              {location.city} · {business.currency}
+            </p>
+          )}
         </section>
 
-        {/* AI Insight Card + Stats — Tablet: side by side, Mobile: stacked */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* AI Insight — full width mobile, 7 cols desktop */}
-          <div className="lg:col-span-7">
-            <div className="relative bg-secondary-container rounded-2xl p-6 md:p-8 overflow-hidden shadow-organic border border-secondary/10">
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-white/40 backdrop-blur-sm rounded-full w-fit mb-4">
-                  <Sparkles size={16} className="text-tertiary" />
-                  <span className="font-label text-xs font-semibold text-tertiary uppercase tracking-wider">
-                    AI Insight
-                  </span>
-                </div>
-                <h2 className="font-display text-xl md:text-2xl font-semibold text-on-secondary-container mb-2 leading-tight">
-                  Rush expected at 6:00 PM today
-                </h2>
-                <p className="text-sm md:text-base text-on-secondary-container/80 mb-6 leading-relaxed max-w-md">
-                  Local concert nearby + warm weather forecast means higher foot traffic than usual.
-                </p>
-                <button className="inline-flex items-center gap-2 bg-white text-secondary px-5 py-2.5 rounded-lg font-label text-sm font-semibold uppercase tracking-wider hover:bg-white/90 transition-colors active:scale-95 group">
-                  Prepare a promotion
-                  <ArrowRight
-                    size={16}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
-                </button>
+        {/* Welcome / Setup Prompt (for new approved vendors) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5 mb-6">
+          {/* Onboarding hero card */}
+          <div className="lg:col-span-8 bg-primary-container text-on-primary-container p-6 md:p-8 rounded-2xl relative overflow-hidden shadow-organic">
+            <div className="relative z-10 max-w-lg">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles size={18} />
+                <span className="font-label text-xs font-semibold uppercase tracking-wider">
+                  Welcome to OGuru
+                </span>
               </div>
-
-              {/* Decorative background icon */}
-              <Megaphone
-                size={140}
-                className="absolute -right-6 -bottom-6 text-secondary/10"
-              />
+              <h3 className="font-display text-xl md:text-2xl font-semibold mb-3 leading-tight">
+                Let&apos;s get your store ready
+              </h3>
+              <p className="text-on-primary-container/80 mb-6 text-sm md:text-base leading-relaxed">
+                Complete your profile and add your products to start attracting customers in {location?.city || 'your area'}.
+              </p>
+              <button
+                onClick={() => router.push('/vendor/menu')}
+                className="bg-white text-primary px-6 py-3 rounded-lg font-label font-semibold text-sm uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all"
+              >
+                Set up menu
+              </button>
+            </div>
+            <div className="absolute -right-6 -bottom-6 opacity-20 pointer-events-none">
+              <UtensilsCrossed size={140} />
             </div>
           </div>
 
-          {/* Stats — 2x2 mobile, 2x2 desktop (in the 5-col area) */}
-          <div className="lg:col-span-5">
+          {/* Stats mini-grid */}
+          <div className="lg:col-span-4">
             <div className="grid grid-cols-2 gap-3 md:gap-4 h-full">
               {stats.map((stat, i) => (
                 <div
                   key={i}
-                  className="bg-surface-container-lowest border border-outline/10 rounded-2xl p-4 md:p-5 shadow-organic-sm hover:shadow-organic transition-all active:scale-[0.98] cursor-pointer"
+                  className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-4 md:p-5"
                 >
                   <p className="font-label text-[10px] md:text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">
                     {stat.label}
                   </p>
-                  <div className="flex items-end justify-between">
-                    <span className="font-display text-2xl md:text-3xl font-semibold text-on-surface">
-                      {stat.value}
-                    </span>
-                    {stat.trend === 'up' ? (
-                      <span className="flex items-center gap-0.5 text-xs font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
-                        <ArrowUp size={10} />
-                        {stat.change}
-                      </span>
-                    ) : (
-                      <Gift
-                        size={20}
-                        className="text-secondary"
-                        fill="currentColor"
-                      />
-                    )}
-                  </div>
+                  <span className="font-display text-2xl md:text-3xl font-semibold text-on-surface block mb-1">
+                    {stat.value}
+                  </span>
+                  <p className="text-[10px] text-on-surface-variant">
+                    {stat.change}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Live Order Queue */}
-        <section>
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <p className="font-label text-xs font-semibold text-outline uppercase tracking-widest">
-                Live Order Queue
-              </p>
-              <h3 className="font-display text-xl md:text-2xl font-semibold text-on-surface mt-1">
-                Pending fulfilment
-              </h3>
-            </div>
-            <button className="text-primary text-sm font-label font-semibold uppercase tracking-wider hover:underline">
-              View all
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {orders.map((order) => {
-              const OrderIcon = order.icon;
-              const statusStyles = {
-                preparing:
-                  'bg-primary-container/20 text-primary border-primary/20',
-                pending:
-                  'bg-surface-container-highest text-on-surface-variant border-outline/20',
-                new: 'bg-tertiary/10 text-tertiary border-tertiary/20',
-              };
+        {/* Setup Recommendations */}
+        <div className="mb-6">
+          <p className="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3 md:mb-4">
+            Get Started
+          </p>
+          <div className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-visible -mx-4 md:mx-0 px-4 md:px-0 pb-2 md:pb-0 scrollbar-hide">
+            {recommendations.map((rec, i) => {
+              const Icon = rec.icon;
               return (
-                <div
-                  key={order.id}
-                  className="bg-surface-container-lowest border border-outline/10 rounded-2xl p-4 flex items-center gap-4 hover:shadow-organic hover:border-primary/20 transition-all cursor-pointer group"
+                <button
+                  key={i}
+                  onClick={() => rec.href !== '#' && router.push(rec.href)}
+                  className={`${rec.bg} min-w-[280px] md:min-w-0 flex-shrink-0 md:flex-shrink p-5 rounded-2xl relative overflow-hidden shadow-organic-sm hover:shadow-organic transition-all text-left`}
                 >
-                  <div className="w-12 h-12 md:w-14 md:h-14 bg-surface-container rounded-xl flex items-center justify-center text-primary font-display font-bold flex-shrink-0">
-                    <OrderIcon size={22} />
+                  <div className="absolute top-3 right-3 opacity-20">
+                    <Icon size={40} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-semibold text-on-surface text-sm md:text-base truncate">
-                        {order.id} — {order.customer}
-                      </h4>
-                      {order.isGift && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-label font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded uppercase">
-                          <Gift size={10} />
-                          Gift
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs md:text-sm text-on-surface-variant truncate mt-0.5">
-                      {order.items} • {order.time}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span
-                      className={`px-2 md:px-3 py-1 rounded-full text-[10px] font-label font-bold uppercase tracking-wider border ${
-                        statusStyles[order.status as keyof typeof statusStyles]
+                  <div className="relative z-10">
+                    <h4 className="font-display font-bold text-base md:text-lg mb-2 pr-8">
+                      {rec.title}
+                    </h4>
+                    <p
+                      className={`text-sm mb-4 leading-relaxed ${
+                        rec.bg.includes('text-on-primary')
+                          ? 'text-white/80'
+                          : 'opacity-80'
                       }`}
                     >
-                      {order.status}
+                      {rec.description}
+                    </p>
+                    <span
+                      className={`inline-block text-xs font-label font-semibold uppercase tracking-wider px-3 py-1.5 rounded-full transition-colors ${rec.ctaClass}`}
+                    >
+                      {rec.cta}
                     </span>
-                    <ChevronRight
-                      size={20}
-                      className="text-outline group-hover:text-primary transition-colors hidden md:block"
-                    />
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
-        </section>
-
-        {/* AI Recommendations + Quick Actions grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          {/* Growth Recommendations */}
-          <section className="lg:col-span-7">
-            <p className="font-label text-xs font-semibold text-outline uppercase tracking-widest mb-4">
-              Growth Recommendations
-            </p>
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
-              {recommendations.map((rec, i) => {
-                const Icon = rec.icon;
-                return (
-                  <button
-                    key={i}
-                    className={`${rec.bg} rounded-2xl p-5 md:p-6 h-36 md:h-40 flex flex-col justify-between text-left hover:scale-[1.02] active:scale-[0.98] transition-transform shadow-organic-sm`}
-                  >
-                    <Icon size={28} />
-                    <div>
-                      <p className="font-semibold text-base md:text-lg leading-tight mb-1">
-                        {rec.label}
-                      </p>
-                      <p className="text-xs opacity-80">{rec.subtext}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Quick Actions */}
-          <section className="lg:col-span-5">
-            <p className="font-label text-xs font-semibold text-outline uppercase tracking-widest mb-4">
-              Quick Actions
-            </p>
-            <div className="grid grid-cols-4 gap-2 md:gap-3">
-              {quickActions.map((action, i) => {
-                const Icon = action.icon;
-                return (
-                  <button
-                    key={i}
-                    className="flex flex-col items-center gap-2 group py-2"
-                  >
-                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary group-active:scale-90 transition-all">
-                      <Icon size={24} />
-                    </div>
-                    <span className="text-xs font-label font-semibold text-on-surface uppercase tracking-wider">
-                      {action.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
         </div>
 
-        {/* Weekly Forecast */}
-        <section className="bg-surface-container-lowest border border-outline/10 rounded-2xl p-6 md:p-8 shadow-organic-sm">
-          <div className="flex justify-between items-start md:items-center flex-col md:flex-row gap-2 md:gap-0 mb-6">
-            <div>
-              <p className="font-label text-xs font-semibold text-outline uppercase tracking-widest mb-1">
-                Weekly Forecast
-              </p>
-              <h3 className="font-display text-xl md:text-2xl font-semibold text-on-surface">
-                Upward trend
-              </h3>
-            </div>
-            <span className="text-xs font-label font-semibold text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-wider">
-              +15% vs last week
-            </span>
+        {/* Empty state notice */}
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 md:p-8 text-center">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+            <TrendingUp size={24} />
           </div>
-
-          <div className="h-24 md:h-32 w-full flex items-end justify-between gap-1 md:gap-2">
-            <div className="w-full bg-primary/10 rounded-t-lg transition-all" style={{ height: '40%' }} />
-            <div className="w-full bg-primary/20 rounded-t-lg transition-all" style={{ height: '60%' }} />
-            <div className="w-full bg-primary/30 rounded-t-lg transition-all" style={{ height: '50%' }} />
-            <div className="w-full bg-primary/40 rounded-t-lg transition-all" style={{ height: '80%' }} />
-            <div className="w-full bg-primary/60 rounded-t-lg transition-all" style={{ height: '70%' }} />
-            <div className="w-full bg-gradient-to-t from-primary to-primary-container rounded-t-lg transition-all shadow-organic" style={{ height: '95%' }} />
-            <div className="w-full bg-surface-container-highest rounded-t-lg transition-all" style={{ height: '30%' }} />
-          </div>
-          <div className="flex justify-between mt-3 font-label text-xs font-semibold text-outline px-1">
-            <span>M</span>
-            <span>T</span>
-            <span>W</span>
-            <span>T</span>
-            <span>F</span>
-            <span className="text-primary font-bold">S</span>
-            <span>S</span>
-          </div>
-        </section>
+          <h3 className="font-display text-lg md:text-xl font-semibold text-on-surface mb-2">
+            Your dashboard will come alive
+          </h3>
+          <p className="text-sm text-on-surface-variant max-w-md mx-auto leading-relaxed">
+            Once you set up your menu and get your first orders, you&apos;ll see live insights, customer birthdays, campaign performance, and AI recommendations here.
+          </p>
+        </div>
       </div>
 
       {/* Bottom Navigation — Mobile Only */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container-lowest border-t border-outline-variant shadow-[0_-4px_20px_rgba(93,64,55,0.08)] rounded-t-2xl">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container border-t border-outline-variant rounded-t-2xl shadow-[0_-4px_20px_rgba(93,64,55,0.08)]">
         <div className="flex justify-around items-center h-20 pb-safe px-2">
-          {[
-            { icon: Home, label: 'Home', active: true },
-            { icon: ShoppingBag, label: 'Orders' },
-            { icon: UtensilsCrossed, label: 'Menu' },
-            { icon: Megaphone, label: 'Marketing' },
-            { icon: MoreHorizontal, label: 'More' },
-          ].map((item, i) => {
+          {navItems.map((item, i) => {
             const Icon = item.icon;
             return (
-              <a
+              <button
                 key={i}
-                href="#"
+                onClick={() => item.href !== '#' && router.push(item.href)}
                 className={`flex flex-col items-center justify-center gap-1 px-3 py-1 rounded-full transition-all active:scale-90 ${
                   item.active
-                    ? 'bg-primary-container/20 text-primary'
+                    ? 'bg-primary-container/40 text-primary'
                     : 'text-on-surface-variant'
                 }`}
               >
@@ -452,16 +430,11 @@ export default function VendorDashboardPage() {
                 <span className="text-[10px] font-label font-semibold uppercase tracking-wider">
                   {item.label}
                 </span>
-              </a>
+              </button>
             );
           })}
         </div>
       </nav>
-
-      {/* Floating Action Button — Mobile only */}
-      <button className="md:hidden fixed bottom-24 right-4 w-14 h-14 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-2xl shadow-organic-lg flex items-center justify-center active:scale-90 transition-transform z-40">
-        <Plus size={24} />
-      </button>
     </main>
   );
 }
