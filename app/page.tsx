@@ -2,16 +2,50 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 
 export default function Page() {
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push('/welcome');
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, [router]);
+    checkAuthAndRedirect();
+  }, []);
+
+  const checkAuthAndRedirect = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        // User is logged in — check their status and route accordingly
+        const { data: business } = await supabase
+          .from('businesses')
+          .select('status')
+          .eq('owner_id', user.id)
+          .single();
+
+        if (!business) {
+          // No business yet — send to apply
+          router.push('/vendor/apply');
+        } else if (business.status === 'approved') {
+          router.push('/vendor/dashboard');
+        } else {
+          router.push('/vendor/pending');
+        }
+      } else {
+        // Not logged in — go to welcome flow after splash
+        setTimeout(() => {
+          router.push('/welcome');
+        }, 2500);
+      }
+    } catch (err) {
+      console.error('Auth check error:', err);
+      // On error, just show onboarding
+      setTimeout(() => {
+        router.push('/welcome');
+      }, 2500);
+    }
+  };
 
   return (
     <main
@@ -23,7 +57,6 @@ export default function Page() {
         alignItems: 'center',
         justifyContent: 'center',
         padding: '16px',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -74,18 +107,18 @@ export default function Page() {
         />
 
         <p
-  style={{
-    marginTop: '8px',
-    fontSize: '13px',
-    color: '#44483a',
-    letterSpacing: '0.25em',
-    textTransform: 'uppercase',
-    fontWeight: 600,
-    textAlign: 'center',
-    fontFamily: 'var(--font-label), system-ui, sans-serif',
-  }}
->
-          Ai Assisted Vendor Marketing and Ordering
+          style={{
+            marginTop: '8px',
+            fontSize: '13px',
+            color: '#44483a',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            fontWeight: 600,
+            textAlign: 'center',
+            fontFamily: 'var(--font-label), system-ui, sans-serif',
+          }}
+        >
+          Organic Marketplace
         </p>
       </div>
 
