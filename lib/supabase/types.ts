@@ -32,24 +32,61 @@ export type Profile = {
 export type Business = {
   id: string;
   owner_id: string;
+
+  // Identity (from application)
   legal_name: string;
   trading_name: string | null;
   registration_number: string;
+
+  // Owner contact (from application)
   owner_full_name: string;
   owner_role: string;
   owner_email: string;
   owner_phone: string;
+
+  // Business contact (from application)
   business_email: string;
   business_phone: string;
+
+  // Country & currency (from application)
   country_code: string;
   currency: string;
   timezone: string;
+
+  // Application & approval
   status: BusinessStatus;
   approved_at: string | null;
   approved_by: string | null;
   rejection_reason: string | null;
   verification_doc_url: string | null;
   verification_doc_name: string | null;
+
+  // Profile fields (added later)
+  description: string | null;
+  story: string | null;
+  tagline: string | null;
+  business_types: string[];
+
+  // Photos
+  logo_url: string | null;
+  cover_url: string | null;
+  gallery_urls: string[];
+
+  // Chip / visual identity
+  chip_icon: string | null;
+  chip_color: string | null;
+
+  // Social & web
+  instagram_handle: string | null;
+  facebook_url: string | null;
+  tiktok_handle: string | null;
+  website_url: string | null;
+  google_business_url: string | null;
+
+  // Profile completion tracking
+  profile_completion_pct: number;
+
+  // Metadata
   created_at: string;
   updated_at: string;
 };
@@ -77,6 +114,8 @@ export type Location = {
   is_accepting_orders: boolean;
   pos_system: PosSystem;
   pos_synced_at: string | null;
+  neighborhood: string | null;
+  access_notes: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -97,6 +136,34 @@ export type Product = {
   sort_order: number;
   created_at: string;
   updated_at: string;
+};
+
+export type OpeningHours = {
+  id: string;
+  location_id: string;
+  day_of_week: number; // 0-6, 0 = Sunday
+  opens_at: string | null; // Time format "HH:MM:SS"
+  closes_at: string | null;
+  is_closed: boolean;
+  shift_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VendorKeyword = {
+  id: string;
+  business_id: string;
+  keyword: string;
+  category: string;
+  created_at: string;
+};
+
+export type CustomerKeyword = {
+  id: string;
+  user_id: string;
+  keyword: string;
+  weight: number;
+  created_at: string;
 };
 
 export type WaitlistSignup = {
