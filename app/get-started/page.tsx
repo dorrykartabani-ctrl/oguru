@@ -17,6 +17,32 @@ export default function GetStartedPage() {
         overflow: 'hidden',
       }}
     >
+      {/* Login link — top right */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '24px',
+          right: '24px',
+          zIndex: 10,
+        }}
+      >
+        <button
+          onClick={() => router.push('/login')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#4a6410',
+            fontSize: '14px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            padding: '8px 16px',
+            fontFamily: 'inherit',
+          }}
+        >
+          Log in →
+        </button>
+      </div>
+
       <div
         style={{
           position: 'absolute',
@@ -172,7 +198,7 @@ export default function GetStartedPage() {
         </button>
 
         <button
-          onClick={() => router.push('/vendor/apply')}
+          onClick={() => router.push('/vendor')}
           style={{
             padding: '28px 24px',
             backgroundColor: '#ffffff',
@@ -241,19 +267,51 @@ export default function GetStartedPage() {
         </button>
       </div>
 
-      <p
+      {/* Bottom section — existing account link */}
+      <div
         style={{
           textAlign: 'center',
-          fontSize: '13px',
-          color: '#757969',
-          margin: 0,
-          marginBottom: '16px',
           position: 'relative',
           zIndex: 1,
+          paddingBottom: '16px',
         }}
       >
-        You can switch between modes anytime
-      </p>
+        <p
+          style={{
+            fontSize: '13px',
+            color: '#757969',
+            margin: 0,
+            marginBottom: '8px',
+          }}
+        >
+          You can switch between modes anytime
+        </p>
+        <p
+          style={{
+            fontSize: '14px',
+            color: '#44483a',
+            margin: 0,
+          }}
+        >
+          Already have an account?{' '}
+          <button
+            onClick={() => router.push('/login')}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#4a6410',
+              fontWeight: 600,
+              cursor: 'pointer',
+              padding: 0,
+              fontFamily: 'inherit',
+              fontSize: '14px',
+              textDecoration: 'underline',
+            }}
+          >
+            Log in
+          </button>
+        </p>
+      </div>
     </main>
   );
 }
