@@ -37,6 +37,7 @@ export type Business = {
   legal_name: string;
   trading_name: string | null;
   registration_number: string;
+  slug: string | null;
 
   // Owner contact (from application)
   owner_full_name: string;
@@ -141,8 +142,8 @@ export type Product = {
 export type OpeningHours = {
   id: string;
   location_id: string;
-  day_of_week: number; // 0-6, 0 = Sunday
-  opens_at: string | null; // Time format "HH:MM:SS"
+  day_of_week: number;
+  opens_at: string | null;
   closes_at: string | null;
   is_closed: boolean;
   shift_order: number;
