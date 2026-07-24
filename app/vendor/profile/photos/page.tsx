@@ -497,12 +497,6 @@ export default function PhotosEditorPage() {
         </section>
       </div>
 
-  <p className="text-center text-sm text-on-surface-variant mt-6">
-          Changes auto-save · Back to settings when done
-        </p>
-      </div>
-
-
       <style jsx>{`
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(-4px); }
