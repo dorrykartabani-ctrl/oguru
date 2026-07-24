@@ -5,34 +5,29 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Business, Location, Profile } from '@/lib/supabase/types';
 import {
-  Home,
+  LayoutDashboard,
   BarChart3,
   UtensilsCrossed,
   Megaphone,
-  MoreHorizontal,
+  Settings,
   Bell,
   Sparkles,
   ArrowRight,
-  TrendingUp,
   Loader2,
   LogOut,
-  Camera,
-  FileText,
-  Clock,
-  Tag,
+  TrendingUp,
   Share2,
-  CheckCircle2,
-  User,
-  Settings,
+  Plus,
 } from 'lucide-react';
 
 const navItems = [
-  { icon: Home, label: 'Home', active: true, href: '/vendor/dashboard' },
+  { icon: LayoutDashboard, label: 'Dashboard', active: true, href: '/vendor/dashboard' },
   { icon: BarChart3, label: 'Insights', active: false, href: '#' },
   { icon: UtensilsCrossed, label: 'Menu', active: false, href: '/vendor/menu' },
   { icon: Megaphone, label: 'Marketing', active: false, href: '#' },
   { icon: Settings, label: 'Settings', active: false, href: '/vendor/settings' },
 ];
+
 const stats = [
   { label: 'Followers', value: '0', change: 'No followers yet', trend: 'neutral' },
   { label: 'Nearby', value: '0', change: 'coming soon', trend: 'neutral' },
@@ -40,64 +35,27 @@ const stats = [
   { label: 'Regulars', value: '0', change: 'loyal visitors', trend: 'neutral' },
 ];
 
-// Profile setup steps in priority order
-type ProfileStep = {
-  key: string;
-  icon: typeof Camera;
-  title: string;
-  subtitle: string;
-  href: string;
-  weight: number; // For calculating completion
-};
-
-const profileSteps: ProfileStep[] = [
+const quickActions = [
   {
-    key: 'photos',
-    icon: Camera,
-    title: 'Add photos',
-    subtitle: 'Logo, cover photo, chip identity',
-    href: '/vendor/profile/photos',
-    weight: 25,
-  },
-  {
-    key: 'about',
-    icon: FileText,
-    title: 'Write your story',
-    subtitle: 'Tagline, description, business type',
-    href: '/vendor/profile/about',
-    weight: 20,
-  },
-  {
-    key: 'hours',
-    icon: Clock,
-    title: 'Set opening hours',
-    subtitle: 'When customers can find you',
-    href: '/vendor/profile/hours',
-    weight: 15,
-  },
-  {
-    key: 'keywords',
-    icon: Tag,
-    title: 'Add keywords',
-    subtitle: 'Help customers discover you',
-    href: '/vendor/profile/keywords',
-    weight: 15,
-  },
-  {
-    key: 'social',
-    icon: Share2,
-    title: 'Link social accounts',
-    subtitle: 'Instagram, Facebook, website',
-    href: '/vendor/profile/social',
-    weight: 10,
-  },
-  {
-    key: 'menu',
     icon: UtensilsCrossed,
-    title: 'Set up your menu',
-    subtitle: 'Add products for customers to order',
+    title: 'Manage menu',
+    subtitle: 'Add and edit products',
     href: '/vendor/menu',
-    weight: 15,
+    color: 'bg-primary/10 text-primary',
+  },
+  {
+    icon: Share2,
+    title: 'Share your store',
+    subtitle: 'Get your OGuru link',
+    href: '#',
+    color: 'bg-secondary-container text-on-secondary-container',
+  },
+  {
+    icon: Megaphone,
+    title: 'Create campaign',
+    subtitle: 'AI-powered marketing',
+    href: '#',
+    color: 'bg-tertiary/10 text-tertiary',
   },
 ];
 
@@ -178,7 +136,6 @@ export default function VendorDashboardPage() {
       if (locationData) {
         setLocation(locationData);
 
-        // Load counts for progress calculation
         const [productsResult, hoursResult, keywordsResult] = await Promise.all([
           supabase
             .from('products')
@@ -210,34 +167,32 @@ export default function VendorDashboardPage() {
     router.push('/');
   };
 
-  // Determine which sections are complete
-  const isComplete = (step: ProfileStep): boolean => {
-    if (!business) return false;
+  // Calculate profile completion
+  const calculateCompletion = (): { pct: number; sections: number; total: number } => {
+    if (!business) return { pct: 0, sections: 0, total: 6 };
 
-    switch (step.key) {
-      case 'photos':
-        return !!(business.logo_url && business.cover_url);
-      case 'about':
-        return !!(business.description && business.description.length > 20);
-      case 'hours':
-        return openingHoursCount >= 3;
-      case 'keywords':
-        return keywordsCount >= 3;
-           case 'social':
-        // Social is completely optional — always counts as complete
-        return true;
-      case 'menu':
-        return productCount >= 1;
-      default:
-        return false;
-    }
+    let completed = 0;
+    const total = 6;
+
+    // Photos: logo + cover
+    if (business.logo_url && business.cover_url) completed++;
+    // About: description + business types
+    if (business.description && business.description.length > 20 && business.business_types.length > 0) completed++;
+    // Location: exists (always true if vendor exists)
+    if (location) completed++;
+    // Hours: 3+ days
+    if (openingHoursCount >= 3) completed++;
+    // Keywords: 3+ keywords
+    if (keywordsCount >= 3) completed++;
+    // Menu: 1+ product
+    if (productCount >= 1) completed++;
+
+    return {
+      pct: Math.round((completed / total) * 100),
+      sections: completed,
+      total,
+    };
   };
-
-  const incompleteSteps = profileSteps.filter((step) => !isComplete(step));
-  const completedSteps = profileSteps.filter((step) => isComplete(step));
-  const totalWeight = profileSteps.reduce((sum, s) => sum + s.weight, 0);
-  const completedWeight = completedSteps.reduce((sum, s) => sum + s.weight, 0);
-  const completionPct = Math.round((completedWeight / totalWeight) * 100);
 
   if (loading) {
     return (
@@ -254,7 +209,8 @@ export default function VendorDashboardPage() {
   const businessInitials = getInitials(business.legal_name);
   const profileInitials = profile.full_name ? getInitials(profile.full_name) : 'V';
   const firstName = profile.full_name?.split(' ')[0] || 'there';
-  const showProfileCards = completionPct < 100;
+  const completion = calculateCompletion();
+  const isProfileComplete = completion.pct === 100;
 
   return (
     <main className="min-h-screen bg-surface text-on-surface pb-24 md:pb-8">
@@ -324,22 +280,19 @@ export default function VendorDashboardPage() {
         </nav>
 
         <div className="mt-auto pt-6 border-t border-outline-variant">
-          <button
-            onClick={() => router.push('/vendor/profile')}
-            className="w-full flex items-center gap-3 px-2 mb-3 hover:bg-surface-variant p-2 rounded-lg transition-colors"
-          >
+          <div className="flex items-center gap-3 px-2 mb-3">
             <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-sm flex-shrink-0">
               {profileInitials}
             </div>
-            <div className="overflow-hidden text-left">
+            <div className="overflow-hidden">
               <p className="text-sm font-bold truncate">
                 {profile.full_name || 'Vendor'}
               </p>
               <p className="text-xs text-on-surface-variant truncate">
-                View profile
+                {business.owner_role}
               </p>
             </div>
-          </button>
+          </div>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-2 text-xs text-on-surface-variant hover:text-primary transition-colors px-2 py-1 font-label"
@@ -358,9 +311,9 @@ export default function VendorDashboardPage() {
             {greeting}, {firstName}.
           </h2>
           <p className="font-display text-2xl md:text-3xl font-semibold text-primary mt-1 leading-tight">
-            {completionPct === 100
+            {isProfileComplete
               ? 'Your community is growing 🌱'
-              : "Let's finish setting you up"}
+              : "Welcome to OGuru"}
           </p>
           {location && (
             <p className="text-sm text-on-surface-variant mt-3">
@@ -369,118 +322,109 @@ export default function VendorDashboardPage() {
           )}
         </section>
 
-        {/* Profile Completion Section (shown until 100%) */}
-        {showProfileCards && (
-          <section className="mb-8">
-            {/* Progress Header */}
-            <div className="bg-gradient-to-br from-primary to-primary-container text-white rounded-2xl p-6 md:p-8 mb-4 shadow-organic">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <p className="font-label text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">
-                    Store Setup
-                  </p>
-                  <h3 className="font-display text-2xl md:text-3xl font-semibold">
-                    Your profile is {completionPct}% complete
+        {/* Profile Completion Prompt (only if not 100%) */}
+        {!isProfileComplete && (
+          <section className="mb-6">
+            <div className="bg-gradient-to-br from-primary to-primary-container text-white rounded-2xl p-6 md:p-8 shadow-organic relative overflow-hidden">
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles size={18} />
+                    <span className="font-label text-xs font-semibold uppercase tracking-wider opacity-90">
+                      Get Started
+                    </span>
+                  </div>
+                  <h3 className="font-display text-xl md:text-2xl font-semibold mb-2 leading-tight">
+                    Complete your profile ({completion.pct}%)
                   </h3>
-                  <p className="text-white/80 text-sm mt-1">
-                    {completedSteps.length} of {profileSteps.length} sections done
+                  <p className="text-white/85 text-sm md:text-base mb-4 leading-relaxed max-w-md">
+                    {completion.sections} of {completion.total} sections done. Add photos, hours, and keywords to help customers find you.
                   </p>
-                </div>
-                <div className="relative flex-shrink-0">
-                  <svg className="w-16 h-16 -rotate-90" viewBox="0 0 100 100">
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="45"
-                      fill="none"
-                      stroke="rgba(255,255,255,0.2)"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="45"
-                      fill="none"
-                      stroke="white"
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={`${(completionPct / 100) * 283} 283`}
-                      className="transition-all duration-700"
-                    />
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center font-display font-bold text-lg">
-                    {completionPct}%
-                  </span>
-                </div>
-              </div>
 
-              {/* Progress bar */}
-              <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-white rounded-full transition-all duration-700"
-                  style={{ width: `${completionPct}%` }}
-                />
-              </div>
-            </div>
+                  {/* Progress bar */}
+                  <div className="h-2 bg-white/20 rounded-full overflow-hidden mb-4 max-w-md">
+                    <div
+                      className="h-full bg-white rounded-full transition-all duration-700"
+                      style={{ width: `${completion.pct}%` }}
+                    />
+                  </div>
 
-            {/* Incomplete Steps Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {incompleteSteps.map((step) => {
-                const Icon = step.icon;
-                return (
                   <button
-                    key={step.key}
-                    onClick={() => router.push(step.href)}
-                    className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-4 flex items-center gap-3 hover:border-primary/40 hover:shadow-organic transition-all text-left group"
+                    onClick={() => router.push('/vendor/settings')}
+                    className="inline-flex items-center gap-2 bg-white text-primary px-6 py-3 rounded-xl font-label font-semibold text-sm uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                      <Icon size={22} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-display font-semibold text-sm text-on-surface truncate">
-                        {step.title}
-                      </p>
-                      <p className="text-xs text-on-surface-variant truncate">
-                        {step.subtitle}
-                      </p>
-                    </div>
-                    <ArrowRight
-                      size={18}
-                      className="text-on-surface-variant group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0"
-                    />
+                    Complete profile
+                    <ArrowRight size={16} />
                   </button>
-                );
-              })}
-            </div>
+                </div>
 
-            {/* Completed section (collapsible) */}
-            {completedSteps.length > 0 && (
-              <div className="mt-6">
-                <p className="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
-                  Completed ({completedSteps.length})
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {completedSteps.map((step) => {
-                    const Icon = step.icon;
-                    return (
-                      <button
-                        key={step.key}
-                        onClick={() => router.push(step.href)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-xs font-semibold text-primary hover:bg-primary/15 transition-colors"
-                      >
-                        <CheckCircle2 size={12} />
-                        <Icon size={12} />
-                        {step.title}
-                      </button>
-                    );
-                  })}
+                {/* Circular progress on desktop */}
+                <div className="hidden md:block flex-shrink-0">
+                  <div className="relative">
+                    <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        fill="none"
+                        stroke="rgba(255,255,255,0.2)"
+                        strokeWidth="8"
+                      />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="45"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray={`${(completion.pct / 100) * 283} 283`}
+                        className="transition-all duration-700"
+                      />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center font-display font-bold text-xl">
+                      {completion.pct}%
+                    </span>
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
           </section>
         )}
 
-        {/* Stats (always shown) */}
+        {/* Quick Actions */}
+        <section className="mb-6">
+          <p className="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
+            Quick actions
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {quickActions.map((action, i) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={i}
+                  onClick={() => action.href !== '#' && router.push(action.href)}
+                  className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-4 flex items-center gap-3 hover:border-primary/40 hover:shadow-organic transition-all text-left group"
+                >
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${action.color}`}>
+                    <Icon size={22} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-semibold text-sm text-on-surface truncate">
+                      {action.title}
+                    </p>
+                    <p className="text-xs text-on-surface-variant truncate">
+                      {action.subtitle}
+                    </p>
+                  </div>
+                  <ArrowRight size={18} className="text-on-surface-variant group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0" />
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Community Stats */}
         <section className="mb-6">
           <p className="font-label text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-3">
             Your Community
@@ -505,20 +449,22 @@ export default function VendorDashboardPage() {
           </div>
         </section>
 
-        {/* Empty state (when profile complete but no activity yet) */}
-        {completionPct === 100 && (
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 md:p-8 text-center">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4">
-              <TrendingUp size={24} />
-            </div>
-            <h3 className="font-display text-lg md:text-xl font-semibold text-on-surface mb-2">
-              Your dashboard will come alive
-            </h3>
-            <p className="text-sm text-on-surface-variant max-w-md mx-auto leading-relaxed">
-              You&apos;re fully set up! Once customers start engaging, you&apos;ll see live insights, birthdays, campaign performance, and AI recommendations here.
-            </p>
+        {/* Empty state — insights coming soon */}
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 md:p-8 text-center">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4">
+            <TrendingUp size={24} />
           </div>
-        )}
+          <h3 className="font-display text-lg md:text-xl font-semibold text-on-surface mb-2">
+            {isProfileComplete
+              ? 'Your insights will appear here'
+              : 'Ready to grow your business'}
+          </h3>
+          <p className="text-sm text-on-surface-variant max-w-md mx-auto leading-relaxed">
+            {isProfileComplete
+              ? "Once customers start engaging with your store, you'll see live insights, birthdays, campaign performance, and AI recommendations here."
+              : "Complete your profile to start attracting customers. Once you have followers and orders, this dashboard will come alive with insights."}
+          </p>
+        </div>
       </div>
 
       {/* Bottom Nav — mobile */}
