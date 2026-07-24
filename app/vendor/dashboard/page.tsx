@@ -23,6 +23,7 @@ import {
   Share2,
   CheckCircle2,
   User,
+  Settings,
 } from 'lucide-react';
 
 const navItems = [
@@ -30,9 +31,8 @@ const navItems = [
   { icon: BarChart3, label: 'Insights', active: false, href: '#' },
   { icon: UtensilsCrossed, label: 'Menu', active: false, href: '/vendor/menu' },
   { icon: Megaphone, label: 'Marketing', active: false, href: '#' },
-  { icon: MoreHorizontal, label: 'More', active: false, href: '#' },
+  { icon: Settings, label: 'Settings', active: false, href: '/vendor/settings' },
 ];
-
 const stats = [
   { label: 'Followers', value: '0', change: 'No followers yet', trend: 'neutral' },
   { label: 'Nearby', value: '0', change: 'coming soon', trend: 'neutral' },
