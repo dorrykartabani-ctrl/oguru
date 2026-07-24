@@ -474,7 +474,7 @@ export default function SettingsPage() {
           </Section>
 
           {/* LOCATION */}
-          <Section icon={MapPin} title="Location" isComplete={!!location} editHref="#">
+          <Section icon={MapPin} title="Location" isComplete={!!location} editHref="/vendor/profile/address">
             {location ? (
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-on-surface">{location.address_line_1}</p>
