@@ -187,7 +187,7 @@ export default function SocialEditor() {
 
   if (!business) return null;
 
-  // Count filled fields for completion
+  // Count filled fields (all optional)
   const filledCount = [
     instagram,
     facebook,
@@ -195,7 +195,6 @@ export default function SocialEditor() {
     website,
     googleBusiness,
   ].filter(Boolean).length;
-  const isComplete = filledCount >= 1;
 
   return (
     <main className="min-h-screen bg-surface">
@@ -505,27 +504,19 @@ export default function SocialEditor() {
           </p>
         </section>
 
-        {/* Completion status */}
+         {/* Completion status */}
         <div className="p-4 bg-surface-container-low border border-outline-variant rounded-xl flex items-center gap-3">
-          <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-              isComplete
-                ? 'bg-primary text-on-primary'
-                : 'bg-surface-container-highest text-on-surface-variant'
-            }`}
-          >
-            {isComplete ? <Check size={20} /> : <Share2 size={18} />}
+          <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 bg-primary text-on-primary">
+            <Check size={20} />
           </div>
           <div className="flex-1">
             <p className="font-display font-semibold text-sm text-on-surface">
-              {isComplete
-                ? 'Section complete!'
-                : 'Add at least one social link'}
+              Section complete!
             </p>
             <p className="text-xs text-on-surface-variant">
-              {isComplete
-                ? `${filledCount} link${filledCount === 1 ? '' : 's'} added`
-                : 'Instagram, website, or Google Business'}
+              {filledCount === 0
+                ? "Optional — add links whenever you're ready"
+                : `${filledCount} link${filledCount === 1 ? '' : 's'} added`}
             </p>
           </div>
         </div>
