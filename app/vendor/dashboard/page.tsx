@@ -223,8 +223,9 @@ export default function VendorDashboardPage() {
         return openingHoursCount >= 3;
       case 'keywords':
         return keywordsCount >= 3;
-      case 'social':
-        return !!(business.instagram_handle || business.website_url);
+           case 'social':
+        // Social is completely optional — always counts as complete
+        return true;
       case 'menu':
         return productCount >= 1;
       default:
