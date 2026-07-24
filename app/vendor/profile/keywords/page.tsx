@@ -317,11 +317,11 @@ export default function KeywordsEditor() {
       <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-3xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <button
-            onClick={() => router.push('/vendor/dashboard')}
+            onClick={() => router.push('/vendor/settings')}
             className="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label font-semibold text-sm"
           >
             <ArrowLeft size={18} />
-            <span className="hidden sm:inline">Back to dashboard</span>
+            <span className="hidden sm:inline">Back to settings</span>
             <span className="sm:hidden">Back</span>
           </button>
 
@@ -631,7 +631,7 @@ export default function KeywordsEditor() {
         </div>
 
         <p className="text-center text-sm text-on-surface-variant mt-6">
-          Changes auto-save · Back to dashboard when done
+          Changes auto-save · Back to settings when done
         </p>
       </div>
 
