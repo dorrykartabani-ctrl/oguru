@@ -42,7 +42,6 @@ import {
   Settings,
   Eye,
   Info,
-  ExternalLink,
 } from 'lucide-react';
 
 const navItems = [
