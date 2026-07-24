@@ -27,51 +27,53 @@ const DAYS_OF_WEEK = [
   { value: 0, short: 'Sun', full: 'Sunday' },
 ];
 
-// Group opening hours by day
-type DayHours = {
-  day_of_week: number;
-  shifts: OpeningHours[];
-  isClosed: boolean;
+// Ensure time is always HH:MM:SS format for PostgreSQL time type
+const toPgTime = (time: string): string => {
+  if (!time) return '09:00:00';
+  const parts = time.split(':');
+  const hours = (parts[0] || '09').padStart(2, '0');
+  const minutes = (parts[1] || '00').padStart(2, '0');
+  const seconds = (parts[2] || '00').padStart(2, '0');
+  return `${hours}:${minutes}:${seconds}`;
 };
 
-// Convert "HH:MM:SS" to "HH:MM" for time input
+// Convert HH:MM:SS to HH:MM for time input
 const formatTimeForInput = (time: string | null): string => {
   if (!time) return '';
   return time.substring(0, 5);
 };
 
-// Presets for quick setup
 const PRESETS = [
   {
     name: 'Standard café hours',
     description: 'Mon-Fri 7-5, Sat-Sun 8-4',
-    apply: (): { day: number; open: string; close: string }[] => [
-      { day: 1, open: '07:00', close: '17:00' },
-      { day: 2, open: '07:00', close: '17:00' },
-      { day: 3, open: '07:00', close: '17:00' },
-      { day: 4, open: '07:00', close: '17:00' },
-      { day: 5, open: '07:00', close: '17:00' },
-      { day: 6, open: '08:00', close: '16:00' },
-      { day: 0, open: '08:00', close: '16:00' },
+    schedule: [
+      { day: 1, open: '07:00:00', close: '17:00:00' },
+      { day: 2, open: '07:00:00', close: '17:00:00' },
+      { day: 3, open: '07:00:00', close: '17:00:00' },
+      { day: 4, open: '07:00:00', close: '17:00:00' },
+      { day: 5, open: '07:00:00', close: '17:00:00' },
+      { day: 6, open: '08:00:00', close: '16:00:00' },
+      { day: 0, open: '08:00:00', close: '16:00:00' },
     ],
   },
   {
     name: 'Weekdays only',
     description: 'Mon-Fri 8-4, closed weekends',
-    apply: (): { day: number; open: string; close: string }[] => [
-      { day: 1, open: '08:00', close: '16:00' },
-      { day: 2, open: '08:00', close: '16:00' },
-      { day: 3, open: '08:00', close: '16:00' },
-      { day: 4, open: '08:00', close: '16:00' },
-      { day: 5, open: '08:00', close: '16:00' },
+    schedule: [
+      { day: 1, open: '08:00:00', close: '16:00:00' },
+      { day: 2, open: '08:00:00', close: '16:00:00' },
+      { day: 3, open: '08:00:00', close: '16:00:00' },
+      { day: 4, open: '08:00:00', close: '16:00:00' },
+      { day: 5, open: '08:00:00', close: '16:00:00' },
     ],
   },
   {
     name: 'Weekend brunch',
     description: 'Sat-Sun 8-3, closed weekdays',
-    apply: (): { day: number; open: string; close: string }[] => [
-      { day: 6, open: '08:00', close: '15:00' },
-      { day: 0, open: '08:00', close: '15:00' },
+    schedule: [
+      { day: 6, open: '08:00:00', close: '15:00:00' },
+      { day: 0, open: '08:00:00', close: '15:00:00' },
     ],
   },
 ];
@@ -84,7 +86,15 @@ export default function OpeningHoursEditor() {
   const [saving, setSaving] = useState(false);
   const [business, setBusiness] = useState<Business | null>(null);
   const [location, setLocation] = useState<Location | null>(null);
-  const [hoursByDay, setHoursByDay] = useState<Record<number, OpeningHours[]>>({});
+  const [hoursByDay, setHoursByDay] = useState<Record<number, OpeningHours[]>>({
+    0: [],
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+    5: [],
+    6: [],
+  });
   const [savedIndicator, setSavedIndicator] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copyFromDay, setCopyFromDay] = useState<number | null>(null);
@@ -128,19 +138,25 @@ export default function OpeningHoursEditor() {
 
       setLocation(locationData);
 
-      // Load existing opening hours
-      const { data: hoursData } = await supabase
+      const { data: hoursData, error: hoursError } = await supabase
         .from('opening_hours')
         .select('*')
         .eq('location_id', locationData.id)
         .order('day_of_week')
         .order('shift_order');
 
+      if (hoursError) {
+        console.error('Error loading hours:', hoursError);
+      }
+
       if (hoursData) {
-        const grouped: Record<number, OpeningHours[]> = {};
-        for (let i = 0; i < 7; i++) grouped[i] = [];
+        const grouped: Record<number, OpeningHours[]> = {
+          0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [],
+        };
         hoursData.forEach((h) => {
-          grouped[h.day_of_week].push(h);
+          if (grouped[h.day_of_week]) {
+            grouped[h.day_of_week].push(h);
+          }
         });
         setHoursByDay(grouped);
       }
@@ -165,16 +181,21 @@ export default function OpeningHoursEditor() {
     }
 
     setSaving(true);
+    setError(null);
 
     try {
       // Delete all existing hours
-      await supabase
+      const { error: deleteError } = await supabase
         .from('opening_hours')
         .delete()
         .eq('location_id', location.id);
 
+      if (deleteError) {
+        throw new Error(`Delete failed: ${deleteError.message}`);
+      }
+
       // Insert new hours
-      const hoursToInsert = preset.apply().map((h) => ({
+      const hoursToInsert = preset.schedule.map((h) => ({
         location_id: location.id,
         day_of_week: h.day,
         opens_at: h.open,
@@ -183,16 +204,25 @@ export default function OpeningHoursEditor() {
         shift_order: 1,
       }));
 
-      const { error: insertError } = await supabase
-        .from('opening_hours')
-        .insert(hoursToInsert);
+      console.log('Inserting hours:', hoursToInsert);
 
-      if (insertError) throw insertError;
+      const { data, error: insertError } = await supabase
+        .from('opening_hours')
+        .insert(hoursToInsert)
+        .select();
+
+      if (insertError) {
+        console.error('Insert error details:', insertError);
+        throw new Error(`Insert failed: ${insertError.message}`);
+      }
+
+      console.log('Inserted:', data);
 
       await loadData();
       showSavedIndicator();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed';
+      console.error('Full error:', err);
       setError(msg);
     } finally {
       setSaving(false);
@@ -202,28 +232,28 @@ export default function OpeningHoursEditor() {
   const addShift = async (dayOfWeek: number) => {
     if (!location) return;
     setSaving(true);
+    setError(null);
 
     const existingShifts = hoursByDay[dayOfWeek] || [];
     const shiftOrder = existingShifts.length + 1;
 
-    // Default times based on shift order
-    let defaultOpen = '09:00';
-    let defaultClose = '17:00';
-    if (shiftOrder === 2) {
-      defaultOpen = '18:00';
-      defaultClose = '22:00';
-    }
+    const defaultOpen = shiftOrder === 2 ? '18:00:00' : '09:00:00';
+    const defaultClose = shiftOrder === 2 ? '22:00:00' : '17:00:00';
+
+    const insertData = {
+      location_id: location.id,
+      day_of_week: dayOfWeek,
+      opens_at: defaultOpen,
+      closes_at: defaultClose,
+      is_closed: false,
+      shift_order: shiftOrder,
+    };
+
+    console.log('Adding shift:', insertData);
 
     const { data, error: insertError } = await supabase
       .from('opening_hours')
-      .insert({
-        location_id: location.id,
-        day_of_week: dayOfWeek,
-        opens_at: defaultOpen,
-        closes_at: defaultClose,
-        is_closed: false,
-        shift_order: shiftOrder,
-      })
+      .insert(insertData)
       .select()
       .single();
 
@@ -234,6 +264,7 @@ export default function OpeningHoursEditor() {
       }));
       showSavedIndicator();
     } else if (insertError) {
+      console.error('Add shift error:', insertError);
       setError(insertError.message);
     }
 
@@ -242,6 +273,7 @@ export default function OpeningHoursEditor() {
 
   const removeShift = async (shiftId: string, dayOfWeek: number) => {
     setSaving(true);
+    setError(null);
 
     const { error: deleteError } = await supabase
       .from('opening_hours')
@@ -267,22 +299,27 @@ export default function OpeningHoursEditor() {
     field: 'opens_at' | 'closes_at',
     value: string
   ) => {
+    if (!value) return;
+
+    const pgTime = toPgTime(value);
+
     // Optimistic update
     setHoursByDay((prev) => ({
       ...prev,
       [dayOfWeek]: (prev[dayOfWeek] || []).map((s) =>
-        s.id === shiftId ? { ...s, [field]: value + ':00' } : s
+        s.id === shiftId ? { ...s, [field]: pgTime } : s
       ),
     }));
 
     const { error: updateError } = await supabase
       .from('opening_hours')
-      .update({ [field]: value + ':00' })
+      .update({ [field]: pgTime })
       .eq('id', shiftId);
 
     if (!updateError) {
       showSavedIndicator();
     } else {
+      console.error('Update error:', updateError);
       setError(updateError.message);
     }
   };
@@ -290,11 +327,12 @@ export default function OpeningHoursEditor() {
   const toggleClosed = async (dayOfWeek: number) => {
     if (!location) return;
     setSaving(true);
+    setError(null);
 
     const existingShifts = hoursByDay[dayOfWeek] || [];
 
     if (existingShifts.length > 0) {
-      // Currently has hours — delete them (marks as closed by having none)
+      // Delete to mark as closed
       const { error: deleteError } = await supabase
         .from('opening_hours')
         .delete()
@@ -305,20 +343,25 @@ export default function OpeningHoursEditor() {
         setHoursByDay((prev) => ({ ...prev, [dayOfWeek]: [] }));
         showSavedIndicator();
       } else {
+        console.error('Toggle close error:', deleteError);
         setError(deleteError.message);
       }
     } else {
-      // Currently closed — add default shift
+      // Add default shift to open
+      const insertData = {
+        location_id: location.id,
+        day_of_week: dayOfWeek,
+        opens_at: '09:00:00',
+        closes_at: '17:00:00',
+        is_closed: false,
+        shift_order: 1,
+      };
+
+      console.log('Opening day with:', insertData);
+
       const { data, error: insertError } = await supabase
         .from('opening_hours')
-        .insert({
-          location_id: location.id,
-          day_of_week: dayOfWeek,
-          opens_at: '09:00',
-          closes_at: '17:00',
-          is_closed: false,
-          shift_order: 1,
-        })
+        .insert(insertData)
         .select()
         .single();
 
@@ -326,6 +369,7 @@ export default function OpeningHoursEditor() {
         setHoursByDay((prev) => ({ ...prev, [dayOfWeek]: [data] }));
         showSavedIndicator();
       } else if (insertError) {
+        console.error('Toggle open error:', insertError);
         setError(insertError.message);
       }
     }
@@ -336,8 +380,8 @@ export default function OpeningHoursEditor() {
   const copyFromDayToDay = async (fromDay: number, toDay: number) => {
     if (!location) return;
     setSaving(true);
+    setError(null);
 
-    // Get shifts from source day
     const sourceShifts = hoursByDay[fromDay] || [];
 
     if (sourceShifts.length === 0) {
@@ -346,14 +390,13 @@ export default function OpeningHoursEditor() {
       return;
     }
 
-    // Delete existing shifts for target day
+    // Delete existing on target day
     await supabase
       .from('opening_hours')
       .delete()
       .eq('location_id', location.id)
       .eq('day_of_week', toDay);
 
-    // Insert copies
     const copies = sourceShifts.map((s) => ({
       location_id: location.id,
       day_of_week: toDay,
@@ -393,7 +436,6 @@ export default function OpeningHoursEditor() {
 
   return (
     <main className="min-h-screen bg-surface">
-      {/* Top Bar */}
       <header className="sticky top-0 z-40 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
         <div className="max-w-3xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <button
@@ -416,9 +458,7 @@ export default function OpeningHoursEditor() {
         </div>
       </header>
 
-      {/* Main Content */}
       <div className="max-w-3xl mx-auto px-4 md:px-6 py-8 md:py-12">
-        {/* Header */}
         <div className="mb-8">
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4">
             <Clock size={28} />
@@ -431,12 +471,14 @@ export default function OpeningHoursEditor() {
           </p>
         </div>
 
-        {/* Error banner */}
         {error && (
           <div className="mb-6 p-4 bg-error-container border border-error/20 rounded-xl flex items-start gap-3">
             <AlertCircle size={20} className="text-error flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm text-on-error-container">{error}</p>
+              <p className="text-sm font-semibold text-on-error-container mb-1">
+                Something went wrong
+              </p>
+              <p className="text-xs text-on-error-container/80">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}
@@ -447,7 +489,6 @@ export default function OpeningHoursEditor() {
           </div>
         )}
 
-        {/* Quick Presets */}
         <section className="mb-8">
           <h2 className="font-display text-lg font-semibold text-on-surface mb-3">
             Quick start
@@ -471,7 +512,6 @@ export default function OpeningHoursEditor() {
           </div>
         </section>
 
-        {/* Custom Hours Editor */}
         <section className="mb-8">
           <h2 className="font-display text-lg font-semibold text-on-surface mb-3">
             Weekly hours
@@ -495,7 +535,6 @@ export default function OpeningHoursEditor() {
                       : 'border-outline-variant'
                   }`}
                 >
-                  {/* Day header */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div
@@ -521,7 +560,6 @@ export default function OpeningHoursEditor() {
                       </div>
                     </div>
 
-                    {/* Action buttons */}
                     <div className="flex items-center gap-2">
                       {!isClosed && shifts.length > 0 && (
                         <button
@@ -551,7 +589,6 @@ export default function OpeningHoursEditor() {
                     </div>
                   </div>
 
-                  {/* Copy-to prompt (when this is copy source) */}
                   {isCopySource && (
                     <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg mb-3">
                       <p className="text-xs font-semibold text-primary mb-2">
@@ -582,7 +619,6 @@ export default function OpeningHoursEditor() {
                     </div>
                   )}
 
-                  {/* Shifts */}
                   {!isClosed && shifts.length > 0 && (
                     <div className="space-y-2">
                       {shifts.map((shift, idx) => (
@@ -590,46 +626,30 @@ export default function OpeningHoursEditor() {
                           key={shift.id}
                           className="flex items-center gap-2 p-3 bg-surface-container rounded-xl"
                         >
-                          {/* Shift icon */}
                           <div className="flex-shrink-0 text-on-surface-variant">
                             {idx === 0 ? <Sun size={16} /> : <Moon size={16} />}
                           </div>
 
-                          {/* Opens at */}
                           <input
                             type="time"
                             value={formatTimeForInput(shift.opens_at)}
                             onChange={(e) =>
-                              updateShift(
-                                shift.id,
-                                day.value,
-                                'opens_at',
-                                e.target.value
-                              )
+                              updateShift(shift.id, day.value, 'opens_at', e.target.value)
                             }
                             className="flex-1 px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm font-medium text-on-surface focus:outline-none focus:border-primary"
                           />
 
-                          <span className="text-xs text-on-surface-variant">
-                            to
-                          </span>
+                          <span className="text-xs text-on-surface-variant">to</span>
 
-                          {/* Closes at */}
                           <input
                             type="time"
                             value={formatTimeForInput(shift.closes_at)}
                             onChange={(e) =>
-                              updateShift(
-                                shift.id,
-                                day.value,
-                                'closes_at',
-                                e.target.value
-                              )
+                              updateShift(shift.id, day.value, 'closes_at', e.target.value)
                             }
                             className="flex-1 px-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-sm font-medium text-on-surface focus:outline-none focus:border-primary"
                           />
 
-                          {/* Remove button (only if 2+ shifts) */}
                           {shifts.length > 1 && (
                             <button
                               onClick={() => removeShift(shift.id, day.value)}
@@ -643,7 +663,6 @@ export default function OpeningHoursEditor() {
                         </div>
                       ))}
 
-                      {/* Add split shift button */}
                       {shifts.length < 2 && (
                         <button
                           onClick={() => addShift(day.value)}
@@ -662,7 +681,6 @@ export default function OpeningHoursEditor() {
           </div>
         </section>
 
-        {/* Completion status */}
         <div className="p-4 bg-surface-container-low border border-outline-variant rounded-xl flex items-center gap-3">
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -675,13 +693,11 @@ export default function OpeningHoursEditor() {
           </div>
           <div className="flex-1">
             <p className="font-display font-semibold text-sm text-on-surface">
-              {daysWithHours >= 3
-                ? 'Section complete!'
-                : `Set at least 3 days (${daysWithHours}/3)`}
+              {daysWithHours >= 3 ? 'Section complete!' : `Set at least 3 days (${daysWithHours}/3)`}
             </p>
             <p className="text-xs text-on-surface-variant">
               {daysWithHours >= 3
-                ? 'Customers can see when you\'re open'
+                ? "Customers can see when you're open"
                 : 'Add more days or apply a preset above'}
             </p>
           </div>
