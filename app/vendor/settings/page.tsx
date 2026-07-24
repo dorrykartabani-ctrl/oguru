@@ -42,6 +42,7 @@ import {
   Settings,
   Eye,
   Info,
+  ExternalLink,
 } from 'lucide-react';
 
 const navItems = [
@@ -336,23 +337,46 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {/* Info banner */}
-        <div className="mb-6 p-4 bg-tertiary/5 border border-tertiary/20 rounded-xl flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary flex-shrink-0">
-            <Info size={16} />
+             {/* Info banner with preview button */}
+        <div className="mb-6 p-4 bg-tertiary/5 border border-tertiary/20 rounded-xl">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary flex-shrink-0">
+              <Info size={16} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-on-surface mb-1">
+                This is your admin settings view
+              </p>
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                Customers see your store as a beautiful marketing page. Preview it below.
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-on-surface mb-1">
-              This is your admin settings view
-            </p>
-            <p className="text-xs text-on-surface-variant leading-relaxed">
-              Customers see your store differently — a marketing-focused page designed to help them discover and order from you.
-            </p>
+          <div className="flex flex-col md:flex-row gap-2 mt-4">
+            <button
+              onClick={() =>
+                window.open(
+                  `/store/${business.slug || business.id}`,
+                  '_blank'
+                )
+              }
+              className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 bg-tertiary text-on-tertiary rounded-lg font-label font-semibold text-xs uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all"
+            >
+              <Eye size={14} />
+              Preview customer view
+            </button>
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/store/${business.slug || business.id}`;
+                navigator.clipboard.writeText(url);
+                alert('Store link copied to clipboard!');
+              }}
+              className="flex-1 md:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 border border-tertiary/40 text-tertiary hover:bg-tertiary/5 rounded-lg font-label font-semibold text-xs uppercase tracking-wider transition-all"
+            >
+              <ExternalLink size={14} />
+              Copy share link
+            </button>
           </div>
-          <button className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-xs font-label font-semibold text-tertiary bg-tertiary/10 hover:bg-tertiary/15 rounded-lg transition-colors">
-            <Eye size={12} />
-            Preview customer view
-          </button>
         </div>
 
         {/* Business Preview Header */}
