@@ -19,6 +19,12 @@ export type PosSystem =
   | 'other'
   | null;
 
+export type PromotionType =
+  | 'percentage'
+  | 'fixed_amount'
+  | 'bundle'
+  | 'happy_hour';
+
 export type Profile = {
   id: string;
   full_name: string | null;
@@ -165,6 +171,28 @@ export type CustomerKeyword = {
   keyword: string;
   weight: number;
   created_at: string;
+};
+
+export type Promotion = {
+  id: string;
+  business_id: string;
+  location_id: string;
+  title: string;
+  description: string | null;
+  promotion_type: PromotionType;
+  original_price_cents: number | null;
+  sale_price_cents: number | null;
+  discount_percentage: number | null;
+  discount_amount_cents: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  is_active: boolean;
+  emoji: string | null;
+  is_featured: boolean;
+  view_count: number;
+  order_count: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type WaitlistSignup = {
