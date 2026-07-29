@@ -355,30 +355,27 @@ export default function StorePage() {
             </div>
           )}
 
-          {/* Name overlay on cover */}
+                   {/* Name overlay on cover */}
           <div className="absolute inset-x-0 bottom-0 p-6">
             <div className="flex items-end gap-3">
-              {/* Logo circle */}
+              {/* Logo — rounded square with thick primary border */}
               <div className="flex-shrink-0">
                 {business.logo_url ? (
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden border-3 border-white bg-white shadow-organic-md">
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl overflow-hidden border-4 border-primary bg-white shadow-organic-lg">
                     <img src={business.logo_url} alt={business.legal_name} className="w-full h-full object-cover" />
                   </div>
                 ) : (
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-3 border-white flex items-center justify-center shadow-organic-md" style={{ backgroundColor: chipColor }}>
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl border-4 border-primary flex items-center justify-center shadow-organic-lg" style={{ backgroundColor: chipColor }}>
                     <ChipIcon size={28} className="text-white" />
                   </div>
                 )}
               </div>
 
-              {/* Name + verified */}
+              {/* Name only — no dot */}
               <div className="flex-1 min-w-0 pb-1">
-                <div className="flex items-center gap-2">
-                  <h1 className="font-display text-2xl md:text-3xl font-bold text-white leading-tight drop-shadow-md">
-                    {business.legal_name}
-                  </h1>
-                  <CheckCircle2 size={20} className="text-primary-fixed flex-shrink-0" fill="currentColor" strokeWidth={0} />
-                </div>
+                <h1 className="font-display text-2xl md:text-3xl font-bold text-white leading-tight drop-shadow-md">
+                  {business.legal_name}
+                </h1>
               </div>
             </div>
           </div>
