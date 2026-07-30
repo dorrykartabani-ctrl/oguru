@@ -136,9 +136,16 @@ export default function PreLoginFork() {
 
               {/* Arrow */}
               <div className="flex-shrink-0 self-center">
-                <ArrowRight className={`w-6 h-6 transition-all ${
-                  selected === 'foodie' ? 'text-primary translate-x-1' : 'text-outline-variant group-hover:text-primary group-hover:translate-x-1'
-                }`}>
+               {/* Arrow */}
+<div className="flex-shrink-0 self-center">
+  <ArrowRight
+    className={`w-6 h-6 transition-all ${
+      selected === 'foodie'
+        ? 'text-primary translate-x-1'
+        : 'text-outline-variant group-hover:text-primary group-hover:translate-x-1'
+    }`}
+  />
+</div>
               </div>
             </div>
           </button>
