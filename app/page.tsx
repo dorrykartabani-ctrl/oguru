@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { ArrowRight } from '@/components/icons';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -96,9 +97,9 @@ export default function SplashScreen() {
             className="w-full bg-primary text-on-primary py-4 px-6 rounded-xl font-semibold flex items-center justify-between shadow-lg active:scale-[0.98] transition-all hover:bg-primary-container hover:text-on-primary-container group"
           >
             <span className="uppercase tracking-widest text-[14px]">Get Started</span>
-            <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-              arrow_forward
-            </span>
+            import { ArrowRight } from '@/components/icons';
+
+<ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
 
           <footer className="mt-6 pb-4">
