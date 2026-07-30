@@ -1,1 +1,1050 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport" />
+    <title>OGuru - Search Results</title>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=Hanken+Grotesk:wght@600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100..900&family=Hanken+Grotesk:wght@100..900&family=Manrope:wght@100..900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#ffdad6",
+                        "on-background": "#1b1c19",
+                        "on-surface-variant": "#44483a",
+                        "surface-container-highest": "#e4e2dd",
+                        "surface-dim": "#dbdad5",
+                        "on-surface": "#1b1c19",
+                        "surface-variant": "#e4e2dd",
+                        "on-tertiary-container": "#fffbff",
+                        "surface-tint": "#4c6713",
+                        "surface-container": "#f0eee9",
+                        "primary-container": "#627e29",
+                        "primary": "#4a6410",
+                        "secondary-fixed": "#ffdbd0",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#795950",
+                        "secondary-container": "#fed3c7",
+                        "on-primary-container": "#faffe7",
+                        "primary-fixed": "#cdee8c",
+                        "on-secondary-fixed": "#2c160e",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#fbf9f4",
+                        "surface": "#fbf9f4",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary": "#77574d",
+                        "inverse-primary": "#b2d273",
+                        "on-primary-fixed": "#141f00",
+                        "tertiary": "#924700",
+                        "on-tertiary-fixed": "#311300",
+                        "on-tertiary": "#ffffff",
+                        "inverse-surface": "#30312e",
+                        "on-primary": "#ffffff",
+                        "on-primary-fixed-variant": "#374e00",
+                        "tertiary-fixed": "#ffdcc6",
+                        "primary-fixed-dim": "#b2d273",
+                        "tertiary-container": "#b75b00",
+                        "background": "#fbf9f4",
+                        "secondary-fixed-dim": "#e7bdb1",
+                        "outline-variant": "#c5c8b6",
+                        "outline": "#757969",
+                        "surface-container-high": "#eae8e3",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#5d4037",
+                        "inverse-on-surface": "#f2f1ec",
+                        "surface-container-low": "#f5f3ee",
+                        "on-tertiary-fixed-variant": "#723600",
+                        "tertiary-fixed-dim": "#ffb786"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "margin-desktop": "40px",
+                        "unit": "8px",
+                        "container-max": "1280px"
+                    },
+                    "fontFamily": {
+                        "label-sm": ["Hanken Grotesk"],
+                        "body-lg": ["Manrope"],
+                        "headline-lg": ["Be Vietnam Pro"],
+                        "headline-lg-mobile": ["Be Vietnam Pro"],
+                        "body-md": ["Manrope"],
+                        "display-lg": ["Be Vietnam Pro"]
+                    },
+                    "fontSize": {
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
 
+        body {
+            background-color: #fbf9f4;
+            color: #1b1c19;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            z-index: 9999;
+            background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+        }
+
+        .organic-shadow {
+            box-shadow: 0 4px 12px rgba(93, 64, 55, 0.08);
+        }
+
+        .organic-shadow-lg {
+            box-shadow: 0 8px 24px rgba(93, 64, 55, 0.12);
+        }
+
+        .field-inset {
+            box-shadow: inset 0 2px 4px rgba(93, 64, 55, 0.06);
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Card hover */
+        .vendor-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .vendor-card:active {
+            transform: scale(0.98);
+        }
+
+        /* Skeleton shimmer */
+        .skeleton {
+            background: linear-gradient(90deg, #eae8e3 25%, #f0eee9 50%, #eae8e3 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Bottom sheet */
+        .sheet-overlay {
+            transition: opacity 0.3s ease;
+        }
+
+        .sheet-panel {
+            transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        .sheet-overlay.hidden { opacity: 0; pointer-events: none; }
+        .sheet-overlay.visible { opacity: 1; pointer-events: auto; }
+        .sheet-panel.closed { transform: translateY(100%); }
+        .sheet-panel.open { transform: translateY(0); }
+
+        /* Sort dropdown */
+        .sort-dropdown {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .sort-dropdown.hidden-drop {
+            opacity: 0;
+            transform: translateY(-4px);
+            pointer-events: none;
+        }
+
+        .sort-dropdown.visible-drop {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        /* Follow heart animation */
+        @keyframes heartPop {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.3); }
+            60% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        .heart-pop {
+            animation: heartPop 0.35s ease-out;
+        }
+
+        /* Chip active state */
+        .filter-chip {
+            transition: background-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+        }
+
+        .filter-chip:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body class="font-body-md text-on-surface min-h-screen flex flex-col">
+    <div class="grain-overlay"></div>
+
+    <!-- ============================================ -->
+    <!-- STICKY TOP CONTROLS -->
+    <!-- ============================================ -->
+    <header class="fixed top-0 w-full z-40 bg-surface/95 backdrop-blur-md">
+
+        <!-- Row 1: Search bar -->
+        <div class="flex items-center gap-2 px-margin-mobile pt-3 pb-2">
+            <!-- Back -->
+            <button id="backBtn" class="p-2 -ml-2 rounded-full hover:bg-surface-container-high active:scale-95 transition-all duration-150 flex-shrink-0">
+                <span class="material-symbols-outlined text-on-surface">arrow_back</span>
+            </button>
+
+            <!-- Search input -->
+            <div class="relative flex-grow">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+                <input id="searchInput" type="text" value="coffee"
+                    class="w-full pl-10 pr-4 py-3 rounded-xl border-none bg-surface-container-low focus:ring-2 focus:ring-primary transition-all font-body-md text-on-surface placeholder:text-outline field-inset text-[15px]"
+                    placeholder="Search vendors, items..." />
+            </div>
+
+            <!-- Filter button -->
+            <button id="filterBtn" class="relative p-2.5 rounded-xl hover:bg-surface-container-high active:scale-95 transition-all duration-150 flex-shrink-0 border border-outline-variant/20">
+                <span class="material-symbols-outlined text-primary text-[22px]">tune</span>
+                <!-- Active filter count badge -->
+                <span id="filterBadge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-tertiary text-on-tertiary text-[10px] font-bold rounded-full flex items-center justify-center">2</span>
+            </button>
+        </div>
+
+        <!-- Row 2: Location context -->
+        <div class="flex items-center gap-1.5 px-margin-mobile pb-2">
+            <span class="material-symbols-outlined text-primary text-[16px]" style="font-variation-settings: 'FILL' 1;">location_on</span>
+            <button id="locationBtn" class="flex items-center gap-1 text-on-surface-variant text-sm font-body-md hover:text-primary transition-colors">
+                <span>Near Shoreditch</span>
+                <span class="text-outline">·</span>
+                <span>Within 1 mile</span>
+                <span class="material-symbols-outlined text-[14px] text-outline">expand_more</span>
+            </button>
+        </div>
+
+        <!-- Row 3: Filter chips -->
+        <div class="px-margin-mobile pb-2 overflow-x-auto hide-scrollbar">
+            <div class="flex gap-2 w-max">
+                <button class="filter-chip flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-primary text-on-primary font-label-sm text-label-sm" data-filter="pre-orders" data-active="true">
+                    <span class="material-symbols-outlined text-[16px]">shopping_bag</span>
+                    Pre-orders
+                </button>
+                <button class="filter-chip flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm" data-filter="open-now" data-active="false">
+                    Open now
+                </button>
+                <button class="filter-chip flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm" data-filter="top-rated" data-active="false">
+                    Top rated
+                </button>
+                <button class="filter-chip flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm" data-filter="nearest" data-active="false">
+                    Nearest
+                </button>
+                <button class="filter-chip flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm" data-filter="vegan" data-active="false">
+                    🌱 Vegan
+                </button>
+                <button id="moreFiltersChip" class="filter-chip flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-outline-variant/30 text-on-surface-variant font-label-sm text-label-sm">
+                    <span class="material-symbols-outlined text-[16px]">add</span>
+                    Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Row 4: Sort + count + view toggle -->
+        <div class="flex items-center justify-between px-margin-mobile pb-3 border-b border-outline-variant/15">
+            <span class="text-on-surface-variant text-sm font-body-md">6 results</span>
+
+            <!-- Sort -->
+            <div class="relative">
+                <button id="sortBtn" class="flex items-center gap-1 text-on-surface text-sm font-body-md font-medium hover:text-primary transition-colors">
+                    <span id="sortLabel">Best match</span>
+                    <span class="material-symbols-outlined text-[16px]">unfold_more</span>
+                </button>
+
+                <!-- Sort dropdown -->
+                <div id="sortDropdown" class="sort-dropdown hidden-drop absolute right-0 top-full mt-2 w-48 bg-surface-container-lowest rounded-xl organic-shadow-lg border border-outline-variant/15 overflow-hidden z-50">
+                    <button class="sort-option w-full text-left px-4 py-3 text-sm font-body-md hover:bg-surface-container-high transition-colors flex items-center justify-between" data-sort="best-match">
+                        <span>Best match</span>
+                        <span class="material-symbols-outlined text-primary text-[18px] sort-check">check</span>
+                    </button>
+                    <button class="sort-option w-full text-left px-4 py-3 text-sm font-body-md hover:bg-surface-container-high transition-colors flex items-center justify-between" data-sort="nearest">
+                        <span>Nearest</span>
+                        <span class="material-symbols-outlined text-primary text-[18px] sort-check hidden">check</span>
+                    </button>
+                    <button class="sort-option w-full text-left px-4 py-3 text-sm font-body-md hover:bg-surface-container-high transition-colors flex items-center justify-between" data-sort="most-followed">
+                        <span>Most followed</span>
+                        <span class="material-symbols-outlined text-primary text-[18px] sort-check hidden">check</span>
+                    </button>
+                    <button class="sort-option w-full text-left px-4 py-3 text-sm font-body-md hover:bg-surface-container-high transition-colors flex items-center justify-between" data-sort="highest-rated">
+                        <span>Highest rated</span>
+                        <span class="material-symbols-outlined text-primary text-[18px] sort-check hidden">check</span>
+                    </button>
+                    <button class="sort-option w-full text-left px-4 py-3 text-sm font-body-md hover:bg-surface-container-high transition-colors flex items-center justify-between" data-sort="fastest-pickup">
+                        <span>Fastest pickup</span>
+                        <span class="material-symbols-outlined text-primary text-[18px] sort-check hidden">check</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- View toggle -->
+            <div class="flex items-center bg-surface-container-highest rounded-lg p-0.5">
+                <button class="view-toggle p-1.5 rounded-md bg-primary text-on-primary transition-all" data-view="list">
+                    <span class="material-symbols-outlined text-[18px]">view_agenda</span>
+                </button>
+                <button class="view-toggle p-1.5 rounded-md text-on-surface-variant hover:text-primary transition-all" data-view="map">
+                    <span class="material-symbols-outlined text-[18px]">map</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================ -->
+    <!-- RESULTS LIST -->
+    <!-- ============================================ -->
+    <main id="resultsList" class="flex-1 pt-[232px] pb-24 px-margin-mobile max-w-lg mx-auto w-full">
+
+        <!-- Card 1: Accepting pre-orders — primary state -->
+        <div class="vendor-card bg-surface rounded-2xl border border-outline-variant/10 organic-shadow overflow-hidden mb-3 cursor-pointer">
+            <div class="flex">
+                <!-- Image -->
+                <div class="w-[100px] flex-shrink-0 relative overflow-hidden">
+                    <img class="w-full h-full object-cover min-h-[152px]"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuA31DNTl3zQzd6vdiErYDzRvFZglhzcXiOLbisHBtDa2Oj-yK8mYnJfScOFatORcUjJxMHezf5ppjbD-kFC36qLyENinxmYbd-g6y4VU1q49tilXiWFTro64zS87VQ6MWDb0s3SzErSKerDWcl5l2VenQPsr3FuLo-gMooC3b2h1yfiWiCHcwqVTPiM1V-sGY0dVopxCzQ34CdDTVXK1WVY0kyvJXbbJscHDvY6tT_ttvKOeXgQ46r7"
+                        alt="Sage Beans Cafe interior with latte art" />
+                    <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                        <span class="material-symbols-outlined text-[12px] text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="text-[11px] font-bold text-on-surface">4.8</span>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 p-3 flex flex-col justify-between min-h-[152px]">
+                    <!-- Top -->
+                    <div>
+                        <!-- Name + follow -->
+                        <div class="flex items-start justify-between mb-1.5">
+                            <h3 class="font-body-md text-on-surface font-semibold text-[15px] leading-tight">Sage Beans Café</h3>
+                            <button class="follow-btn flex-shrink-0 p-1 -mr-1 -mt-0.5 rounded-full hover:bg-surface-container-high transition-colors" data-followed="false">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface-variant">favorite_border</span>
+                            </button>
+                        </div>
+
+                        <!-- Status badge -->
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed/30 mb-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            <span class="font-label-sm text-[11px] text-primary tracking-wide">PRE-ORDERS OPEN</span>
+                        </div>
+
+                        <!-- Meta row -->
+                        <div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-body-md mb-2">
+                            <span class="material-symbols-outlined text-[14px]">location_on</span>
+                            <span>0.3 mi</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">schedule</span>
+                            <span>15 min</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">group</span>
+                            <span>1.2k</span>
+                        </div>
+
+                        <!-- Matched items -->
+                        <p class="text-on-surface-variant text-[12px] font-body-md">
+                            <span class="text-on-surface font-medium">Oat Flat White</span> · Matcha Latte · Croissant
+                        </p>
+                    </div>
+
+                    <!-- CTA -->
+                    <div class="flex items-center justify-end mt-2">
+                        <button class="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-label-sm text-label-sm uppercase tracking-wider active:scale-95 transition-transform">
+                            PRE-ORDER
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Limited slots — urgency state -->
+        <div class="vendor-card bg-surface rounded-2xl border border-outline-variant/10 organic-shadow overflow-hidden mb-3 cursor-pointer">
+            <div class="flex">
+                <div class="w-[100px] flex-shrink-0 relative overflow-hidden">
+                    <img class="w-full h-full object-cover min-h-[152px]"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKDity17rhWvVuyMJF2bg4oPH4aJ4z5yZtTINcjNaj83tuquPhZ1LIlal34pqKOa5jWGmf-M8AzN9XxF8arR37qW59SGTiDkB0a3rUl8Rw21vVloxh6RZMHu2n8BkfJ85X6Fl0CRDvvahx3IjmdIkVoxB2QmMRsu4jLvlEvhMGLwHVUSj1Az70JLZpX7EGiFxwFx__2s_BfZelCHMlblRkXT825xB80QeLJBBBWuDgXa655VArsK-T"
+                        alt="The Hearth Pizzeria wood-fired pizza" />
+                    <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                        <span class="material-symbols-outlined text-[12px] text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="text-[11px] font-bold text-on-surface">4.9</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 p-3 flex flex-col justify-between min-h-[152px]">
+                    <div>
+                        <div class="flex items-start justify-between mb-1.5">
+                            <h3 class="font-body-md text-on-surface font-semibold text-[15px] leading-tight">The Hearth Pizzeria</h3>
+                            <button class="follow-btn flex-shrink-0 p-1 -mr-1 -mt-0.5 rounded-full hover:bg-surface-container-high transition-colors" data-followed="true">
+                                <span class="material-symbols-outlined text-[20px] text-primary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                            </button>
+                        </div>
+
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-fixed/40 mb-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                            <span class="font-label-sm text-[11px] text-on-tertiary-fixed-variant tracking-wide">3 SLOTS LEFT</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-body-md mb-2">
+                            <span class="material-symbols-outlined text-[14px]">location_on</span>
+                            <span>0.4 mi</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">schedule</span>
+                            <span>20 min</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">group</span>
+                            <span>2.4k</span>
+                        </div>
+
+                        <p class="text-on-surface-variant text-[12px] font-body-md">
+                            <span class="text-on-surface font-medium">Margherita</span> · Calzone · Tiramisu
+                        </p>
+                    </div>
+
+                    <div class="flex items-center justify-end mt-2">
+                        <button class="bg-tertiary-container text-on-tertiary-container px-4 py-1.5 rounded-lg font-label-sm text-label-sm uppercase tracking-wider active:scale-95 transition-transform">
+                            ORDER NOW
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Open, standard state -->
+        <div class="vendor-card bg-surface rounded-2xl border border-outline-variant/10 organic-shadow overflow-hidden mb-3 cursor-pointer">
+            <div class="flex">
+                <div class="w-[100px] flex-shrink-0 relative overflow-hidden">
+                    <img class="w-full h-full object-cover min-h-[152px]"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWuXAAYZ8M2O2W5f8wZjAfXcDuC1_sqVUdZ8159qVdoO5x_iyH8Q9QKoWhntvxHwiatASbevtX7RW3EgZxAfaximXZvvz7B_rpkm0LKhyAG5jhtfAZfO6feyqPKFSgovus_9jzlwwsIix-0pAqYiSR-RNbHFX8Hhx-TO6a3COs09-z1ljcTZPubveEPkPIhAO0mCUZNe9heUvPrVLtjBIWgL4qBH4YQHPgDKZq-1isvbmAM0PhWVpN"
+                        alt="Artisan latte with croissant" />
+                    <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                        <span class="material-symbols-outlined text-[12px] text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="text-[11px] font-bold text-on-surface">4.6</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 p-3 flex flex-col justify-between min-h-[152px]">
+                    <div>
+                        <div class="flex items-start justify-between mb-1.5">
+                            <h3 class="font-body-md text-on-surface font-semibold text-[15px] leading-tight">Café Artisan</h3>
+                            <button class="follow-btn flex-shrink-0 p-1 -mr-1 -mt-0.5 rounded-full hover:bg-surface-container-high transition-colors" data-followed="false">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface-variant">favorite_border</span>
+                            </button>
+                        </div>
+
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed/30 mb-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            <span class="font-label-sm text-[11px] text-primary tracking-wide">PRE-ORDERS OPEN</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-body-md mb-2">
+                            <span class="material-symbols-outlined text-[14px]">location_on</span>
+                            <span>0.7 mi</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">schedule</span>
+                            <span>10 min</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">group</span>
+                            <span>890</span>
+                        </div>
+
+                        <p class="text-on-surface-variant text-[12px] font-body-md">
+                            <span class="text-on-surface font-medium">Artisan Latte</span> · Sourdough Toast · Açaí Bowl
+                        </p>
+                    </div>
+
+                    <div class="flex items-center justify-end mt-2">
+                        <button class="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-label-sm text-label-sm uppercase tracking-wider active:scale-95 transition-transform">
+                            PRE-ORDER
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Social proof variant -->
+        <div class="vendor-card bg-surface rounded-2xl border border-outline-variant/10 organic-shadow overflow-hidden mb-3 cursor-pointer">
+            <div class="flex">
+                <div class="w-[100px] flex-shrink-0 relative overflow-hidden">
+                    <img class="w-full h-full object-cover min-h-[152px]"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDj58aGWsbq8JGUQ67nd3PEJe1go502239kIwEYbrjPyzDm_pMmOd_t50cYAhgWrLG8VwGbSm86ARTcU7KVEMOlpFJAXP75Ru6Jwbw2xnBRsG_K7SFdh1jBrk7Ed5XftTDDlipuTRNvWifhsVEfapkafPqUbo3m3dT_LxJFX9X_V9qYVyCZFQq5j3kK-vaKykClDLsMHTZWgmr9Ron37EnD7ac2PZVzz_R9S4114TTuVuuaev_eqxxK"
+                        alt="Earth and Fire Pizza restaurant" />
+                    <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                        <span class="material-symbols-outlined text-[12px] text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="text-[11px] font-bold text-on-surface">4.7</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 p-3 flex flex-col justify-between min-h-[152px]">
+                    <div>
+                        <div class="flex items-start justify-between mb-1.5">
+                            <h3 class="font-body-md text-on-surface font-semibold text-[15px] leading-tight">GreenLeaf Kitchen</h3>
+                            <button class="follow-btn flex-shrink-0 p-1 -mr-1 -mt-0.5 rounded-full hover:bg-surface-container-high transition-colors" data-followed="false">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface-variant">favorite_border</span>
+                            </button>
+                        </div>
+
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed/30 mb-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            <span class="font-label-sm text-[11px] text-primary tracking-wide">PRE-ORDERS OPEN</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-body-md mb-2">
+                            <span class="material-symbols-outlined text-[14px]">location_on</span>
+                            <span>0.9 mi</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">schedule</span>
+                            <span>25 min</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">group</span>
+                            <span>3.1k</span>
+                        </div>
+
+                        <p class="text-on-surface-variant text-[12px] font-body-md">
+                            <span class="text-on-surface font-medium">Buddha Bowl</span> · Smoothie · Vegan Wrap
+                        </p>
+
+                        <!-- Social proof -->
+                        <div class="flex items-center gap-1.5 mt-1.5">
+                            <span class="material-symbols-outlined text-[13px] text-secondary">person</span>
+                            <span class="text-[11px] text-secondary font-body-md">Jess follows this</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end mt-2">
+                        <button class="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-label-sm text-label-sm uppercase tracking-wider active:scale-95 transition-transform">
+                            PRE-ORDER
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 5: Closed / fully booked — unavailable state -->
+        <div class="vendor-card bg-surface rounded-2xl border border-outline-variant/10 organic-shadow overflow-hidden mb-3 cursor-pointer opacity-70">
+            <div class="flex">
+                <div class="w-[100px] flex-shrink-0 relative overflow-hidden grayscale-[0.3]">
+                    <img class="w-full h-full object-cover min-h-[152px]"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR3SWabcozwsFbsFb1hgpVMZw2oH7uUeu7ZvDFSIzYgeyQb1nFfxAlRZfx1oz5JnjxxviT1lDJTv3slaAfztp4ulW0pAQNi5evCQ4Yo4sJafDcGFQ89RtqzbPQYoZPIKwY5iQd5VcMNvYrYTUgOWBtPuizi7CLSvCdiK6Y7TNq96vgBUeUzPoALUv2vBBXMTQVdW1newHEeIfzMkx3bvyarGACsUsBJT5m9xEfHUJO4GvZrcnJXOyj"
+                        alt="Artisan Crust bakery" />
+                    <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                        <span class="material-symbols-outlined text-[12px] text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="text-[11px] font-bold text-on-surface">4.5</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 p-3 flex flex-col justify-between min-h-[152px]">
+                    <div>
+                        <div class="flex items-start justify-between mb-1.5">
+                            <h3 class="font-body-md text-on-surface font-semibold text-[15px] leading-tight">Artisan Crust</h3>
+                            <button class="follow-btn flex-shrink-0 p-1 -mr-1 -mt-0.5 rounded-full hover:bg-surface-container-high transition-colors" data-followed="false">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface-variant">favorite_border</span>
+                            </button>
+                        </div>
+
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-highest mb-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                            <span class="font-label-sm text-[11px] text-on-surface-variant tracking-wide">FULLY BOOKED</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-body-md mb-2">
+                            <span class="material-symbols-outlined text-[14px]">location_on</span>
+                            <span>1.1 mi</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">group</span>
+                            <span>680</span>
+                        </div>
+
+                        <p class="text-on-surface-variant text-[12px] font-body-md">
+                            Sourdough Loaf · Cinnamon Roll · Rye Bread
+                        </p>
+                    </div>
+
+                    <div class="flex items-center justify-end mt-2">
+                        <button class="border border-outline-variant/40 text-on-surface-variant px-4 py-1.5 rounded-lg font-label-sm text-label-sm uppercase tracking-wider active:scale-95 transition-transform">
+                            NOTIFY ME
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 6: Another open vendor -->
+        <div class="vendor-card bg-surface rounded-2xl border border-outline-variant/10 organic-shadow overflow-hidden mb-3 cursor-pointer">
+            <div class="flex">
+                <div class="w-[100px] flex-shrink-0 relative overflow-hidden">
+                    <img class="w-full h-full object-cover min-h-[152px]"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9O_FZTsYAWts9RNN7Umk8BXlUz5a5DhoSJ8-AtcUK-hPJqICDjrpAuwjI1gxqbBfPSTahb9uCUGtdI3n18nGRyjq0_np1W6vhNcSal1mlisI_KhIeRMOrYrMdtExWjLj9WbUXfrN_ZVOaSta5JzcLS6EHJIywtmHhK1SHvUClEnqHY2RBBvWNkSnKmaYKWvN8_AmAmFDo-vJGa87JhCwVjrJAnLdPGdpMjE5BBeu_WyZLO1xnCRCO"
+                        alt="Fresh produce and healthy food" />
+                    <div class="absolute top-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                        <span class="material-symbols-outlined text-[12px] text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+                        <span class="text-[11px] font-bold text-on-surface">4.4</span>
+                    </div>
+                </div>
+
+                <div class="flex-1 p-3 flex flex-col justify-between min-h-[152px]">
+                    <div>
+                        <div class="flex items-start justify-between mb-1.5">
+                            <h3 class="font-body-md text-on-surface font-semibold text-[15px] leading-tight">The Morning Table</h3>
+                            <button class="follow-btn flex-shrink-0 p-1 -mr-1 -mt-0.5 rounded-full hover:bg-surface-container-high transition-colors" data-followed="false">
+                                <span class="material-symbols-outlined text-[20px] text-on-surface-variant">favorite_border</span>
+                            </button>
+                        </div>
+
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed/30 mb-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                            <span class="font-label-sm text-[11px] text-primary tracking-wide">PRE-ORDERS OPEN</span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 text-on-surface-variant text-[12px] font-body-md mb-2">
+                            <span class="material-symbols-outlined text-[14px]">location_on</span>
+                            <span>1.4 mi</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">schedule</span>
+                            <span>30 min</span>
+                            <span class="text-outline-variant">·</span>
+                            <span class="material-symbols-outlined text-[14px]">group</span>
+                            <span>450</span>
+                        </div>
+
+                        <p class="text-on-surface-variant text-[12px] font-body-md">
+                            <span class="text-on-surface font-medium">Full Breakfast</span> · Eggs Benedict · Fresh Juice
+                        </p>
+                    </div>
+
+                    <div class="flex items-center justify-end mt-2">
+                        <button class="bg-primary text-on-primary px-4 py-1.5 rounded-lg font-label-sm text-label-sm uppercase tracking-wider active:scale-95 transition-transform">
+                            PRE-ORDER
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- End of results -->
+        <div class="text-center py-8">
+            <p class="text-on-surface-variant text-sm font-body-md mb-2">That's everything nearby</p>
+            <button class="text-primary font-label-sm text-label-sm uppercase tracking-wider hover:underline">
+                EXPAND TO 5 MILES
+            </button>
+        </div>
+
+    </main>
+
+    <!-- ============================================ -->
+    <!-- FILTER BOTTOM SHEET -->
+    <!-- ============================================ -->
+
+    <!-- Overlay -->
+    <div id="sheetOverlay" class="sheet-overlay hidden fixed inset-0 bg-inverse-surface/40 z-50"></div>
+
+    <!-- Sheet panel -->
+    <div id="sheetPanel" class="sheet-panel closed fixed bottom-0 left-0 right-0 z-50 bg-surface-container-low rounded-t-3xl max-h-[85vh] flex flex-col">
+
+        <!-- Drag handle -->
+        <div class="flex justify-center pt-3 pb-2 flex-shrink-0">
+            <div class="w-10 h-1 rounded-full bg-outline-variant/50"></div>
+        </div>
+
+        <!-- Sheet header -->
+        <div class="flex items-center justify-between px-margin-mobile pb-4 border-b border-outline-variant/15 flex-shrink-0">
+            <h3 class="font-headline-lg-mobile text-xl text-on-surface font-semibold">Filters</h3>
+            <button id="resetFilters" class="text-primary font-label-sm text-label-sm uppercase tracking-wider hover:underline">
+                RESET
+            </button>
+        </div>
+
+        <!-- Scrollable content -->
+        <div class="flex-1 overflow-y-auto px-margin-mobile py-4">
+
+            <!-- Availability -->
+            <div class="mb-6">
+                <h4 class="font-body-md text-on-surface font-semibold text-sm mb-3">Availability</h4>
+                <div class="flex flex-wrap gap-2">
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Open now</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-primary text-on-primary font-label-sm text-label-sm transition-all" data-active="true">Pre-orders</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Pickup in 15 min</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Pickup in 30 min</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Pickup in 60 min</button>
+                </div>
+            </div>
+
+            <!-- Distance -->
+            <div class="mb-6">
+                <h4 class="font-body-md text-on-surface font-semibold text-sm mb-3">Distance</h4>
+                <div class="flex flex-wrap gap-2">
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">0.5 mi</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-primary text-on-primary font-label-sm text-label-sm transition-all" data-active="true">1 mi</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">2 mi</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">5 mi</button>
+                </div>
+            </div>
+
+            <!-- Dietary -->
+            <div class="mb-6">
+                <h4 class="font-body-md text-on-surface font-semibold text-sm mb-3">Dietary</h4>
+                <div class="flex flex-wrap gap-2">
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">🌱 Vegan</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Gluten-free</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Nut-free</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Dairy-free</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Halal</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Kosher</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">Sugar-free</button>
+                </div>
+            </div>
+
+            <!-- Vibe -->
+            <div class="mb-6">
+                <h4 class="font-body-md text-on-surface font-semibold text-sm mb-3">Vibe</h4>
+                <div class="flex flex-wrap gap-2">
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">📚 Study-friendly</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">🐕 Dog-friendly</button>
+                    <button class="sheet-chip px-3.5 py-2 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm transition-all" data-active="false">🌿 Outdoor seating</button>
+                </div>
+            </div>
+
+            <!-- Rating -->
+            <div class="mb-6">
+                <h4 class="font-body-md text-on-surface font-semibold text-sm mb-3">Minimum rating</h4>
+                <div class="flex gap-1">
+                    <button class="rating-star p-1" data-rating="1">
+                        <span class="material-symbols-outlined text-[28px] text-outline-variant">star</span>
+                    </button>
+                    <button class="rating-star p-1" data-rating="2">
+                        <span class="material-symbols-outlined text-[28px] text-outline-variant">star</span>
+                    </button>
+                    <button class="rating-star p-1" data-rating="3">
+                        <span class="material-symbols-outlined text-[28px] text-outline-variant">star</span>
+                    </button>
+                    <button class="rating-star p-1" data-rating="4">
+                        <span class="material-symbols-outlined text-[28px] text-outline-variant">star</span>
+                    </button>
+                    <button class="rating-star p-1" data-rating="5">
+                        <span class="material-symbols-outlined text-[28px] text-outline-variant">star</span>
+                    </button>
+                    <span id="ratingLabel" class="text-on-surface-variant text-sm font-body-md self-center ml-2">Any</span>
+                </div>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-8">
+                <h4 class="font-body-md text-on-surface font-semibold text-sm mb-3">Price range</h4>
+                <div class="flex gap-2">
+                    <button class="sheet-chip flex-1 py-2.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm text-center transition-all" data-active="false">$</button>
+                    <button class="sheet-chip flex-1 py-2.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm text-center transition-all" data-active="false">$$</button>
+                    <button class="sheet-chip flex-1 py-2.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm text-center transition-all" data-active="false">$$$</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Show results button -->
+        <div class="flex-shrink-0 px-margin-mobile pb-6 pt-3 border-t border-outline-variant/15 bg-surface-container-low">
+            <button id="showResultsBtn"
+                class="w-full py-4 rounded-xl bg-primary text-on-primary font-label-sm text-label-sm uppercase tracking-wider active:scale-[0.98] transition-all duration-150 organic-shadow">
+                SHOW 6 RESULTS
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- BOTTOM NAV -->
+    <!-- ============================================ -->
+    <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 px-4 pb-safe bg-surface-container-high z-40 rounded-t-xl shadow-[0_-4px_12px_rgba(93,64,55,0.08)]">
+        <button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 transition-transform active:scale-90">
+            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">explore</span>
+            <span class="font-label-sm text-[10px]">Explore</span>
+        </button>
+        <button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90">
+            <span class="material-symbols-outlined">receipt_long</span>
+            <span class="font-label-sm text-[10px]">Orders</span>
+        </button>
+        <button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90">
+            <span class="material-symbols-outlined">shopping_cart</span>
+            <span class="font-label-sm text-[10px]">Cart</span>
+        </button>
+        <button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90">
+            <span class="material-symbols-outlined">person</span>
+            <span class="font-label-sm text-[10px]">Profile</span>
+        </button>
+    </nav>
+
+    <!-- ============================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================ -->
+    <script>
+        // ---- Filter chips (top row) ----
+        document.querySelectorAll('.filter-chip[data-filter]').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const isActive = chip.dataset.active === 'true';
+                chip.dataset.active = (!isActive).toString();
+
+                if (!isActive) {
+                    chip.classList.remove('bg-surface-container-highest', 'text-on-surface');
+                    chip.classList.add('bg-primary', 'text-on-primary');
+                } else {
+                    chip.classList.remove('bg-primary', 'text-on-primary');
+                    chip.classList.add('bg-surface-container-highest', 'text-on-surface');
+                }
+            });
+        });
+
+        // ---- Sort dropdown ----
+        const sortBtn = document.getElementById('sortBtn');
+        const sortDropdown = document.getElementById('sortDropdown');
+        const sortLabel = document.getElementById('sortLabel');
+
+        sortBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isVisible = sortDropdown.classList.contains('visible-drop');
+            if (isVisible) {
+                sortDropdown.classList.remove('visible-drop');
+                sortDropdown.classList.add('hidden-drop');
+            } else {
+                sortDropdown.classList.remove('hidden-drop');
+                sortDropdown.classList.add('visible-drop');
+            }
+        });
+
+        document.querySelectorAll('.sort-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const value = option.dataset.sort;
+                const label = option.querySelector('span:first-child').textContent;
+                sortLabel.textContent = label;
+
+                // Update checks
+                document.querySelectorAll('.sort-check').forEach(c => c.classList.add('hidden'));
+                option.querySelector('.sort-check').classList.remove('hidden');
+
+                // Close
+                sortDropdown.classList.remove('visible-drop');
+                sortDropdown.classList.add('hidden-drop');
+            });
+        });
+
+        // Close sort on outside click
+        document.addEventListener('click', () => {
+            sortDropdown.classList.remove('visible-drop');
+            sortDropdown.classList.add('hidden-drop');
+        });
+
+        // ---- View toggle ----
+        document.querySelectorAll('.view-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.view-toggle').forEach(b => {
+                    b.classList.remove('bg-primary', 'text-on-primary');
+                    b.classList.add('text-on-surface-variant');
+                });
+                btn.classList.remove('text-on-surface-variant');
+                btn.classList.add('bg-primary', 'text-on-primary');
+
+                if (btn.dataset.view === 'map') {
+                    // In real app: navigate to map view
+                    console.log('Switch to map view');
+                }
+            });
+        });
+
+        // ---- Follow button ----
+        document.querySelectorAll('.follow-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isFollowed = btn.dataset.followed === 'true';
+                const icon = btn.querySelector('.material-symbols-outlined');
+
+                if (isFollowed) {
+                    btn.dataset.followed = 'false';
+                    icon.textContent = 'favorite_border';
+                    icon.style.fontVariationSettings = "'FILL' 0";
+                    icon.classList.remove('text-primary');
+                    icon.classList.add('text-on-surface-variant');
+                } else {
+                    btn.dataset.followed = 'true';
+                    icon.textContent = 'favorite';
+                    icon.style.fontVariationSettings = "'FILL' 1";
+                    icon.classList.remove('text-on-surface-variant');
+                    icon.classList.add('text-primary');
+                    icon.classList.add('heart-pop');
+                    setTimeout(() => icon.classList.remove('heart-pop'), 350);
+                }
+
+                if (window.navigator.vibrate) {
+                    window.navigator.vibrate(5);
+                }
+            });
+        });
+
+        // ---- Filter bottom sheet ----
+        const sheetOverlay = document.getElementById('sheetOverlay');
+        const sheetPanel = document.getElementById('sheetPanel');
+        const filterBtn = document.getElementById('filterBtn');
+        const moreFiltersChip = document.getElementById('moreFiltersChip');
+        const showResultsBtn = document.getElementById('showResultsBtn');
+
+        function openSheet() {
+            sheetOverlay.classList.remove('hidden');
+            sheetOverlay.classList.add('visible');
+            sheetPanel.classList.remove('closed');
+            sheetPanel.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSheet() {
+            sheetOverlay.classList.remove('visible');
+            sheetOverlay.classList.add('hidden');
+            sheetPanel.classList.remove('open');
+            sheetPanel.classList.add('closed');
+            document.body.style.overflow = '';
+        }
+
+        filterBtn.addEventListener('click', openSheet);
+        moreFiltersChip.addEventListener('click', openSheet);
+        sheetOverlay.addEventListener('click', closeSheet);
+        showResultsBtn.addEventListener('click', closeSheet);
+
+        // ---- Sheet chips toggle ----
+        document.querySelectorAll('.sheet-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const isActive = chip.dataset.active === 'true';
+                chip.dataset.active = (!isActive).toString();
+
+                if (!isActive) {
+                    chip.classList.remove('bg-surface-container-highest', 'text-on-surface');
+                    chip.classList.add('bg-primary', 'text-on-primary');
+                } else {
+                    chip.classList.remove('bg-primary', 'text-on-primary');
+                    chip.classList.add('bg-surface-container-highest', 'text-on-surface');
+                }
+
+                updateFilterCount();
+            });
+        });
+
+        // ---- Rating stars ----
+        let currentRating = 0;
+        const ratingLabel = document.getElementById('ratingLabel');
+
+        document.querySelectorAll('.rating-star').forEach(star => {
+            star.addEventListener('click', () => {
+                const rating = parseInt(star.dataset.rating);
+
+                // Toggle off if same rating clicked
+                if (rating === currentRating) {
+                    currentRating = 0;
+                } else {
+                    currentRating = rating;
+                }
+
+                // Update stars
+                document.querySelectorAll('.rating-star').forEach(s => {
+                    const r = parseInt(s.dataset.rating);
+                    const icon = s.querySelector('.material-symbols-outlined');
+                    if (r <= currentRating) {
+                        icon.style.fontVariationSettings = "'FILL' 1";
+                        icon.classList.remove('text-outline-variant');
+                        icon.classList.add('text-tertiary');
+                    } else {
+                        icon.style.fontVariationSettings = "'FILL' 0";
+                        icon.classList.remove('text-tertiary');
+                        icon.classList.add('text-outline-variant');
+                    }
+                });
+
+                ratingLabel.textContent = currentRating > 0 ? `${currentRating}+ stars` : 'Any';
+                updateFilterCount();
+            });
+        });
+
+        // ---- Reset filters ----
+        document.getElementById('resetFilters').addEventListener('click', () => {
+            document.querySelectorAll('.sheet-chip').forEach(chip => {
+                chip.dataset.active = 'false';
+                chip.classList.remove('bg-primary', 'text-on-primary');
+                chip.classList.add('bg-surface-container-highest', 'text-on-surface');
+            });
+
+            currentRating = 0;
+            document.querySelectorAll('.rating-star').forEach(s => {
+                const icon = s.querySelector('.material-symbols-outlined');
+                icon.style.fontVariationSettings = "'FILL' 0";
+                icon.classList.remove('text-tertiary');
+                icon.classList.add('text-outline-variant');
+            });
+            ratingLabel.textContent = 'Any';
+
+            updateFilterCount();
+        });
+
+        // ---- Filter count badge ----
+        function updateFilterCount() {
+            const activeCount = document.querySelectorAll('.sheet-chip[data-active="true"]').length + (currentRating > 0 ? 1 : 0);
+            const badge = document.getElementById('filterBadge');
+
+            if (activeCount > 0) {
+                badge.textContent = activeCount;
+                badge.classList.remove('hidden');
+                badge.classList.add('flex');
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('flex');
+            }
+        }
+
+        // Init badge
+        updateFilterCount();
+
+        // ---- Back button ----
+        document.getElementById('backBtn').addEventListener('click', () => {
+            window.history.back();
+        });
+
+        // ---- Haptic ----
+        document.querySelectorAll('button').forEach(el => {
+            el.addEventListener('click', () => {
+                if (window.navigator.vibrate) {
+                    window.navigator.vibrate(5);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
