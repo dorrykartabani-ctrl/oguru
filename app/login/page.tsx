@@ -139,8 +139,6 @@ export default function PreLoginFork() {
                 <ArrowRight className={`w-6 h-6 transition-all ${
                   selected === 'foodie' ? 'text-primary translate-x-1' : 'text-outline-variant group-hover:text-primary group-hover:translate-x-1'
                 }`}>
-                  arrow_forward
-                </span>
               </div>
             </div>
           </button>
@@ -196,8 +194,7 @@ export default function PreLoginFork() {
                 <ArrowRight className={`w-6 h-6 transition-all ${
                   selected === 'vendor' ? 'text-primary translate-x-1' : 'text-outline-variant group-hover:text-primary group-hover:translate-x-1'
                 }`}>
-                  arrow_forward
-                </span>
+                  
               </div>
             </div>
           </button>
