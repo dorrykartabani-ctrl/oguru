@@ -220,4 +220,138 @@ export default function SettingsPage() {
             <div className="flex-1">
               <p className="text-sm font-semibold text-on-surface mb-1">This is your admin settings view</p>
               <p className="text-xs text-on-surface-variant leading-relaxed">
-                Customers see your store as a beautiful marketing 
+                Customers see your store as a beautiful marketing page. Keep these sections up to date to build trust and show up better in search.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <Section icon={Camera} title="Photos" isComplete={isPhotosComplete} editHref="/vendor/profile/photos">
+            {business.logo_url || business.cover_url ? (
+              <div className="flex gap-3">
+                {business.logo_url && (
+                  <img src={business.logo_url} alt="Logo" className="w-16 h-16 rounded-xl object-cover border border-outline-variant" />
+                )}
+                {business.cover_url && (
+                  <img src={business.cover_url} alt="Cover" className="flex-1 h-16 rounded-xl object-cover border border-outline-variant" />
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-on-surface-variant">Add a logo and cover photo so customers recognize your store.</p>
+            )}
+          </Section>
+
+          <Section icon={FileText} title="About" isComplete={isAboutComplete} editHref="/vendor/profile/about">
+            {business.description ? (
+              <p className="text-sm text-on-surface-variant line-clamp-2">{business.description}</p>
+            ) : (
+              <p className="text-sm text-on-surface-variant">Tell customers what makes your store special.</p>
+            )}
+            {business.business_types.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {business.business_types.map((t) => (
+                  <span key={t} className="inline-flex items-center gap-1 px-2 py-1 bg-surface-container-low rounded-full text-xs text-on-surface-variant">
+                    <ChipIcon size={12} style={{ color: chipColor }} />
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Section icon={MapPin} title="Location" isComplete={!!location} editHref="/vendor/profile/address">
+            {location ? (
+              <p className="text-sm text-on-surface-variant">
+                {location.address_line_1}
+                {location.suburb ? `, ${location.suburb}` : ''}, {location.city} {location.postcode}
+              </p>
+            ) : (
+              <p className="text-sm text-on-surface-variant">Add your store address so customers can find you.</p>
+            )}
+          </Section>
+
+          <Section icon={Clock} title="Opening Hours" isComplete={isHoursComplete} editHref="/vendor/profile/hours">
+            {hours.length > 0 ? (
+              <div className="space-y-1">
+                {DAYS.map((day) => {
+                  const dayHours = hoursByDay[day.value] || [];
+                  return (
+                    <div key={day.value} className="flex items-center justify-between text-sm">
+                      <span className="text-on-surface-variant w-10">{day.short}</span>
+                      {dayHours.length === 0 ? (
+                        <span className="text-on-surface-variant/60">Closed</span>
+                      ) : (
+                        <span className="text-on-surface">
+                          {dayHours
+                            .map((h) => (h.is_closed ? 'Closed' : `${formatTime(h.opens_at)} – ${formatTime(h.closes_at)}`))
+                            .join(', ')}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-on-surface-variant">Set your opening hours so customers know when to visit.</p>
+            )}
+          </Section>
+
+          <Section icon={Tag} title="Search Keywords" isComplete={isKeywordsComplete} editHref="/vendor/profile/keywords">
+            {keywords.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(keywordsByCategory).map(([category, kws]) =>
+                  kws.map((k) => (
+                    <span key={k.id} className="px-2 py-1 bg-surface-container-low rounded-full text-xs text-on-surface-variant">
+                      {k.keyword}
+                    </span>
+                  ))
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-on-surface-variant">Add keywords to help customers discover you in search.</p>
+            )}
+          </Section>
+
+          <Section icon={Share2} title="Social & Web" isComplete={hasSocial} editHref="/vendor/profile/social">
+            {hasSocial ? (
+              <div className="flex flex-wrap gap-3">
+                {business.instagram_handle && (
+                  <span className="flex items-center gap-1.5 text-sm text-on-surface-variant">
+                    <Instagram size={14} />@{business.instagram_handle}
+                  </span>
+                )}
+                {business.facebook_url && (
+                  <span className="flex items-center gap-1.5 text-sm text-on-surface-variant">
+                    <Facebook size={14} />Facebook
+                  </span>
+                )}
+                {business.tiktok_handle && (
+                  <span className="flex items-center gap-1.5 text-sm text-on-surface-variant">
+                    <Music2 size={14} />@{business.tiktok_handle}
+                  </span>
+                )}
+                {business.website_url && (
+                  <span className="flex items-center gap-1.5 text-sm text-on-surface-variant">
+                    <Globe size={14} />Website
+                  </span>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-on-surface-variant">Link your social accounts and website.</p>
+            )}
+          </Section>
+        </div>
+
+        <button
+          onClick={() => window.open(`/store/${business.slug || business.id}`, '_blank')}
+          className="w-full mt-6 flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-3 rounded-xl font-label font-semibold text-sm uppercase tracking-wider hover:border-primary hover:text-primary transition-colors"
+        >
+          <Eye size={16} />
+          View Public Store Page
+          <ExternalLink size={14} />
+        </button>
+      </div>
+    </main>
+  );
+}
