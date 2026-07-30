@@ -5,7 +5,37 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Business, Profile } from '@/lib/supabase/types';
 import VendorSidebar from '@/components/VendorSidebar';
-import { Loader2, Sparkles, MessageSquare, Wand2, TrendingUp, Image, Bell } from 'lucide-react';
+import {
+  Loader2,
+  Sparkles,
+  Bell,
+  Send,
+  Copy,
+  Check,
+  RefreshCw,
+  Clock,
+  Tag,
+  AlertCircle,
+} from 'lucide-react';
+
+type GeneratedCampaign = {
+  pushNotification: string;
+  socialCaption: string;
+  suggestedOffer: {
+    title: string;
+    description: string;
+    emoji: string;
+  };
+  bestSendTime: string;
+  reasoning: string;
+};
+
+const QUICK_PROMPTS = [
+  "It's raining today and foot traffic is slow",
+  'We have 15 leftover croissants to move by closing',
+  'We just launched a new seasonal drink',
+  "It's a public holiday tomorrow and we're open",
+];
 
 export default function AIAssistantPage() {
   const router = useRouter();
@@ -14,6 +44,12 @@ export default function AIAssistantPage() {
   const [loading, setLoading] = useState(true);
   const [business, setBusiness] = useState<Business | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+
+  const [situation, setSituation] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [campaign, setCampaign] = useState<GeneratedCampaign | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -53,6 +89,56 @@ export default function AIAssistantPage() {
     }
   };
 
+  const generateCampaign = async () => {
+    if (!situation.trim() || generating) return;
+
+    setGenerating(true);
+    setError(null);
+    setCampaign(null);
+
+    try {
+      const res = await fetch('/api/ai/generate-campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ situation: situation.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
+
+      setCampaign(data.campaign);
+    } catch (err) {
+      console.error(err);
+      setError('Could not reach the AI service. Please check your connection and try again.');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const copyToClipboard = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField((f) => (f === field ? null : f)), 2000);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const useOfferAsPromotion = () => {
+    if (!campaign) return;
+    const params = new URLSearchParams({
+      title: campaign.suggestedOffer.title,
+      description: campaign.suggestedOffer.description,
+      emoji: campaign.suggestedOffer.emoji,
+    });
+    router.push(`/vendor/marketing/promotions/new?${params.toString()}`);
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-surface flex flex-col items-center justify-center">
@@ -88,109 +174,177 @@ export default function AIAssistantPage() {
       <VendorSidebar business={business} profile={profile} />
 
       {/* Main Content */}
-      <div className="md:ml-64 pt-20 md:pt-8 px-4 md:px-8 lg:px-12 max-w-5xl mx-auto">
+      <div className="md:ml-64 pt-20 md:pt-8 px-4 md:px-8 lg:px-12 max-w-3xl mx-auto">
         <div className="mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-tertiary/10 text-tertiary rounded-full text-xs font-label font-semibold uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-label font-semibold uppercase tracking-wider mb-3">
             <Sparkles size={12} />
-            Coming Soon
+            AI Campaign Generator
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-bold text-on-surface tracking-tight">
             AI Assistant
           </h1>
           <p className="text-base text-on-surface-variant mt-2">
-            Your smart business partner for growing OGuru
+            Describe what&apos;s going on today — get a push notification, a social caption, and a suggested offer, ready to send.
           </p>
         </div>
 
-        {/* Hero Card */}
-        <div className="mb-6 bg-gradient-to-br from-primary to-primary-container text-on-primary rounded-2xl p-6 md:p-8 relative overflow-hidden">
-          <div className="relative z-10 max-w-lg">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles size={20} />
-              <span className="font-label text-xs font-semibold uppercase tracking-wider opacity-90">
-                Powered by AI
-              </span>
-            </div>
-            <h2 className="font-display text-2xl md:text-3xl font-bold mb-3">
-              Marketing that thinks for you
-            </h2>
-            <p className="text-white/90 leading-relaxed">
-              Ask questions in plain English. Get promotional copy, campaign ideas, and smart suggestions based on your data.
-            </p>
-          </div>
-          <Sparkles
-            size={200}
-            className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none"
+        {/* Input Card */}
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-5 md:p-6 mb-6">
+          <label className="block text-sm font-semibold text-on-surface mb-2">
+            What&apos;s happening?
+          </label>
+          <textarea
+            value={situation}
+            onChange={(e) => setSituation(e.target.value)}
+            placeholder="e.g. I have 20 leftover croissants at 2pm and it's raining"
+            maxLength={500}
+            rows={3}
+            className="w-full bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3 text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:border-primary transition-colors resize-none"
           />
+          <div className="flex justify-end mt-1 mb-4">
+            <span className="text-xs text-on-surface-variant/60">{situation.length}/500</span>
+          </div>
+
+          {/* Quick prompt chips */}
+          <div className="flex flex-wrap gap-2 mb-5">
+            {QUICK_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                onClick={() => setSituation(prompt)}
+                className="text-xs font-label font-medium px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={generateCampaign}
+            disabled={!situation.trim() || generating}
+            className="w-full flex items-center justify-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-label font-semibold text-sm uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {generating ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles size={18} />
+                Generate Campaign
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Feature Preview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {[
-            {
-              icon: MessageSquare,
-              title: 'AI Chat Assistant',
-              description: 'Ask anything: "Write a rainy day promo" or "What should I promote this weekend?"',
-              example: '"Help me write a promotion for our new matcha latte"',
-            },
-            {
-              icon: Wand2,
-              title: 'Content Generator',
-              description: 'Auto-write product descriptions, social captions, and email announcements',
-              example: '"Generate an Instagram caption for our brunch menu"',
-            },
-            {
-              icon: TrendingUp,
-              title: 'Smart Insights',
-              description: 'Get automatic recommendations based on your sales and customer patterns',
-              example: '"Your matcha sales spike on Sundays — promote it earlier"',
-            },
-            {
-              icon: Image,
-              title: 'Menu AI Helper',
-              description: 'Enhance product listings with AI-generated descriptions and suggestions',
-              example: '"Rewrite this to sound more appealing"',
-            },
-          ].map((feature, i) => {
-            const Icon = feature.icon;
-            return (
-              <div
-                key={i}
-                className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-5"
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-                  <Icon size={22} />
+        {/* Error */}
+        {error && (
+          <div className="mb-6 p-4 bg-error/5 border border-error/20 rounded-2xl flex items-start gap-3">
+            <AlertCircle size={18} className="text-error flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-error">{error}</p>
+          </div>
+        )}
+
+        {/* Results */}
+        {campaign && (
+          <div className="space-y-4">
+            {/* Push notification */}
+            <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 text-primary">
+                  <Bell size={16} />
+                  <span className="text-xs font-label font-semibold uppercase tracking-wider">
+                    Push Notification
+                  </span>
                 </div>
-                <h3 className="font-display font-semibold text-lg text-on-surface mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-on-surface-variant leading-relaxed mb-3">
-                  {feature.description}
-                </p>
-                <div className="p-3 bg-surface-container-low rounded-lg">
-                  <p className="text-xs text-primary italic">
-                    {feature.example}
+                <button
+                  onClick={() => copyToClipboard(campaign.pushNotification, 'push')}
+                  className="flex items-center gap-1 text-xs font-label font-semibold text-on-surface-variant hover:text-primary transition-colors"
+                >
+                  {copiedField === 'push' ? <Check size={14} /> : <Copy size={14} />}
+                  {copiedField === 'push' ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <p className="text-sm text-on-surface leading-relaxed bg-surface-container-low rounded-xl p-3">
+                {campaign.pushNotification}
+              </p>
+            </div>
+
+            {/* Social caption */}
+            <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 text-primary">
+                  <Send size={16} />
+                  <span className="text-xs font-label font-semibold uppercase tracking-wider">
+                    Social Caption
+                  </span>
+                </div>
+                <button
+                  onClick={() => copyToClipboard(campaign.socialCaption, 'caption')}
+                  className="flex items-center gap-1 text-xs font-label font-semibold text-on-surface-variant hover:text-primary transition-colors"
+                >
+                  {copiedField === 'caption' ? <Check size={14} /> : <Copy size={14} />}
+                  {copiedField === 'caption' ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+              <p className="text-sm text-on-surface leading-relaxed whitespace-pre-line bg-surface-container-low rounded-xl p-3">
+                {campaign.socialCaption}
+              </p>
+            </div>
+
+            {/* Suggested offer */}
+            <div className="bg-surface-container-lowest border border-primary/20 rounded-2xl p-5">
+              <div className="flex items-center gap-2 text-primary mb-3">
+                <Tag size={16} />
+                <span className="text-xs font-label font-semibold uppercase tracking-wider">
+                  Suggested Offer
+                </span>
+              </div>
+              <div className="flex items-start gap-3 mb-4">
+                <span className="text-2xl flex-shrink-0">{campaign.suggestedOffer.emoji}</span>
+                <div>
+                  <h3 className="font-display font-bold text-lg text-on-surface">
+                    {campaign.suggestedOffer.title}
+                  </h3>
+                  <p className="text-sm text-on-surface-variant">
+                    {campaign.suggestedOffer.description}
                   </p>
                 </div>
               </div>
-            );
-          })}
-        </div>
+              <button
+                onClick={useOfferAsPromotion}
+                className="w-full flex items-center justify-center gap-2 bg-primary/10 text-primary px-4 py-2.5 rounded-xl font-label font-semibold text-sm uppercase tracking-wider hover:bg-primary/20 transition-colors"
+              >
+                <Tag size={16} />
+                Create Promotion from This
+              </button>
+            </div>
 
-        {/* Info Card */}
-        <div className="p-4 bg-tertiary/5 border border-tertiary/20 rounded-2xl flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary flex-shrink-0">
-            <Sparkles size={16} />
+            {/* Timing + reasoning */}
+            <div className="p-4 bg-tertiary/5 border border-tertiary/20 rounded-2xl flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary flex-shrink-0">
+                <Clock size={16} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-on-surface mb-1">
+                  Best time to send: {campaign.bestSendTime}
+                </p>
+                <p className="text-xs text-on-surface-variant leading-relaxed">
+                  {campaign.reasoning}
+                </p>
+              </div>
+            </div>
+
+            <button
+              onClick={generateCampaign}
+              disabled={generating}
+              className="w-full flex items-center justify-center gap-2 bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2.5 rounded-xl font-label font-semibold text-sm uppercase tracking-wider hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={14} />
+              Regenerate
+            </button>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-on-surface mb-1">
-              Coming in early 2025
-            </p>
-            <p className="text-xs text-on-surface-variant leading-relaxed">
-              We&apos;re building AI features that actually help — no fluff, just tools that save you time on marketing so you can focus on your craft.
-            </p>
-          </div>
-        </div>
+        )}
       </div>
     </main>
   );
