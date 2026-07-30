@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { ArrowRight, ArrowLeft, StoreIcon, RestaurantIcon } from '@/components/icons';
 
 export default function PreLoginFork() {
   const router = useRouter();
@@ -62,7 +63,7 @@ export default function PreLoginFork() {
           className="p-2 -ml-2 rounded-full hover:bg-surface-container-high active:scale-95 transition-all duration-150"
           aria-label="Back to splash"
         >
-          <span className="material-symbols-outlined text-on-surface">arrow_back</span>
+          <ArrowLeft className="w-5 h-5 text-on-surface" />
         </button>
       </div>
 
@@ -103,12 +104,7 @@ export default function PreLoginFork() {
             <div className="flex items-start gap-4">
               {/* Icon */}
               <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-primary-fixed/50 flex items-center justify-center group-hover:bg-primary-fixed transition-colors">
-                <span
-                  className="material-symbols-outlined text-primary text-[28px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  restaurant
-                </span>
+              <ArrowLeft className="w-5 h-5 text-on-surface" />
               </div>
 
               {/* Content */}
@@ -140,7 +136,7 @@ export default function PreLoginFork() {
 
               {/* Arrow */}
               <div className="flex-shrink-0 self-center">
-                <span className={`material-symbols-outlined text-[24px] transition-all ${
+                <ArrowRight className={`w-6 h-6 transition-all ${
                   selected === 'foodie' ? 'text-primary translate-x-1' : 'text-outline-variant group-hover:text-primary group-hover:translate-x-1'
                 }`}>
                   arrow_forward
@@ -165,12 +161,7 @@ export default function PreLoginFork() {
             <div className="flex items-start gap-4">
               {/* Icon */}
               <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-secondary-fixed/60 flex items-center justify-center group-hover:bg-secondary-fixed transition-colors">
-                <span
-                  className="material-symbols-outlined text-secondary text-[28px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  storefront
-                </span>
+                <StoreIcon className="w-7 h-7 text-secondary" />
               </div>
 
               {/* Content */}
@@ -202,7 +193,7 @@ export default function PreLoginFork() {
 
               {/* Arrow */}
               <div className="flex-shrink-0 self-center">
-                <span className={`material-symbols-outlined text-[24px] transition-all ${
+                <ArrowRight className={`w-6 h-6 transition-all ${
                   selected === 'vendor' ? 'text-primary translate-x-1' : 'text-outline-variant group-hover:text-primary group-hover:translate-x-1'
                 }`}>
                   arrow_forward
@@ -233,4 +224,4 @@ export default function PreLoginFork() {
       </div>
     </main>
   );
-}
+}x
