@@ -10,11 +10,13 @@ import type {
   VendorKeyword,
   Product,
   Promotion,
+  Punchcard,
 } from '@/lib/supabase/types';
 import {
   ArrowLeft,
   Loader2,
   Coffee,
+  CreditCard,
   Croissant,
   GlassWater,
   Cake,
@@ -134,6 +136,7 @@ export default function StorePage() {
   const [keywords, setKeywords] = useState<VendorKeyword[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [promotions, setPromotions] = useState<Promotion[]>([]);
+  const [punchcards, setPunchcards] = useState<Punchcard[]>([]);
   const [isFollowed, setIsFollowed] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [modalQuantity, setModalQuantity] = useState(1);
@@ -189,16 +192,18 @@ export default function StorePage() {
 
       if (locationData) {
         setLocation(locationData);
-        const [hoursResult, keywordsResult, productsResult, promotionsResult] = await Promise.all([
+        const [hoursResult, keywordsResult, productsResult, promotionsResult, punchcardsResult] = await Promise.all([
           supabase.from('opening_hours').select('*').eq('location_id', locationData.id).order('day_of_week').order('shift_order'),
           supabase.from('vendor_keywords').select('*').eq('business_id', businessData.id),
           supabase.from('products').select('*').eq('location_id', locationData.id).eq('is_available', true).order('sort_order'),
           supabase.from('promotions').select('*').eq('business_id', businessData.id).eq('is_active', true),
+          supabase.from('punchcards').select('*').eq('business_id', businessData.id).eq('is_active', true),
         ]);
         setHours(hoursResult.data || []);
         setKeywords(keywordsResult.data || []);
         setProducts(productsResult.data || []);
         setPromotions(promotionsResult.data || []);
+        setPunchcards(punchcardsResult.data || []);
       }
     } catch (err) {
       console.error(err);
@@ -492,6 +497,48 @@ export default function StorePage() {
                       </span>
                     </div>
                   </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* PUNCHCARDS — Only if exists */}
+          {punchcards.length > 0 && (
+            <section className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <CreditCard size={16} className="text-secondary" />
+                <h2 className="font-display text-base font-bold text-on-surface uppercase tracking-wide">
+                  Loyalty Cards
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {punchcards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="w-full bg-surface-container-lowest border border-secondary/20 rounded-2xl p-5"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xl">{card.emoji || '🎟️'}</span>
+                      <h3 className="font-display text-lg font-bold text-on-surface">{card.title}</h3>
+                    </div>
+                    {card.description && (
+                      <p className="text-sm text-on-surface-variant mb-2">{card.description}</p>
+                    )}
+                    <p className="text-sm text-secondary font-semibold">
+                      Buy {card.punches_required}, get {card.reward_description.toLowerCase()}
+                    </p>
+                    <p className="text-xs text-on-surface-variant mt-1">
+                      {card.eligible_product_ids?.length > 0
+                        ? `Applies to: ${card.eligible_product_ids
+                            .map((id) => products.find((p) => p.id === id)?.name)
+                            .filter(Boolean)
+                            .join(', ')}`
+                        : 'Applies to any item'}
+                    </p>
+                    <p className="text-xs text-on-surface-variant mt-2">
+                      Ask staff to add this card to your visits
+                    </p>
+                  </div>
                 ))}
               </div>
             </section>
