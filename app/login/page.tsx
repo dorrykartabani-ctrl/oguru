@@ -169,7 +169,7 @@ export default function PreLoginFork() {
                 <StoreIcon className="w-7 h-7 text-secondary" />
               </div>
 
-              {/* Content */}
+                        {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="font-body-lg text-on-surface font-semibold">I&apos;m a Vendor</h3>
@@ -182,15 +182,12 @@ export default function PreLoginFork() {
                 {/* Feature pills */}
                 <div className="flex flex-wrap gap-1.5">
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-[11px] text-on-surface-variant font-label-sm tracking-wide">
-                    <span className="material-symbols-outlined text-[12px]">store</span>
                     List store
                   </span>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-[11px] text-on-surface-variant font-label-sm tracking-wide">
-                    <span className="material-symbols-outlined text-[12px]">receipt_long</span>
                     Manage orders
                   </span>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-high text-[11px] text-on-surface-variant font-label-sm tracking-wide">
-                    <span className="material-symbols-outlined text-[12px]">trending_up</span>
                     Grow
                   </span>
                 </div>
@@ -198,10 +195,13 @@ export default function PreLoginFork() {
 
               {/* Arrow */}
               <div className="flex-shrink-0 self-center">
-                <ArrowRight className={`w-6 h-6 transition-all ${
-                  selected === 'vendor' ? 'text-primary translate-x-1' : 'text-outline-variant group-hover:text-primary group-hover:translate-x-1'
-                }`}>
-                  
+                <ArrowRight
+                  className={`w-6 h-6 transition-all ${
+                    selected === 'vendor'
+                      ? 'text-primary translate-x-1'
+                      : 'text-outline-variant group-hover:text-primary group-hover:translate-x-1'
+                  }`}
+                />
               </div>
             </div>
           </button>
