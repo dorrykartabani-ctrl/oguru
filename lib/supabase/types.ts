@@ -204,3 +204,32 @@ export type WaitlistSignup = {
   notes: string | null;
   created_at: string;
 };
+
+export type Punchcard = {
+  id: string;
+  business_id: string;
+  location_id: string | null;
+  title: string;
+  description: string | null;
+  item_scope: string | null;
+  eligible_product_ids: string[];
+  punches_required: number;
+  reward_description: string;
+  emoji: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PunchcardMember = {
+  id: string;
+  punchcard_id: string;
+  business_id: string;
+  customer_phone: string;
+  customer_name: string | null;
+  punches_count: number;
+  rewards_redeemed: number;
+  last_punch_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
