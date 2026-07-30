@@ -412,7 +412,7 @@ export default function PromotionsListPage() {
                   {/* Actions */}
                   <div className="flex items-center gap-2 pt-3 border-t border-outline-variant">
                     <button
-                      onClick={() => router.push(`/vendor/marketing/promotions/${promo.id}/edit`)}
+                      onClick={() => router.push(`/vendor/marketing/promotions/${promo.id}`)}
                       className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-surface-container-lowest border border-outline-variant text-on-surface rounded-lg hover:border-primary hover:text-primary transition-colors font-label font-semibold text-xs uppercase tracking-wider"
                     >
                       <Edit3 size={14} />
