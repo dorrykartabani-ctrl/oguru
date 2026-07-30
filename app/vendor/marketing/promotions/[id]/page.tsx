@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { Business, Location, Promotion, PromotionType } from '@/lib/supabase/types';
 import {
@@ -39,8 +39,24 @@ const PROMOTION_TYPES: {
 ];
 
 export default function PromotionEditorPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-surface flex flex-col items-center justify-center">
+          <Loader2 size={40} className="text-primary animate-spin mb-4" />
+          <p className="text-on-surface-variant">Loading...</p>
+        </main>
+      }
+    >
+      <PromotionEditorInner />
+    </Suspense>
+  );
+}
+
+function PromotionEditorInner() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const promoId = params.id as string;
@@ -126,6 +142,16 @@ export default function PromotionEditorPage() {
         setStartsAt(promoData.starts_at ? promoData.starts_at.substring(0, 16) : '');
         setEndsAt(promoData.ends_at ? promoData.ends_at.substring(0, 16) : '');
         setIsActive(promoData.is_active);
+      } else {
+        // Prefill from AI-generated offer, if passed via query params
+        // (e.g. from the AI Campaign Generator's "Create Promotion" button)
+        const prefillTitle = searchParams.get('title');
+        const prefillDescription = searchParams.get('description');
+        const prefillEmoji = searchParams.get('emoji');
+
+        if (prefillTitle) setTitle(prefillTitle);
+        if (prefillDescription) setDescription(prefillDescription);
+        if (prefillEmoji) setEmoji(prefillEmoji);
       }
     } catch (err) {
       console.error(err);
