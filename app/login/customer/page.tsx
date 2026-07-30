@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { ArrowRight, ArrowLeft, EyeIcon } from '@/components/icons';
 
 export default function CustomerAuthPage() {
   const router = useRouter();
@@ -101,7 +102,7 @@ export default function CustomerAuthPage() {
           className="p-2 -ml-2 rounded-full hover:bg-surface-container-high active:scale-95 transition-all duration-150"
           aria-label="Back"
         >
-          <span className="material-symbols-outlined text-on-surface">arrow_back</span>
+         <ArrowLeft className="w-5 h-5 text-on-surface" />
         </button>
       </div>
 
@@ -203,9 +204,7 @@ export default function CustomerAuthPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-surface-container-high transition-colors"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
-                    {showPassword ? 'visibility_off' : 'visibility'}
-                  </span>
+                  <EyeIcon className="w-5 h-5 text-on-surface-variant" />
                 </button>
               </div>
               {mode === 'login' && (
@@ -252,7 +251,7 @@ export default function CustomerAuthPage() {
               ) : (
                 <>
                   <span>{mode === 'signup' ? 'CREATE ACCOUNT' : 'LOG IN'}</span>
-                  <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                  <ArrowRight className="w-5 h-5" />
                 </>
               )}
             </button>
