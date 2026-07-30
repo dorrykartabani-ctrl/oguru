@@ -1,3 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&family=Hanken+Grotesk:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -25,6 +29,7 @@
     'GRAD' 0,
     'opsz' 24;
 }
+
 
 @layer base {
   html {
@@ -78,7 +83,7 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
-  }
+  }                                                                                                                                                                                                                              00000                                                                                                                              
 
   /* Organic grain texture overlay */
   .organic-grain {
