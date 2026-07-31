@@ -3,13 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import type { Business, Location, Product } from '@/lib/supabase/types';
+import type { Business, Location, Product, Profile } from '@/lib/supabase/types';
+import VendorSidebar from '@/components/VendorSidebar';
 import {
-  Home,
-  BarChart3,
   UtensilsCrossed,
-  Megaphone,
-  MoreHorizontal,
   Bell,
   Search,
   SlidersHorizontal,
@@ -26,7 +23,6 @@ import {
   Milk,
   ChevronDown,
   Loader2,
-  LogOut,
   RefreshCw,
   LayoutTemplate,
   Pencil,
@@ -35,13 +31,6 @@ import {
   ArrowRight,
 } from 'lucide-react';
 
-const navItems = [
-  { icon: Home, label: 'Home', active: false, href: '/vendor/dashboard' },
-  { icon: BarChart3, label: 'Insights', active: false, href: '#' },
-  { icon: UtensilsCrossed, label: 'Menu', active: true, href: '/vendor/menu' },
-  { icon: Megaphone, label: 'Marketing', active: false, href: '#' },
-  { icon: MoreHorizontal, label: 'More', active: false, href: '#' },
-];
 
 const setupOptions = [
   {
@@ -149,6 +138,7 @@ export default function VendorMenuPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [location, setLocation] = useState<Location | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   // Menu list view state
   const [activeCategory, setActiveCategory] = useState('All');
@@ -187,6 +177,13 @@ export default function VendorMenuPage() {
       }
 
       setBusiness(businessData);
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (profileData) setProfile(profileData);
 
       // Load location
       const { data: locationData } = await supabase
@@ -228,11 +225,6 @@ export default function VendorMenuPage() {
         )
       );
     }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
   };
 
   // Loading state
@@ -284,77 +276,9 @@ export default function VendorMenuPage() {
         </button>
       </header>
 
-      {/* Side Navigation — tablet+ */}
-      <aside className="hidden md:flex flex-col h-screen fixed left-0 top-0 p-4 bg-surface-container-low border-r border-outline-variant w-64 z-40">
-        <div className="flex items-center gap-3 mb-8 px-2">
-          <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-display font-bold text-sm">
-            {businessInitials}
-          </div>
-          <div className="min-w-0">
-            <h1 className="font-display text-base text-primary font-bold leading-tight truncate">
-              {business.legal_name}
-            </h1>
-            <p className="text-xs text-on-surface-variant">Vendor Dashboard</p>
-          </div>
-        </div>
-
-        <nav className="flex-1 space-y-1">
-          {navItems.map((item, i) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={i}
-                onClick={() => item.href !== '#' && router.push(item.href)}
-                className={`w-full flex items-center gap-3 rounded-lg px-4 py-3 transition-all font-medium text-left ${
-                  item.active
-                    ? 'bg-secondary-container text-on-secondary-container font-bold'
-                    : 'text-on-surface-variant hover:bg-surface-variant'
-                }`}
-              >
-                <Icon size={20} />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="mt-auto pt-6 border-t border-outline-variant">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-2 text-xs text-on-surface-variant hover:text-primary transition-colors px-2 py-2 font-label"
-          >
-            <LogOut size={14} />
-            Log out
-          </button>
-        </div>
-      </aside>
+      <VendorSidebar business={business} profile={profile} />
 
       {children}
-
-      {/* Bottom Navigation — Mobile Only */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container border-t border-outline-variant rounded-t-2xl shadow-[0_-4px_20px_rgba(93,64,55,0.08)]">
-        <div className="flex justify-around items-center h-20 pb-safe px-2">
-          {navItems.map((item, i) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={i}
-                onClick={() => item.href !== '#' && router.push(item.href)}
-                className={`flex flex-col items-center justify-center gap-1 px-3 py-1 rounded-full transition-all active:scale-90 ${
-                  item.active
-                    ? 'bg-secondary-container text-on-secondary-container'
-                    : 'text-on-surface-variant'
-                }`}
-              >
-                <Icon size={22} fill={item.active ? 'currentColor' : 'none'} />
-                <span className="text-[10px] font-label font-semibold uppercase tracking-wider">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
     </>
   );
 
