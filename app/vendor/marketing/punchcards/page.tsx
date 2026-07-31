@@ -3,13 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import type { Business, Punchcard, Product } from '@/lib/supabase/types';
+import type { Business, Punchcard, Product, Profile } from '@/lib/supabase/types';
+import VendorSidebar from '@/components/VendorSidebar';
 import {
-  Home,
-  BarChart3,
-  UtensilsCrossed,
-  Megaphone,
-  Settings,
   Loader2,
   ArrowLeft,
   Plus,
@@ -23,20 +19,13 @@ import {
   Users,
 } from 'lucide-react';
 
-const navItems = [
-  { icon: Home, label: 'Dashboard', active: false, href: '/vendor/dashboard' },
-  { icon: BarChart3, label: 'Insights', active: false, href: '#' },
-  { icon: UtensilsCrossed, label: 'Menu', active: false, href: '/vendor/menu' },
-  { icon: Megaphone, label: 'Marketing', active: true, href: '/vendor/marketing' },
-  { icon: Settings, label: 'Settings', active: false, href: '/vendor/settings' },
-];
-
 export default function PunchcardsListPage() {
   const router = useRouter();
   const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
   const [business, setBusiness] = useState<Business | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [punchcards, setPunchcards] = useState<Punchcard[]>([]);
   const [memberCounts, setMemberCounts] = useState<Record<string, number>>({});
   const [products, setProducts] = useState<Product[]>([]);
@@ -66,6 +55,13 @@ export default function PunchcardsListPage() {
       }
 
       setBusiness(businessData);
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (profileData) setProfile(profileData);
 
       const { data: punchcardData } = await supabase
         .from('punchcards')
@@ -162,7 +158,9 @@ export default function PunchcardsListPage() {
         </button>
       </header>
 
-      <div className="md:ml-0 md:pt-8 pt-20 px-4 md:px-8 lg:px-12 max-w-3xl mx-auto">
+      <VendorSidebar business={business} profile={profile} />
+
+      <div className="md:ml-64 md:pt-8 pt-20 px-4 md:px-8 lg:px-12 max-w-3xl mx-auto">
         {/* Desktop header */}
         <div className="hidden md:flex items-center justify-between mb-8">
           <div>
@@ -345,29 +343,6 @@ export default function PunchcardsListPage() {
           </div>
         </div>
       </div>
-
-      {/* Bottom Nav — mobile */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container border-t border-outline-variant rounded-t-2xl shadow-[0_-4px_20px_rgba(93,64,55,0.08)]">
-        <div className="flex justify-around items-center h-20 pb-safe px-2">
-          {navItems.map((item, i) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={i}
-                onClick={() => item.href !== '#' && router.push(item.href)}
-                className={`flex flex-col items-center justify-center gap-1 px-3 py-1 rounded-full transition-all active:scale-90 ${
-                  item.active ? 'bg-primary-container/40 text-primary' : 'text-on-surface-variant'
-                }`}
-              >
-                <Icon size={22} fill={item.active ? 'currentColor' : 'none'} />
-                <span className="text-[10px] font-label font-semibold uppercase tracking-wider">
-                  {item.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </nav>
     </main>
   );
 }
