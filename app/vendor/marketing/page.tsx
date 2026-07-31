@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import type { Business, Promotion, Profile } from '@/lib/supabase/types';
+import type { Business, Promotion, Punchcard, Profile } from '@/lib/supabase/types';
 import VendorSidebar from '@/components/VendorSidebar';
 import {
   Loader2,
@@ -47,8 +47,8 @@ const marketingTools = [
     title: 'Digital Punchcards',
     subtitle: 'Reward loyal customers automatically',
     description: 'Buy 10 coffees, get 1 free — no physical card needed',
-    href: '#',
-    available: false,
+    href: '/vendor/marketing/punchcards',
+    available: true,
     color: 'bg-secondary-container text-on-secondary-container',
     borderColor: 'border-secondary/20',
   },
@@ -95,6 +95,7 @@ export default function MarketingHubPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
+  const [activePunchcards, setActivePunchcards] = useState<Punchcard[]>([]);
 
   useEffect(() => {
     loadData();
@@ -120,6 +121,9 @@ export default function MarketingHubPage() {
 
       const { data: promoData } = await supabase.from('promotions').select('*').eq('business_id', businessData.id).eq('is_active', true);
       setActivePromotions(promoData || []);
+
+      const { data: punchcardData } = await supabase.from('punchcards').select('*').eq('business_id', businessData.id).eq('is_active', true);
+      setActivePunchcards(punchcardData || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -191,6 +195,26 @@ export default function MarketingHubPage() {
             <button
               onClick={() => router.push('/vendor/marketing/promotions')}
               className="text-sm font-label font-semibold text-primary hover:underline"
+            >
+              Manage →
+            </button>
+          </div>
+        )}
+
+        {activePunchcards.length > 0 && (
+          <div className="mb-6 p-4 bg-secondary/5 border border-secondary/20 rounded-2xl flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary flex-shrink-0">
+              <CreditCard size={20} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-on-surface">
+                {activePunchcards.length} active punchcard{activePunchcards.length === 1 ? '' : 's'}
+              </p>
+              <p className="text-xs text-on-surface-variant">Live on your store page</p>
+            </div>
+            <button
+              onClick={() => router.push('/vendor/marketing/punchcards')}
+              className="text-sm font-label font-semibold text-secondary hover:underline"
             >
               Manage →
             </button>
