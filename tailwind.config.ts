@@ -5,7 +5,6 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Surface / Background
         surface: '#fbf9f4',
         'surface-dim': '#dbdad5',
         'surface-container-lowest': '#ffffff',
@@ -18,7 +17,6 @@ const config: Config = {
         outline: '#757969',
         'outline-variant': '#c5c8b6',
 
-        // Primary — Sage Green
         primary: {
           DEFAULT: '#4a6410',
           container: '#627e29',
@@ -29,7 +27,6 @@ const config: Config = {
           container: '#faffe7',
         },
 
-        // Secondary — Earth Brown
         secondary: {
           DEFAULT: '#77574d',
           container: '#fed3c7',
@@ -39,7 +36,6 @@ const config: Config = {
           container: '#795950',
         },
 
-        // Tertiary — Fire Orange
         tertiary: {
           DEFAULT: '#924700',
           container: '#b75b00',
@@ -49,7 +45,6 @@ const config: Config = {
           container: '#fffbff',
         },
 
-        // Error
         error: {
           DEFAULT: '#ba1a1a',
           container: '#ffdad6',
@@ -59,11 +54,13 @@ const config: Config = {
           container: '#93000a',
         },
       },
+
       fontFamily: {
-        display: ['var(--font-display)', 'system-ui', 'sans-serif'],
-        body: ['var(--font-body)', 'system-ui', 'sans-serif'],
-        label: ['var(--font-label)', 'system-ui', 'sans-serif'],
+        display: ['Be Vietnam Pro', 'sans-serif'],
+        body: ['Manrope', 'sans-serif'],
+        label: ['Hanken Grotesk', 'sans-serif'],
       },
+
       borderRadius: {
         sm: '0.25rem',
         DEFAULT: '0.5rem',
@@ -71,30 +68,12 @@ const config: Config = {
         lg: '1rem',
         xl: '1.5rem',
       },
+
       boxShadow: {
         'organic-sm': '0 1px 2px 0 rgba(93, 64, 55, 0.05)',
         organic: '0 2px 8px 0 rgba(93, 64, 55, 0.08)',
         'organic-md': '0 4px 12px 0 rgba(93, 64, 55, 0.10)',
         'organic-lg': '0 8px 24px 0 rgba(93, 64, 55, 0.12)',
-      },
-      keyframes: {
-        'fade-in': {
-          '0%': { opacity: '0', transform: 'translateY(4px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        'fade-in-scale': {
-          '0%': { opacity: '0', transform: 'scale(0.9)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
-        },
-        'pulse-dot': {
-          '0%, 100%': { opacity: '0.3', transform: 'scale(0.8)' },
-          '50%': { opacity: '1', transform: 'scale(1)' },
-        },
-      },
-      animation: {
-        'fade-in': 'fade-in 0.4s ease-out',
-        'fade-in-scale': 'fade-in-scale 0.8s ease-out',
-        'pulse-dot': 'pulse-dot 1.5s ease-in-out infinite',
       },
     },
   },
