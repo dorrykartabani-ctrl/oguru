@@ -1,26 +1,22 @@
 import type { Metadata, Viewport } from 'next';
 import { Be_Vietnam_Pro, Manrope, Hanken_Grotesk } from 'next/font/google';
-import './globals.css';
 
-const beVietnamPro = Be_Vietnam_Pro({
+const displayFont = Be_Vietnam_Pro({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '600', '700', '800'],
   variable: '--font-display',
-  display: 'swap',
 });
 
-const manrope = Manrope({
+const bodyFont = Manrope({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-body',
-  display: 'swap',
 });
 
-const hankenGrotesk = Hanken_Grotesk({
+const labelFont = Hanken_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '600', '700'],
   variable: '--font-label',
-  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -59,15 +55,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${beVietnamPro.variable} ${manrope.variable} ${hankenGrotesk.variable}`}
+      className={`${displayFont.variable} ${bodyFont.variable} ${labelFont.variable}`}
     >
-      <head>
-        <link rel="apple-touch-icon" href="/icon-192.png" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="OGuru" />
-        <meta name="mobile-web-app-capable" content="yes" />
-      </head>
       <body>{children}</body>
     </html>
   );
