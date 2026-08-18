@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, EyeIcon } from '@/components/icon';
+import { ArrowLeft, EyeIcon } from '@/components/icons';
 
 export default function CustomerAuthPage() {
   const router = useRouter();
