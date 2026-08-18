@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, ArrowRight } from '@/components/icons';
+import { ArrowLeft, ArrowRight, EyeIcon } from '@/components/icons';
 
 export default function VendorAuthPage() {
   const router = useRouter();
@@ -12,6 +12,8 @@ export default function VendorAuthPage() {
   const [view, setView] = useState<'login' | 'signup'>('login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
 
   // Login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -22,6 +24,7 @@ export default function VendorAuthPage() {
   const [signupCategory, setSignupCategory] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPhone, setSignupPhone] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,19 +50,18 @@ export default function VendorAuthPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+
+    if (signupPassword.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
-    // Note: Vendor signup requires a password. Since Stitch design doesn't include one,
-    // we'll send them to /vendor/apply after collecting basics, or you can add a
-    // password field here if preferred.
-
-    // For now, generate a temporary password and let them set it during apply flow
-    const tempPassword = crypto.randomUUID();
-
     const { error: signUpError } = await supabase.auth.signUp({
       email: signupEmail.trim(),
-      password: tempPassword,
+      password: signupPassword,
       options: {
         data: {
           full_name: signupBusinessName.trim(),
@@ -166,16 +168,25 @@ export default function VendorAuthPage() {
                       Forgot?
                     </button>
                   </div>
-                  <input
-                    id="login-password"
-                    type="password"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="••••••••"
-                    autoComplete="current-password"
-                    required
-                    className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
-                  />
+                  <div className="relative">
+                    <input
+                      id="login-password"
+                      type={showLoginPassword ? 'text' : 'password'}
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      required
+                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors"
+                    >
+                      <EyeIcon className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
 
                 {error && (
@@ -199,7 +210,10 @@ export default function VendorAuthPage() {
                 <p className="font-body text-on-surface-variant">
                   New merchant?{' '}
                   <button
-                    onClick={() => setView('signup')}
+                    onClick={() => {
+                      setView('signup');
+                      setError(null);
+                    }}
                     className="text-primary font-bold hover:underline"
                   >
                     Get Started
@@ -214,7 +228,10 @@ export default function VendorAuthPage() {
             <div className="relative z-10 transition-all duration-300">
               <div className="mb-6 text-center relative">
                 <button
-                  onClick={() => setView('login')}
+                  onClick={() => {
+                    setView('login');
+                    setError(null);
+                  }}
                   className="absolute left-0 top-0 text-on-surface-variant hover:text-primary transition-colors flex items-center p-1 rounded-full hover:bg-surface-container-high"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -305,6 +322,7 @@ export default function VendorAuthPage() {
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     placeholder="hello@yourbusiness.com"
+                    autoComplete="email"
                     required
                     className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
                   />
@@ -324,9 +342,40 @@ export default function VendorAuthPage() {
                     value={signupPhone}
                     onChange={(e) => setSignupPhone(e.target.value)}
                     placeholder="+1 (555) 000-0000"
+                    autoComplete="tel"
                     required
                     className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
                   />
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label
+                    htmlFor="signup-password"
+                    className="block font-label text-xs uppercase tracking-wider text-on-surface-variant mb-1"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="signup-password"
+                      type={showSignupPassword ? 'text' : 'password'}
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      placeholder="At least 6 characters"
+                      autoComplete="new-password"
+                      required
+                      minLength={6}
+                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors"
+                    >
+                      <EyeIcon className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
 
                 {error && (
