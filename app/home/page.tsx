@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/lib/supabase/types';
 
-export default function FoodieHome() {
+export default function FoodieHomePage() {
   const router = useRouter();
   const supabase = createClient();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -13,29 +13,29 @@ export default function FoodieHome() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         router.push('/');
         return;
       }
+
       const { data } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
+
       setProfile(data);
       setLoading(false);
     };
+
     loadProfile();
   }, [router, supabase]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-    router.refresh();
-  };
-
-  const firstName = profile?.full_name?.split(' ')[0] ?? 'there';
+  const firstName = profile?.full_name?.split(' ')[0] ?? 'Foodie';
 
   const greeting = (() => {
     const hour = new Date().getHours();
@@ -45,196 +45,249 @@ export default function FoodieHome() {
   })();
 
   return (
-    <>
+    <div className="min-h-screen bg-surface text-on-surface pb-24 relative flex flex-col">
+      {/* Decorative Texture Layer */}
       <div
-        className="fixed inset-0 pointer-events-none opacity-[0.03] z-[9999]"
+        className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]"
         style={{
-          backgroundImage: `url("https://www.transparenttextures.com/patterns/p6.png")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2377574d' fill-opacity='0.03' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")`,
         }}
       />
 
-      {/* Top bar */}
-      <header className="fixed top-0 w-full z-40 bg-surface/95 backdrop-blur-md flex justify-between items-center px-margin-mobile h-16">
-        <button className="p-2 -ml-2 rounded-full hover:bg-surface-container-high active:scale-95 transition-all">
-          <span className="material-symbols-outlined text-primary">menu</span>
+      {/* TopAppBar */}
+      <header className="sticky top-0 w-full z-40 bg-surface-container-low border-b border-outline-variant/10 flex justify-between items-center px-4 py-2 bg-surface/90 backdrop-blur-md">
+        <button className="p-2 -ml-2 rounded-full hover:bg-surface-container-high transition-colors active:scale-95 duration-150">
+          <svg className="w-6 h-6 text-on-surface-variant" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
         </button>
-        <h1 className="font-headline-lg-mobile text-xl font-bold text-primary tracking-tight">
+
+        <h1 className="font-display font-bold text-[24px] text-primary tracking-tight">
           OGuru
         </h1>
-        <button
-          onClick={handleLogout}
-          className="p-2 -mr-2 rounded-full hover:bg-surface-container-high active:scale-95 transition-all"
-          aria-label="Log out"
+
+        <button 
+          onClick={() => router.push('/profile')}
+          className="w-10 h-10 rounded-full overflow-hidden hover:bg-surface-container-high transition-colors active:scale-95 duration-150 border border-outline-variant/30"
         >
-          <span className="material-symbols-outlined text-on-surface-variant">logout</span>
+          <img
+            src={profile?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuA1u7SefxC3RqJUXmpzf2MURoIzP93BwI8ABe0_tpeWXwl7NqCutQJUW2PpdzU2uiiuukVekxfp216JTrc-lGophi3VZQszU7GSNBncgCscZPPf4imcm3Fy03WocmqsBGeCrSLVzq42ZESSQWNF9R5cHMNysDzYrWMNKNlTdLoqWtRyT22Jj8IY7iJHpNj_iqNUJfmzNzcU-QC-dpXaFCoVtgd_F74R2vqxNKilJ5ou9UYMWca9LRXI"}
+            alt="User avatar"
+            className="w-full h-full object-cover"
+          />
         </button>
       </header>
 
-      <main className="min-h-screen bg-surface pt-20 pb-24 px-margin-mobile max-w-lg mx-auto">
-
-        {/* Greeting */}
-        <section className="mb-6">
+      {/* Main Content */}
+      <main className="flex-1 px-4 py-6 flex flex-col gap-8 max-w-md mx-auto w-full relative z-10">
+        
+        {/* Greeting Section */}
+        <section className="flex flex-col gap-1">
           {loading ? (
-            <div className="h-8 w-48 bg-surface-container-high rounded animate-pulse mb-2" />
+            <div className="h-8 w-48 bg-surface-container-high rounded animate-pulse mb-1" />
           ) : (
-            <h2 className="font-headline-lg-mobile text-headline-lg-mobile text-on-background leading-tight mb-1">
-              {greeting}, <span className="text-primary">{firstName}</span>
+            <h2 className="font-display font-bold text-[28px] text-on-surface leading-tight">
+              {greeting}, {firstName}
             </h2>
           )}
-          <p className="text-on-surface-variant font-body-md opacity-80 text-sm">
+          <p className="font-body text-on-surface-variant text-base">
             What are you pre-ordering today?
           </p>
         </section>
 
-        {/* Location + Search */}
-        <section className="mb-8">
-          <div className="flex items-center gap-1.5 mb-3">
-            <span
-              className="material-symbols-outlined text-primary text-[16px]"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              location_on
-            </span>
-            <button className="text-on-surface-variant text-sm font-body-md hover:text-primary transition-colors flex items-center gap-1">
-              <span>Near Shoreditch</span>
-              <span className="material-symbols-outlined text-[14px] text-outline">expand_more</span>
-            </button>
-          </div>
-
-          <button
+        {/* Search & Location */}
+        <section className="flex flex-col gap-3">
+          <div 
             onClick={() => router.push('/explore')}
-            className="w-full flex items-center gap-3 px-4 py-4 rounded-xl bg-surface-container-low text-left shadow-inner hover:bg-surface-container transition-colors"
+            className="relative w-full shadow-[0_4px_16px_rgba(93,64,55,0.06)] rounded-full overflow-hidden flex items-center bg-surface-container-lowest border border-outline-variant/20 focus-within:border-primary transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-outline">search</span>
-            <span className="text-outline font-body-md">Search vendors, items, or areas</span>
-          </button>
-        </section>
-
-        {/* Quick Reorder */}
-        <section className="mb-10">
-          <div className="flex justify-between items-end mb-4">
-            <h3 className="font-headline-lg-mobile text-xl text-on-surface font-semibold">
-              Quick Reorder
-            </h3>
-            <button className="text-primary font-label-sm text-label-sm uppercase tracking-wider hover:underline">
-              View all
-            </button>
+            <svg className="w-5 h-5 text-outline ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              readOnly
+              className="w-full bg-transparent border-none focus:outline-none font-body text-base py-3 px-3 text-on-surface placeholder:text-outline-variant cursor-pointer"
+              placeholder="Search vendors, items..."
+              type="text"
+            />
           </div>
-
-          {/* Empty state for new users */}
-          <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/15 text-center">
-            <div className="w-14 h-14 rounded-full bg-primary-fixed/40 mx-auto mb-3 flex items-center justify-center">
-              <span
-                className="material-symbols-outlined text-primary text-[28px]"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                shopping_bag
-              </span>
-            </div>
-            <p className="font-body-md text-on-surface font-semibold mb-1">
-              Your reorders will appear here
-            </p>
-            <p className="text-on-surface-variant text-sm mb-4">
-              Once you place your first order, we&apos;ll make it easy to order again.
-            </p>
-            <button
-              onClick={() => router.push('/explore')}
-              className="inline-flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-lg font-label-sm text-label-sm uppercase tracking-wider active:scale-95 transition-transform"
-            >
-              <span>Explore vendors</span>
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </button>
+          <div className="flex items-center gap-1.5 text-secondary font-body text-sm">
+            <svg className="w-4 h-4 text-secondary fill-current" viewBox="0 0 24 24">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+            <span>Near Shoreditch • Within 1 mile</span>
           </div>
         </section>
 
-        {/* Trending near you */}
-        <section className="mb-10">
-          <div className="flex items-center gap-3 mb-4">
-            <h3 className="font-headline-lg-mobile text-xl text-on-surface font-semibold">
-              Trending Near You
-            </h3>
-            <span className="bg-tertiary-container text-on-tertiary-container px-2 py-0.5 rounded text-[10px] font-bold tracking-widest uppercase">
-              Hot
-            </span>
-          </div>
-
-          <div
-            onClick={() => router.push('/explore')}
-            className="group relative bg-surface rounded-2xl overflow-hidden border border-outline-variant/10 shadow-[0_4px_12px_rgba(93,64,55,0.08)] hover:shadow-[0_6px_16px_rgba(93,64,55,0.12)] transition-all cursor-pointer"
-          >
-            <div className="relative h-48 overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+        {/* Quick Reorder Section */}
+        <section className="flex flex-col gap-4">
+          <div className="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-[0_8px_24px_rgba(93,64,55,0.06)] border border-secondary/10 relative">
+            <div className="h-32 w-full bg-surface-container-high relative">
               <img
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKDity17rhWvVuyMJF2bg4oPH4aJ4z5yZtTINcjNaj83tuquPhZ1LIlal34pqKOa5jWGmf-M8AzN9XxF8arR37qW59SGTiDkB0a3rUl8Rw21vVloxh6RZMHu2n8BkfJ85X6Fl0CRDvvahx3IjmdIkVoxB2QmMRsu4jLvlEvhMGLwHVUSj1Az70JLZpX7EGiFxwFx__2s_BfZelCHMlblRkXT825xB80QeLJBBBWuDgXa655VArsK-T"
-                alt="The Hearth Pizzeria"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6ghVSJ5pXgH_gHA7qx99PJo9R6pUwwVadfFeeWqLstS8qg9GnbXYixHHjGqk2hp7d2HM_tUCXf5B-zLuRZdcVZT8Y9pbP-DQ66hqyOX6dCYy0Yvt6Vc_e0p2ZiKaGd_X-yQnA5xALd9pLzJ7faRPeO68o1hHoBwcLdmyyf_wwptB2eoNNvJrHAxyjPfbQMPt-xG_45XrsewMt0pw1jt6inmrtNqSdVgrmqdvJl4KuF48WHLl07nBK"
+                alt="Artisan Latte"
+                className="w-full h-full object-cover"
               />
-              <div className="absolute top-3 right-3 bg-white/95 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                <span
-                  className="material-symbols-outlined text-tertiary text-[14px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  star
-                </span>
-                <span className="font-label-sm text-on-surface text-[12px]">4.9</span>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-3 left-4 flex flex-col">
+                <span className="font-body text-sm text-white/90">Cafe Artisan</span>
+                <span className="font-display font-bold text-xl text-white">Artisan Latte</span>
               </div>
-              <div className="absolute top-3 left-3 flex items-center gap-1 bg-primary-fixed/95 backdrop-blur px-2 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                <span className="font-label-sm text-[10px] text-primary tracking-wide">
+            </div>
+            <div className="p-4 flex justify-between items-center bg-surface-container-lowest">
+              <div className="bg-primary/10 text-primary px-3 py-1 rounded-full font-label text-xs font-semibold flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                PRE-ORDERS OPEN
+              </div>
+              <button 
+                onClick={() => router.push('/explore')}
+                className="bg-primary text-on-primary font-label text-xs uppercase tracking-wider px-6 py-2.5 rounded-full hover:bg-primary/90 active:scale-95 transition-all shadow-sm"
+              >
+                REORDER
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Trending Near You Section */}
+        <section className="flex flex-col gap-4">
+          <h3 className="font-display font-bold text-xl text-on-surface">
+            Trending Near You
+          </h3>
+          <div className="flex flex-col gap-4">
+            
+            {/* Vendor Card 1 */}
+            <div 
+              onClick={() => router.push('/explore')}
+              className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(93,64,55,0.04)] border border-secondary/10 flex gap-3 p-3 cursor-pointer hover:shadow-md transition-shadow"
+            >
+              <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container-high relative">
+                <img
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDJumzL2fAvTjzd9Hqf6Zxr7qHyZqBJa5MgYbDrMkJBpYJxyIHIx6fcEAwf-3E-leDbRERSfM8UKAjbou5KvVIRuSrYGVTIweTwLE8zF3l8nGr5GZ_1zF9ZceA6QW4vCcQ-18wmboU7-VedI-srDXq8OlWro9gZbqYXFRz8xIs1HTsCgv5e4dbWE4oz33JX5YhhXMQW8YHPbovnIwNDO7MUCOI8NgB1utIRA8IxEHr-Cg6z4UD8NZZ"
+                  alt="The Hearth Pizzeria"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex flex-col justify-between py-1 flex-1">
+                <div>
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-display font-bold text-lg text-on-surface leading-tight">
+                      The Hearth Pizzeria
+                    </h4>
+                    <div className="flex items-center gap-0.5 text-secondary font-label text-xs">
+                      <svg className="w-3.5 h-3.5 fill-current text-tertiary" viewBox="0 0 24 24">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                      </svg>
+                      <span className="font-bold">4.9</span>
+                    </div>
+                  </div>
+                  <p className="font-body text-sm text-on-surface-variant mt-0.5">0.4 mi</p>
+                </div>
+                <div className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-label text-[10px] font-semibold uppercase tracking-wider inline-block self-start">
                   PRE-ORDERS OPEN
-                </span>
-              </div>
-            </div>
-            <div className="p-4">
-              <h4 className="font-body-lg text-on-surface font-semibold mb-1">
-                The Hearth Pizzeria
-              </h4>
-              <div className="flex items-center gap-3 text-on-surface-variant text-sm">
-                <div className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[16px]">location_on</span>
-                  <span>0.4 mi</span>
-                </div>
-                <span className="text-outline-variant">·</span>
-                <div className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[16px]">schedule</span>
-                  <span>20 min</span>
-                </div>
-                <span className="text-outline-variant">·</span>
-                <div className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[16px]">group</span>
-                  <span>2.4k</span>
                 </div>
               </div>
             </div>
+
+            {/* Vendor Card 2 */}
+            <div 
+              onClick={() => router.push('/explore')}
+              className="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(93,64,55,0.04)] border border-secondary/10 flex gap-3 p-3 cursor-pointer hover:shadow-md transition-shadow"
+            >
+              <div className="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container-high relative">
+                <img
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBzJxD7JMFnuqZkPeCLJe9uTlzcuXRRL_DP7A0rgqzYjjQE29YV-97cX0aHUEEzrgQL-6SpcXDLRKOmhlDlCLvQwmRDZPpOr-WFMWr2OfmP7m40WzIto45KlDnDq4ASRUpZ4tcCR7k3wIoORl_qCC7kdVtEbszbflLCSOgRO4ZnPOVSr9WGDGwkmTsGfQpBYjCgeehRQ6a_mav29Hez7OBq-Jsxrj-jC6sul1Gw9RHFFK3N5mSO6fCg"
+                  alt="Bistro Verde"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex flex-col justify-between py-1 flex-1">
+                <div>
+                  <div className="flex justify-between items-start">
+                    <h4 className="font-display font-bold text-lg text-on-surface leading-tight">
+                      Bistro Verde
+                    </h4>
+                    <div className="flex items-center gap-0.5 text-secondary font-label text-xs">
+                      <svg className="w-3.5 h-3.5 fill-current text-tertiary" viewBox="0 0 24 24">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                      </svg>
+                      <span className="font-bold">4.7</span>
+                    </div>
+                  </div>
+                  <p className="font-body text-sm text-on-surface-variant mt-0.5">0.8 mi</p>
+                </div>
+                <div className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-label text-[10px] font-semibold uppercase tracking-wider inline-block self-start">
+                  PRE-ORDERS OPEN
+                </div>
+              </div>
+            </div>
+
           </div>
         </section>
 
       </main>
 
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 px-4 pb-safe bg-surface-container-high z-40 rounded-t-xl shadow-[0_-4px_12px_rgba(93,64,55,0.08)]">
-        <button className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 transition-transform active:scale-90">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>
-            home
-          </span>
-          <span className="font-label-sm text-[10px]">Home</span>
-        </button>
-        <button
-          onClick={() => router.push('/explore')}
-          className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90"
+      {/* 5-Tab Bottom Navigation */}
+      <nav className="bg-surface-container font-label text-xs fixed bottom-0 left-0 w-full z-50 rounded-t-xl shadow-[0_-4px_12px_rgba(93,64,55,0.08)] flex justify-around items-center px-2 pb-4 pt-2 border-t border-outline-variant/10">
+        
+        {/* 1. Home (Active) */}
+        <button 
+          onClick={() => router.push('/home')}
+          className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-3.5 py-1 transition-all active:scale-90 duration-200"
         >
-          <span className="material-symbols-outlined">explore</span>
-          <span className="font-label-sm text-[10px]">Explore</span>
+          <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+          </svg>
+          <span className="mt-0.5 text-[10px] font-semibold">Home</span>
         </button>
-        <button className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90">
-          <span className="material-symbols-outlined">receipt_long</span>
-          <span className="font-label-sm text-[10px]">Orders</span>
+
+        {/* 2. Explore */}
+        <button 
+          onClick={() => router.push('/explore')}
+          className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200 p-1"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <span className="mt-0.5 text-[10px]">Explore</span>
         </button>
-        <button className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors active:scale-90">
-          <span className="material-symbols-outlined">person</span>
-          <span className="font-label-sm text-[10px]">Profile</span>
+
+        {/* 3. Gifts */}
+        <button 
+          onClick={() => router.push('/gifts')}
+          className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200 p-1"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zm0 0h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
+          </svg>
+          <span className="mt-0.5 text-[10px]">Gifts</span>
         </button>
+
+        {/* 4. Orders */}
+        <button 
+          onClick={() => router.push('/orders')}
+          className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200 p-1"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          </svg>
+          <span className="mt-0.5 text-[10px]">Orders</span>
+        </button>
+
+        {/* 5. Profile */}
+        <button 
+          onClick={() => router.push('/profile')}
+          className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200 p-1"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span className="mt-0.5 text-[10px]">Profile</span>
+        </button>
+
       </nav>
-    </>
+    </div>
   );
 }
