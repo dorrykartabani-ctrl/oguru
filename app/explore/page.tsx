@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef, useState, Suspense } from 'react';
 
 type VendorStatus = 'open' | 'limited' | 'closed';
 type VendorCategory = 'cafe' | 'pizza' | 'bakery' | 'burgers';
@@ -140,20 +140,21 @@ function CategoryIcon({ category }: { category: VendorCategory }) {
   );
 }
 
-export default function ExploreMapPage() {
+function ExploreMapContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get('q') || '';
+  
   const [selectedId, setSelectedId] = useState<string>(VENDORS[0].id);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const filtered = VENDORS.filter((v) => {
-    if (!query.trim()) return true;
-    const q = query.toLowerCase();
-    return (
-      v.name.toLowerCase().includes(q) ||
-      v.tagline.toLowerCase().includes(q) ||
-      v.category.toLowerCase().includes(q)
-    );
+  // When user types in Map, update URL to keep sync
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    window.history.replaceState(null, '', `?${params.toString()}`);
+  }, [query]);
   });
 
   useEffect(() => {
@@ -295,7 +296,7 @@ export default function ExploreMapPage() {
 
         {/* List toggle FAB */}
         <button
-          onClick={() => router.push('/explore/list')}
+          onClick={() => router.push(`/home?q=${encodeURIComponent(query)}`)}
           className="absolute bottom-[250px] right-4 z-30 bg-primary text-on-primary px-5 py-3 rounded-full shadow-xl flex items-center gap-2 active:scale-95 transition-transform font-label text-xs uppercase tracking-wider"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -437,5 +438,12 @@ export default function ExploreMapPage() {
         </button>
       </nav>
     </div>
+  );
+}
+export default function ExploreMapPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-surface" />}>
+      <ExploreMapContent />
+    </Suspense>
   );
 }
