@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-// Public routes that logged-out users can access
+// Routes accessible when logged out
 const PUBLIC_ROUTES = [
   '/',
   '/login',
@@ -10,22 +10,14 @@ const PUBLIC_ROUTES = [
   '/vendor/apply',
 ];
 
-// Routes only for logged-in customers
-const CUSTOMER_ROUTES = ['/home', '/customer'];
+// Routes requiring customer auth
+const CUSTOMER_ROUTES = ['/home', '/explore', '/gifts', '/orders', '/profile'];
 
-// Routes only for logged-in vendors
-const VENDOR_ROUTES = ['/vendor'];
+// Routes requiring vendor auth (except /vendor/apply)
+const VENDOR_ROUTES = ['/vendor/dashboard', '/vendor/menu', '/vendor/settings', '/vendor/insights'];
 
-// Routes that logged-in users should be redirected away from
-const AUTH_ROUTES = ['/', '/login', '/login/customer', '/login/vendor'];
-
-function pathMatches(pathname: string, routes: string[]): boolean {
-  return routes.some((route) => {
-    if (route === pathname) return true;
-    if (pathname.startsWith(`${route}/`)) return true;
-    return false;
-  });
-}
+// Auth pages to redirect AWAY from if already logged in
+const AUTH_PAGES = ['/', '/login', '/login/customer', '/login/vendor'];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -40,19 +32,9 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(
-          cookiesToSet: {
-            name: string;
-            value: string;
-            options?: CookieOptions;
-          }[]
-        ) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+        setAll(cookiesToSet: { name: string; value: string; options?: CookieOptions }[]) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -61,63 +43,56 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh session and get user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const pathname = request.nextUrl.pathname;
 
-  // Skip route protection for API routes and Next internals
+  // Skip static assets, images, and API routes
   if (
-    pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
     pathname.includes('.')
   ) {
     return supabaseResponse;
   }
 
-  // ---- LOGGED OUT ----
+  // Fast session refresh — NO database queries
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // 1. LOGGED OUT USERS
   if (!user) {
-    // Allow public routes
-    if (pathMatches(pathname, PUBLIC_ROUTES)) {
+    const isPublic = PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+    if (isPublic) {
       return supabaseResponse;
     }
-    // Block everything else — send to splash
+    // Redirect unauthenticated users back to splash
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);
   }
 
-  // ---- LOGGED IN ----
-  // Fetch the user's role from profiles
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  // 2. LOGGED IN USERS
+  // Read role directly from session metadata (0ms latency, no DB call)
+  const role = user.user_metadata?.role || 'customer';
 
-  const role = profile?.role ?? 'customer';
-
-  // Redirect logged-in users away from splash/login/fork
-  if (AUTH_ROUTES.includes(pathname)) {
+  // If on splash or auth pages, redirect to their home
+  if (AUTH_PAGES.includes(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = role === 'vendor' ? '/vendor/dashboard' : '/home';
     return NextResponse.redirect(url);
   }
 
-  // Prevent vendors accessing customer routes
-  if (role === 'vendor' && pathMatches(pathname, CUSTOMER_ROUTES)) {
+  // Prevent vendors from visiting customer routes
+  if (role === 'vendor' && CUSTOMER_ROUTES.some((r) => pathname.startsWith(r))) {
     const url = request.nextUrl.clone();
     url.pathname = '/vendor/dashboard';
     return NextResponse.redirect(url);
   }
 
-  // Prevent customers accessing vendor routes (except apply)
+  // Prevent customers from visiting vendor dashboard
   if (
     role === 'customer' &&
-    pathMatches(pathname, VENDOR_ROUTES) &&
-    !pathname.startsWith('/vendor/apply')
+    VENDOR_ROUTES.some((r) => pathname.startsWith(r))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = '/home';
