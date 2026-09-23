@@ -18,7 +18,7 @@ type Vendor = {
   status: VendorStatus;
   slotsLeft?: number;
   category: VendorCategory;
-  top: string; // % position on map
+  top: string;
   left: string;
 };
 
@@ -89,30 +89,30 @@ const VENDORS: Vendor[] = [
 function statusStyles(status: VendorStatus) {
   if (status === 'open') {
     return {
-      pin: 'bg-primary border-white text-on-primary',
-      tip: 'bg-primary',
-      badge: 'bg-primary/10 text-primary',
+      pin: 'bg-[#4a6410] border-white text-white',
+      tip: 'bg-[#4a6410]',
+      badge: 'bg-[#4a6410]/10 text-[#4a6410]',
       label: 'PRE-ORDERS OPEN',
-      cta: 'bg-primary text-on-primary',
+      cta: 'bg-[#4a6410] text-white',
       ctaLabel: 'PRE-ORDER',
     };
   }
   if (status === 'limited') {
     return {
-      pin: 'bg-tertiary border-white text-on-tertiary',
-      tip: 'bg-tertiary',
-      badge: 'bg-tertiary/10 text-tertiary',
+      pin: 'bg-[#924700] border-white text-white',
+      tip: 'bg-[#924700]',
+      badge: 'bg-[#924700]/10 text-[#924700]',
       label: '3 SLOTS LEFT',
-      cta: 'bg-tertiary-container text-on-tertiary-container',
+      cta: 'bg-[#b75b00] text-white',
       ctaLabel: 'ORDER NOW',
     };
   }
   return {
-    pin: 'bg-outline border-white text-on-primary opacity-80',
-    tip: 'bg-outline',
-    badge: 'bg-surface-container-highest text-on-surface-variant',
+    pin: 'bg-[#757969] border-white text-white opacity-80',
+    tip: 'bg-[#757969]',
+    badge: 'bg-[#e4e2dd] text-[#44483a]',
     label: 'FULLY BOOKED',
-    cta: 'border border-outline-variant text-on-surface-variant bg-transparent',
+    cta: 'border border-[#c5c8b6] text-[#44483a] bg-transparent',
     ctaLabel: 'NOTIFY ME',
   };
 }
@@ -132,7 +132,6 @@ function CategoryIcon({ category }: { category: VendorCategory }) {
       </svg>
     );
   }
-  // cafe default
   return (
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
       <path d="M2 21h18v-2H2v2zm6-4h10a4 4 0 0 0 0-8h-1.3A6 6 0 0 0 5 12v3a2 2 0 0 0 2 2h1zm10-6a2 2 0 1 1 0 4h-1V11h1z" />
@@ -144,18 +143,16 @@ function ExploreMapContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
-  
+
   const [selectedId, setSelectedId] = useState<string>(VENDORS[0].id);
   const [query, setQuery] = useState(initialQuery);
   const cardRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // When user types in Map, update URL to keep sync
   useEffect(() => {
     const params = new URLSearchParams();
     if (query) params.set('q', query);
     window.history.replaceState(null, '', `?${params.toString()}`);
   }, [query]);
-  });
 
   useEffect(() => {
     const el = cardRefs.current[selectedId];
@@ -164,28 +161,34 @@ function ExploreMapContent() {
     }
   }, [selectedId]);
 
-  const selectVendor = (id: string) => {
-    setSelectedId(id);
-  };
+  const filtered = VENDORS.filter((v) => {
+    if (!query.trim()) return true;
+    const q = query.toLowerCase();
+    return (
+      v.name.toLowerCase().includes(q) ||
+      v.tagline.toLowerCase().includes(q) ||
+      v.category.toLowerCase().includes(q)
+    );
+  });
 
   return (
-    <div className="bg-surface text-on-background h-screen flex flex-col overflow-hidden relative">
+    <div className="bg-[#fbf9f4] text-[#1b1c19] h-screen flex flex-col overflow-hidden relative">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-md shadow-sm h-16 flex justify-between items-center px-4">
+      <header className="fixed top-0 w-full z-50 bg-[#fbf9f4]/90 backdrop-blur-md shadow-sm h-16 flex justify-between items-center px-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push('/home')}
-            className="active:scale-95 transition-transform hover:bg-primary-container/20 p-2 rounded-full"
+            className="active:scale-95 transition-transform hover:bg-[#627e29]/20 p-2 rounded-full"
             aria-label="Back to home"
           >
-            <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <svg className="w-6 h-6 text-[#4a6410]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="font-display font-bold text-[24px] text-primary tracking-tight">OGuru</h1>
+          <h1 className="font-display font-bold text-[24px] text-[#4a6410] tracking-tight">OGuru</h1>
         </div>
-        <div className="flex items-center gap-1 text-on-surface-variant text-sm font-body">
-          <svg className="w-4 h-4 text-primary fill-current" viewBox="0 0 24 24">
+        <div className="flex items-center gap-1 text-[#44483a] text-sm font-body">
+          <svg className="w-4 h-4 text-[#4a6410] fill-current" viewBox="0 0 24 24">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
           </svg>
           <span>Near Shoreditch</span>
@@ -213,22 +216,22 @@ function ExploreMapContent() {
 
         {/* Floating search */}
         <div className="absolute top-4 left-0 right-0 px-4 z-20">
-          <div className="bg-surface/95 backdrop-blur-md rounded-xl p-1 flex items-center shadow-organic-md border border-outline-variant/30">
+          <div className="bg-[#fbf9f4]/95 backdrop-blur-md rounded-xl p-1 flex items-center shadow-md border border-[#c5c8b6]/30">
             <div className="flex items-center flex-1 px-3">
-              <svg className="w-5 h-5 text-on-surface-variant" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <svg className="w-5 h-5 text-[#44483a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8" />
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="bg-transparent border-none focus:outline-none focus:ring-0 w-full font-body text-on-surface placeholder:text-on-surface-variant/60 px-3 py-2"
+                className="bg-transparent border-none focus:outline-none focus:ring-0 w-full font-body text-[#1b1c19] placeholder:text-[#44483a]/60 px-3 py-2"
                 placeholder="Search cafes, pizza..."
                 type="text"
               />
             </div>
-            <div className="h-6 w-px bg-outline-variant/30 mx-1" />
-            <button className="p-3 text-primary hover:bg-primary-container/20 rounded-lg transition-colors flex items-center gap-1">
+            <div className="h-6 w-px bg-[#c5c8b6]/30 mx-1" />
+            <button className="p-3 text-[#4a6410] hover:bg-[#627e29]/20 rounded-lg transition-colors flex items-center gap-1">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M7 12h10M10 18h4" />
               </svg>
@@ -243,8 +246,8 @@ function ExploreMapContent() {
                 key={chip}
                 className={`flex-shrink-0 px-3.5 py-1.5 rounded-full font-label text-xs uppercase tracking-wider transition-all ${
                   i === 0
-                    ? 'bg-primary text-on-primary'
-                    : 'bg-surface/95 text-on-surface border border-outline-variant/30 backdrop-blur-md'
+                    ? 'bg-[#4a6410] text-white'
+                    : 'bg-[#fbf9f4]/95 text-[#1b1c19] border border-[#c5c8b6]/30 backdrop-blur-md'
                 }`}
               >
                 {chip}
@@ -260,7 +263,7 @@ function ExploreMapContent() {
           return (
             <button
               key={vendor.id}
-              onClick={() => selectVendor(vendor.id)}
+              onClick={() => setSelectedId(vendor.id)}
               className="absolute z-10 -translate-x-1/2 -translate-y-full"
               style={{ top: vendor.top, left: vendor.left }}
               aria-label={vendor.name}
@@ -268,15 +271,15 @@ function ExploreMapContent() {
               <div className={`relative flex flex-col items-center transition-transform duration-200 ${selected ? 'scale-125' : 'scale-100'}`}>
                 <div
                   className={`${styles.pin} p-2 rounded-full shadow-lg border-2 flex items-center justify-center ${
-                    selected ? 'ring-2 ring-primary/30' : ''
+                    selected ? 'ring-2 ring-[#4a6410]/30' : ''
                   }`}
                 >
                   <CategoryIcon category={vendor.category} />
                 </div>
                 <div className={`w-2 h-2 ${styles.tip} rotate-45 -mt-1 shadow-sm`} />
                 {selected && (
-                  <div className="mt-1 px-2 py-0.5 rounded-md bg-surface shadow-organic-sm border border-outline-variant/20">
-                    <span className="text-[10px] font-label font-semibold text-on-surface whitespace-nowrap">
+                  <div className="mt-1 px-2 py-0.5 rounded-md bg-[#fbf9f4] shadow-sm border border-[#c5c8b6]/20">
+                    <span className="text-[10px] font-label font-semibold text-[#1b1c19] whitespace-nowrap">
                       {vendor.name}
                     </span>
                   </div>
@@ -289,15 +292,15 @@ function ExploreMapContent() {
         {/* You are here */}
         <div className="absolute z-10 top-[48%] left-[48%] -translate-x-1/2 -translate-y-1/2">
           <div className="relative flex items-center justify-center">
-            <div className="absolute w-10 h-10 rounded-full bg-primary/20 animate-ping" />
-            <div className="w-4 h-4 rounded-full bg-primary border-2 border-white shadow-md" />
+            <div className="absolute w-10 h-10 rounded-full bg-[#4a6410]/20 animate-ping" />
+            <div className="w-4 h-4 rounded-full bg-[#4a6410] border-2 border-white shadow-md" />
           </div>
         </div>
 
         {/* List toggle FAB */}
         <button
           onClick={() => router.push(`/home?q=${encodeURIComponent(query)}`)}
-          className="absolute bottom-[250px] right-4 z-30 bg-primary text-on-primary px-5 py-3 rounded-full shadow-xl flex items-center gap-2 active:scale-95 transition-transform font-label text-xs uppercase tracking-wider"
+          className="absolute bottom-[250px] right-4 z-30 bg-[#4a6410] text-white px-5 py-3 rounded-full shadow-xl flex items-center gap-2 active:scale-95 transition-transform font-label text-xs uppercase tracking-wider"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -317,11 +320,11 @@ function ExploreMapContent() {
                   ref={(el) => {
                     cardRefs.current[vendor.id] = el;
                   }}
-                  onClick={() => selectVendor(vendor.id)}
-                  className={`min-w-[300px] snap-center bg-surface border rounded-2xl overflow-hidden shadow-organic-md flex transition-all cursor-pointer ${
+                  onClick={() => setSelectedId(vendor.id)}
+                  className={`min-w-[300px] snap-center bg-[#fbf9f4] border rounded-2xl overflow-hidden shadow-md flex transition-all cursor-pointer ${
                     selected
-                      ? 'border-primary shadow-organic-lg scale-[1.02]'
-                      : 'border-outline-variant/20 hover:border-primary/20'
+                      ? 'border-[#4a6410] shadow-lg scale-[1.02]'
+                      : 'border-[#c5c8b6]/20 hover:border-[#4a6410]/20'
                   } ${vendor.status === 'closed' ? 'opacity-75' : ''}`}
                 >
                   <div className="w-24 relative overflow-hidden flex-shrink-0">
@@ -336,14 +339,14 @@ function ExploreMapContent() {
                   <div className="flex-1 p-3.5 flex flex-col justify-between min-h-[150px]">
                     <div>
                       <div className="flex justify-between items-start gap-2 mb-1">
-                        <h3 className="font-body font-semibold text-on-surface truncate max-w-[140px]">
+                        <h3 className="font-body font-semibold text-[#1b1c19] truncate max-w-[140px]">
                           {vendor.name}
                         </h3>
-                        <div className="flex items-center gap-0.5 bg-secondary-container/30 px-1.5 py-0.5 rounded flex-shrink-0">
-                          <svg className="w-3.5 h-3.5 fill-current text-tertiary" viewBox="0 0 24 24">
+                        <div className="flex items-center gap-0.5 bg-[#fed3c7]/30 px-1.5 py-0.5 rounded flex-shrink-0">
+                          <svg className="w-3.5 h-3.5 fill-current text-[#924700]" viewBox="0 0 24 24">
                             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                           </svg>
-                          <span className="text-[12px] font-bold text-on-secondary-container">
+                          <span className="text-[12px] font-bold text-[#795950]">
                             {vendor.rating}
                           </span>
                         </div>
@@ -358,9 +361,9 @@ function ExploreMapContent() {
                         </span>
                       </div>
 
-                      <p className="text-on-surface-variant text-[13px] mb-1.5">{vendor.tagline}</p>
+                      <p className="text-[#44483a] text-[13px] mb-1.5">{vendor.tagline}</p>
 
-                      <div className="flex items-center gap-1.5 text-on-surface-variant/80 text-[12px]">
+                      <div className="flex items-center gap-1.5 text-[#44483a]/80 text-[12px]">
                         <span>{vendor.distance}</span>
                         <span>•</span>
                         <span>{vendor.eta}</span>
@@ -373,7 +376,6 @@ function ExploreMapContent() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          // future: route to vendor store
                         }}
                         className={`px-4 py-1.5 rounded-lg font-label text-xs uppercase tracking-wider active:scale-95 transition-transform ${styles.cta}`}
                       >
@@ -388,11 +390,11 @@ function ExploreMapContent() {
         </div>
       </main>
 
-      {/* Bottom nav — matches Home */}
-      <nav className="bg-surface-container font-label text-xs fixed bottom-0 left-0 w-full z-50 rounded-t-xl shadow-[0_-4px_12px_rgba(93,64,55,0.08)] flex justify-around items-center px-2 pb-4 pt-2 border-t border-outline-variant/10">
+      {/* Bottom nav */}
+      <nav className="bg-[#f0eee9] font-label text-xs fixed bottom-0 left-0 w-full z-50 rounded-t-xl shadow-[0_-4px_12px_rgba(93,64,55,0.08)] flex justify-around items-center px-2 pb-4 pt-2 border-t border-[#c5c8b6]/10">
         <button
-          onClick={() => router.push('/home')}
-          className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200 p-1"
+          onClick={() => router.push(`/home?q=${encodeURIComponent(query)}`)}
+          className="flex flex-col items-center justify-center text-[#44483a] hover:text-[#4a6410] transition-all active:scale-90 duration-200 p-1"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3m10-11v10a1 1 0 01-1 1h-3m-4 0h4" />
@@ -400,7 +402,7 @@ function ExploreMapContent() {
           <span className="mt-0.5 text-[10px]">Home</span>
         </button>
 
-        <button className="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-3.5 py-1 transition-all active:scale-90 duration-200">
+        <button className="flex flex-col items-center justify-center bg-[#627e29] text-white rounded-full px-3.5 py-1 transition-all active:scale-90 duration-200">
           <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
           </svg>
@@ -409,7 +411,7 @@ function ExploreMapContent() {
 
         <button
           onClick={() => router.push('/gifts')}
-          className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200 p-1"
+          className="flex flex-col items-center justify-center text-[#44483a] hover:text-[#4a6410] transition-all active:scale-90 duration-200 p-1"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zm0 0h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" />
@@ -419,7 +421,7 @@ function ExploreMapContent() {
 
         <button
           onClick={() => router.push('/orders')}
-          className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200 p-1"
+          className="flex flex-col items-center justify-center text-[#44483a] hover:text-[#4a6410] transition-all active:scale-90 duration-200 p-1"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -429,7 +431,7 @@ function ExploreMapContent() {
 
         <button
           onClick={() => router.push('/profile')}
-          className="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90 duration-200 p-1"
+          className="flex flex-col items-center justify-center text-[#44483a] hover:text-[#4a6410] transition-all active:scale-90 duration-200 p-1"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -440,9 +442,10 @@ function ExploreMapContent() {
     </div>
   );
 }
+
 export default function ExploreMapPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-surface" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#fbf9f4]" />}>
       <ExploreMapContent />
     </Suspense>
   );
