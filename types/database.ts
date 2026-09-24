@@ -1,11 +1,25 @@
 // types/database.ts
-// Auto-mapped from Supabase public schema — Oguru
+// Complete Oguru database schema — mapped from Supabase public schema
+
+// ============================================================
+// ENUMS
+// ============================================================
 
 export type BusinessStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
 export type UserRole = 'customer' | 'vendor';
+export type PromotionType =
+  | 'percentage_off'
+  | 'fixed_amount_off'
+  | 'buy_x_get_y'
+  | 'free_item'
+  | 'flash_sale';
+
+// ============================================================
+// CORE TABLES
+// ============================================================
 
 export interface Profile {
-  id: string; // UUID, references auth.users
+  id: string;
   full_name: string | null;
   phone: string | null;
   role: UserRole;
@@ -87,8 +101,8 @@ export interface Location {
 export interface OpeningHours {
   id: string;
   location_id: string;
-  day_of_week: number; // 0=Sun, 1=Mon ... 6=Sat
-  opens_at: string | null; // "HH:MM:SS"
+  day_of_week: number;
+  opens_at: string | null;
   closes_at: string | null;
   is_closed: boolean;
   shift_order: number;
@@ -114,6 +128,10 @@ export interface Product {
   updated_at: string;
 }
 
+// ============================================================
+// SEARCH & DISCOVERY
+// ============================================================
+
 export interface CustomerKeyword {
   id: string;
   user_id: string;
@@ -122,12 +140,84 @@ export interface CustomerKeyword {
   created_at: string;
 }
 
-// ---- Composite / Joined Types (for UI consumption) ----
-
-export interface VendorWithLocation extends Business {
-  locations: Location[];
+export interface VendorKeyword {
+  id: string;
+  business_id: string;
+  keyword: string;
+  category: string | null;
+  created_at: string;
 }
 
+// ============================================================
+// MARKETING & LOYALTY
+// ============================================================
+
+export interface Promotion {
+  id: string;
+  business_id: string;
+  location_id: string;
+  title: string;
+  description: string | null;
+  promotion_type: PromotionType;
+  original_price_cents: number | null;
+  sale_price_cents: number | null;
+  discount_percentage: number | null;
+  discount_amount_cents: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  is_active: boolean;
+  emoji: string | null;
+  is_featured: boolean;
+  view_count: number;
+  order_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Punchcard {
+  id: string;
+  business_id: string;
+  location_id: string | null;
+  title: string;
+  description: string | null;
+  item_scope: string | null;
+  eligible_product_ids: string[];
+  punches_required: number;
+  reward_description: string;
+  emoji: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PunchcardMember {
+  id: string;
+  punchcard_id: string;
+  business_id: string;
+  customer_phone: string;
+  customer_name: string | null;
+  punches_count: number;
+  rewards_redeemed: number;
+  last_punch_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WaitlistSignup {
+  id: string;
+  email: string;
+  country_code: string;
+  business_name: string | null;
+  business_type: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+// ============================================================
+// COMPOSITE / UI-READY TYPES
+// ============================================================
+
+/** Vendor card for /home trending list and /explore bottom carousel */
 export interface VendorCard {
   id: string;
   trading_name: string;
@@ -137,16 +227,46 @@ export interface VendorCard {
   chip_icon: string | null;
   chip_color: string | null;
   business_types: string[];
+  location_id: string;
   location_name: string;
   neighborhood: string | null;
   suburb: string | null;
   latitude: number | null;
   longitude: number | null;
   is_accepting_orders: boolean;
-  distance_meters?: number; // computed at query time
+  distance_km?: number;
 }
 
-export interface ProductWithVendor extends Product {
-  business: Pick<Business, 'trading_name' | 'slug' | 'logo_url'>;
-  location: Pick<Location, 'name' | 'neighborhood'>;
+/** Full vendor detail with nested relations */
+export interface VendorDetail extends Business {
+  locations: (Location & { opening_hours: OpeningHours[] })[];
+  products: Product[];
+  active_promotions: Promotion[];
+  active_punchcards: Punchcard[];
+}
+
+/** Map pin data for /explore */
+export interface MapPin {
+  location_id: string;
+  business_id: string;
+  trading_name: string;
+  chip_icon: string | null;
+  chip_color: string | null;
+  latitude: number;
+  longitude: number;
+  is_accepting_orders: boolean;
+  neighborhood: string | null;
+  suburb: string | null;
+}
+
+/** Gift-eligible product with vendor context */
+export interface GiftableProduct extends Product {
+  business: Pick<Business, 'trading_name' | 'slug' | 'logo_url' | 'chip_icon'>;
+  location_name: string;
+}
+
+/** Active promotion with vendor context */
+export interface PromotionCard extends Promotion {
+  business: Pick<Business, 'trading_name' | 'slug' | 'chip_icon' | 'chip_color'>;
+  location_name: string;
 }
