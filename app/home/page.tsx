@@ -56,6 +56,26 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, [query, isSearchMode]);
 
+  <button
+  onClick={async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const nowFav = await toggleFavorite(vendor.id);
+    setFavoriteIds((prev) =>
+      nowFav ? [...prev, vendor.id] : prev.filter((id) => id !== vendor.id)
+    );
+  }}
+  className="absolute right-3.5 top-3.5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-sm"
+>
+  <HeartIcon
+    className={`h-4 w-4 ${
+      favoriteIds.includes(vendor.id)
+        ? 'fill-[#924700] text-[#924700]'
+        : 'text-[#924700]'
+    }`}
+  />
+</button>
+
   // Apply pill filters locally
   const filteredVendors = vendors.filter((v) => {
     if (activeFilter === 'All') return true;
@@ -174,7 +194,7 @@ export default function HomePage() {
                       Top Rated
                     </div>
                   </div>
-
+                  
                   {/* Content Half */}
                   <div className="relative p-5 flex-1 flex flex-col justify-between">
                     <div>
