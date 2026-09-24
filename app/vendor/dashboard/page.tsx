@@ -17,7 +17,7 @@ import {
   getVendorPromotions,
   getVendorPunchcards,
 } from '@/lib/supabase/vendor-queries';
-import type { Business, Location, Product, Promotion, Punchcard } from '@/lib/supabase/types';
+import type { Business, Location, Product, Promotion, Punchcard } from '@/types/database';
 
 function getGreeting() {
   const h = new Date().getHours();
