@@ -92,6 +92,7 @@ export interface Location {
   is_accepting_orders: boolean;
   pos_system: string | null;
   pos_synced_at: string | null;
+  pos_preorder_url: string | null;
   neighborhood: string | null;
   access_notes: string | null;
   created_at: string;
@@ -217,7 +218,6 @@ export interface WaitlistSignup {
 // COMPOSITE / UI-READY TYPES
 // ============================================================
 
-/** Vendor card for /home trending list and /explore bottom carousel */
 export interface VendorCard {
   id: string;
   trading_name: string;
@@ -237,7 +237,6 @@ export interface VendorCard {
   distance_km?: number;
 }
 
-/** Full vendor detail with nested relations */
 export interface VendorDetail extends Business {
   locations: (Location & { opening_hours: OpeningHours[] })[];
   products: Product[];
@@ -245,7 +244,6 @@ export interface VendorDetail extends Business {
   active_punchcards: Punchcard[];
 }
 
-/** Map pin data for /explore */
 export interface MapPin {
   location_id: string;
   business_id: string;
@@ -259,16 +257,12 @@ export interface MapPin {
   suburb: string | null;
 }
 
-/** Gift-eligible product with vendor context */
 export interface GiftableProduct extends Product {
   business: Pick<Business, 'trading_name' | 'slug' | 'logo_url' | 'chip_icon'>;
   location_name: string;
 }
 
-/** Active promotion with vendor context */
 export interface PromotionCard extends Promotion {
   business: Pick<Business, 'trading_name' | 'slug' | 'chip_icon' | 'chip_color'>;
   location_name: string;
 }
-// Inside export interface Location { ... }
-pos_preorder_url: string | null;
