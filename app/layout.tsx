@@ -1,25 +1,33 @@
-import './globals.css';
 import type { Metadata } from 'next';
 import { Be_Vietnam_Pro, Manrope, Hanken_Grotesk } from 'next/font/google';
+import './globals.css';
 
-const displayFont = Be_Vietnam_Pro({
+// 1. Be Vietnam Pro (Display Font)
+const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['latin'],
-  weight: ['400', '600', '700', '800'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-display',
+  display: 'swap',
 });
 
-const bodyFont = Manrope({
+// 2. Manrope (Variable Body Font - NO explicit weight array needed)
+const manrope = Manrope({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  variable: '--font-body',
+  display: 'swap',
 });
 
-const labelFont = Hanken_Grotesk({
+// 3. Hanken Grotesk (Variable Label Font - NO explicit weight array needed)
+const hankenGrotesk = Hanken_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '600', '700'],
+  variable: '--font-label',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'OGuru',
-  description: 'Pre-order from your neighbourhood’s best.',
+  title: 'Oguru — Specialty Coffee & Bakery Pre-orders',
+  description:
+    'Find your perfect café, your way. Pre-order marketing, live slot availability, gift treats to friends, and skip the morning queue.',
 };
 
 export default function RootLayout({
@@ -28,10 +36,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body
-        className={`${displayFont.className} ${bodyFont.className} ${labelFont.className} antialiased`}
-      >
+    <html
+      lang="en"
+      className={`${beVietnamPro.variable} ${manrope.variable} ${hankenGrotesk.variable}`}
+    >
+      <body className="bg-[#f6f4eb] text-[#1b1c19] antialiased selection:bg-[#4a6410] selection:text-white">
         {children}
       </body>
     </html>
