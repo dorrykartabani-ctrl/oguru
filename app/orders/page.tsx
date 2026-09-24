@@ -1,500 +1,400 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import {
-  ReceiptIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  CoffeeIcon,
-  ArrowRight,
   HomeIcon,
-  MapIcon,
   GiftIcon,
+  HeartIcon,
+  ReceiptIcon,
   UserCircleIcon,
-  SparklesIcon,
+  QrCodeIcon,
+  ClockIcon,
   MapPinIcon,
   RefreshIcon,
-  QrCodeIcon,
-  ChevronDown,
   XIcon,
-  PackageIcon,
+  CheckCircleIcon,
 } from '@/components/icons';
 
 /* ------------------------------------------------------------------ */
-/*  Types                                                              */
+/*  Types & Mock Data                                                  */
 /* ------------------------------------------------------------------ */
 
-type OrderStage = 'confirmed' | 'preparing' | 'ready' | 'picked_up';
+type OrderTab = 'Active' | 'Past';
 
 interface OrderItem {
-  name: string;
   qty: number;
+  name: string;
+  price: number;
   modifier?: string;
 }
 
-interface ActiveOrder {
+interface OrderCard {
   id: string;
   vendor: string;
-  vendorInitial: string;
-  vendorColor: string;
-  items: OrderItem[];
-  stage: OrderStage;
-  countdownSeconds: number;
-  pickupCode: string;
-  slotWindow: string;
-  distance: string;
-}
-
-interface UpcomingOrder {
-  id: string;
-  vendor: string;
-  vendorInitial: string;
-  vendorColor: string;
-  items: OrderItem[];
-  scheduledFor: string;
-  total: string;
-}
-
-interface PastOrder {
-  id: string;
-  vendor: string;
+  vendorLogo: string;
+  coverImage: string;
+  pickupTime: string;
   date: string;
-  items: string;
-  total: string;
+  total: number;
+  items: OrderItem[];
+  orderNumber: string;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Mock Data (Phase 1 — replace with Supabase in Phase 2)             */
-/* ------------------------------------------------------------------ */
-
-const mockActiveOrder: ActiveOrder = {
-  id: 'ord-live-1',
-  vendor: 'Old Spike Roastery',
-  vendorInitial: 'O',
-  vendorColor: 'bg-[#d4e4b8] text-[#4a6410]',
-  items: [
-    { name: 'Oat Flat White', qty: 1, modifier: 'Extra hot' },
-    { name: 'Almond Croissant', qty: 2 },
-  ],
-  stage: 'preparing',
-  countdownSeconds: 7 * 60 + 23,
-  pickupCode: 'OG-4821',
-  slotWindow: '8:15 – 8:30 AM',
-  distance: '0.3 mi',
-};
-
-const mockUpcoming: UpcomingOrder[] = [
+const ACTIVE_ORDERS: OrderCard[] = [
   {
-    id: 'ord-up-1',
-    vendor: 'Pophams Bakery',
-    vendorInitial: 'P',
-    vendorColor: 'bg-[#fed3c7] text-[#77574d]',
+    id: 'ord-101',
+    vendor: 'The Roasted Bean',
+    vendorLogo: '☕',
+    coverImage: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=800',
+    pickupTime: '09:30 AM',
+    date: 'Today',
+    total: 12.50,
+    orderNumber: 'TRB-8492',
     items: [
-      { name: 'Matcha Latte', qty: 1, modifier: 'Oat milk' },
-      { name: 'Pistachio Croissant', qty: 1 },
+      { qty: 1, name: 'Caramel Latte', price: 6.50, modifier: 'Oat Milk' },
+      { qty: 1, name: 'Almond Croissant', price: 6.00 },
     ],
-    scheduledFor: 'Tomorrow · 7:45 AM',
-    total: '£9.80',
   },
 ];
 
-const mockPast: PastOrder[] = [
-  { id: 'ord-p-1', vendor: 'WatchHouse', date: 'Mon 12 May', items: '2× Flat White, 1× Banana Bread', total: '£11.40' },
-  { id: 'ord-p-2', vendor: 'Old Spike Roastery', date: 'Sat 10 May', items: '1× Cortado, 1× Pain au Chocolat', total: '£7.20' },
-  { id: 'ord-p-3', vendor: 'Pophams Bakery', date: 'Thu 8 May', items: '1× Oat Cappuccino, 2× Almond Croissant', total: '£10.60' },
-  { id: 'ord-p-4', vendor: 'WatchHouse', date: 'Tue 6 May', items: '1× Filter Coffee', total: '£3.80' },
+const PAST_ORDERS: OrderCard[] = [
+  {
+    id: 'ord-098',
+    vendor: 'Hearth & Grain',
+    vendorLogo: '🥐',
+    coverImage: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=800',
+    pickupTime: '08:15 AM',
+    date: 'Oct 12, 2023',
+    total: 8.50,
+    orderNumber: 'HG-1102',
+    items: [
+      { qty: 1, name: 'Sourdough Loaf', price: 8.50 },
+    ],
+  },
+  {
+    id: 'ord-091',
+    vendor: 'Pure Press',
+    vendorLogo: '🥤',
+    coverImage: 'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?auto=format&fit=crop&q=80&w=800',
+    pickupTime: '12:00 PM',
+    date: 'Oct 05, 2023',
+    total: 18.00,
+    orderNumber: 'PP-3391',
+    items: [
+      { qty: 2, name: 'Green Detox Juice', price: 9.00 },
+    ],
+  },
+  {
+    id: 'ord-084',
+    vendor: 'The Roasted Bean',
+    vendorLogo: '☕',
+    coverImage: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=800',
+    pickupTime: '09:30 AM',
+    date: 'Sep 28, 2023',
+    total: 6.50,
+    orderNumber: 'TRB-7721',
+    items: [
+      { qty: 1, name: 'Caramel Latte', price: 6.50, modifier: 'Oat Milk' },
+    ],
+  }
 ];
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-
-const STAGES: { key: OrderStage; label: string }[] = [
-  { key: 'confirmed', label: 'Confirmed' },
-  { key: 'preparing', label: 'Preparing' },
-  { key: 'ready', label: 'Ready' },
-  { key: 'picked_up', label: 'Picked Up' },
-];
-
-const stageIndex = (s: OrderStage) => STAGES.findIndex((st) => st.key === s);
-
-const formatCountdown = (total: number) => {
-  const m = Math.floor(total / 60);
-  const s = total % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
-};
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
 export default function OrdersPage() {
-  const [countdown, setCountdown] = useState(mockActiveOrder.countdownSeconds);
-  const [showPast, setShowPast] = useState(false);
-
-  // Live countdown tick
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const isUrgent = countdown < 5 * 60;
-  const currentStageIdx = stageIndex(mockActiveOrder.stage);
+  const [activeTab, setActiveTab] = useState<OrderTab>('Active');
+  const [selectedTicket, setSelectedTicket] = useState<OrderCard | null>(null);
 
   return (
-    <main className="min-h-screen bg-[#fbf9f4] pb-28 font-body">
-      {/* ---- Header ---- */}
-      <header className="flex items-end justify-between px-5 pt-14 pb-2">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-[#1b1c19]">
-            Orders
-          </h1>
-          <p className="mt-1 text-sm text-[#44483a]">
-            Track, pick up, and reorder.
-          </p>
+    <main className="min-h-screen bg-[#f6f4eb] pb-32 font-body selection:bg-[#4a6410] selection:text-white">
+      
+      {/* ---- Header & Tabs ---- */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-12 pb-4">
+        <h1 className="font-display text-3xl font-extrabold text-[#1b1c19] md:text-4xl">
+          Your Orders
+        </h1>
+
+        <div className="mt-6 flex gap-3">
+          {(['Active', 'Past'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-full px-5 py-2 font-label text-sm font-bold transition-all ${
+                activeTab === tab
+                  ? 'bg-[#4a6410] text-white shadow-sm'
+                  : 'bg-[#ebe8db] text-[#44483a] hover:bg-[#1b1c19]/10'
+              }`}
+            >
+              {tab} {tab === 'Active' && ACTIVE_ORDERS.length > 0 && `(${ACTIVE_ORDERS.length})`}
+            </button>
+          ))}
         </div>
-        {countdown > 0 && (
-          <span className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-[#924700]/10 px-3 py-1 font-label text-xs font-bold text-[#924700]">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#924700] opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#924700]" />
-            </span>
-            1 active
-          </span>
-        )}
-      </header>
+      </div>
 
-      {/* ============================================================ */}
-      {/*  ACTIVE ORDER                                                 */}
-      {/* ============================================================ */}
-      {countdown > 0 && (
-        <section className="mx-5 mt-5">
-          <div className="overflow-hidden rounded-3xl bg-white shadow-organic">
-            {/* Vendor Header */}
-            <div className="flex items-center gap-3 border-b border-[#1b1c19]/5 px-5 py-4">
-              <div
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-display text-sm font-bold ${mockActiveOrder.vendorColor}`}
-              >
-                {mockActiveOrder.vendorInitial}
+      {/* ========================================================= */}
+      {/* ACTIVE ORDERS (Wallet Pass Style) */}
+      {/* ========================================================= */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-2">
+        {activeTab === 'Active' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {ACTIVE_ORDERS.length === 0 ? (
+              <div className="col-span-full py-16 text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#ebe8db]">
+                  <ReceiptIcon className="h-8 w-8 text-[#44483a]/40" />
+                </div>
+                <p className="mt-4 font-display text-lg font-bold text-[#1b1c19]">No active orders</p>
+                <p className="mt-1 text-sm text-[#44483a]/60">Your upcoming pickups will appear here.</p>
+                <Link href="/home" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#4a6410] px-5 py-2.5 font-label text-xs font-bold text-white transition active:scale-95">
+                  Browse Vendors
+                </Link>
               </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="truncate font-display text-base font-bold text-[#1b1c19]">
-                  {mockActiveOrder.vendor}
-                </h2>
-                <p className="flex items-center gap-1 font-label text-xs text-[#44483a]/60">
-                  <MapPinIcon className="h-3 w-3" />
-                  {mockActiveOrder.distance} · Slot {mockActiveOrder.slotWindow}
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full bg-[#924700]/10 px-2.5 py-1 font-label text-[10px] font-bold uppercase tracking-wider text-[#924700]">
-                Preparing
-              </span>
-            </div>
-
-            {/* Items */}
-            <div className="px-5 pt-4 pb-2">
-              <ul className="space-y-1.5">
-                {mockActiveOrder.items.map((item, i) => (
-                  <li key={i} className="flex items-center gap-2 text-sm text-[#1b1c19]">
-                    <CoffeeIcon className="h-3.5 w-3.5 shrink-0 text-[#44483a]/40" />
-                    <span className="font-semibold">{item.qty}×</span>
-                    <span>{item.name}</span>
-                    {item.modifier && (
-                      <span className="font-label text-xs text-[#44483a]/50">
-                        · {item.modifier}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Progress Stepper */}
-            <div className="px-5 pt-4 pb-5">
-              <div className="flex items-center justify-between">
-                {STAGES.map((stage, idx) => {
-                  const isComplete = idx < currentStageIdx;
-                  const isCurrent = idx === currentStageIdx;
-                  return (
-                    <div key={stage.key} className="flex flex-1 flex-col items-center">
-                      {/* Connector line + dot */}
-                      <div className="flex w-full items-center">
-                        {idx > 0 && (
-                          <div
-                            className={`h-0.5 flex-1 rounded-full transition-colors ${
-                              idx <= currentStageIdx ? 'bg-[#4a6410]' : 'bg-[#1b1c19]/10'
-                            }`}
-                          />
-                        )}
-                        <div
-                          className={`relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                            isComplete
-                              ? 'border-[#4a6410] bg-[#4a6410] text-white'
-                              : isCurrent
-                                ? 'border-[#924700] bg-[#924700]/10 text-[#924700]'
-                                : 'border-[#1b1c19]/10 bg-white text-[#1b1c19]/20'
-                          }`}
-                        >
-                          {isComplete ? (
-                            <CheckCircleIcon className="h-4 w-4" />
-                          ) : isCurrent ? (
-                            <span className="relative flex h-2.5 w-2.5">
-                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#924700] opacity-50" />
-                              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#924700]" />
-                            </span>
-                          ) : (
-                            <span className="h-2 w-2 rounded-full bg-current" />
-                          )}
-                        </div>
-                        {idx < STAGES.length - 1 && (
-                          <div
-                            className={`h-0.5 flex-1 rounded-full transition-colors ${
-                              idx < currentStageIdx ? 'bg-[#4a6410]' : 'bg-[#1b1c19]/10'
-                            }`}
-                          />
-                        )}
+            ) : (
+              ACTIVE_ORDERS.map((order) => (
+                <div key={order.id} className="group relative overflow-hidden rounded-[32px] bg-white shadow-sm border border-[#1b1c19]/5 transition hover:shadow-md">
+                  
+                  {/* Top Half: Cover Image & Status */}
+                  <div className="relative h-32 w-full bg-[#ebe8db]">
+                    <img src={order.coverImage} alt={order.vendor} className="h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-black/20" />
+                    
+                    <div className="absolute left-4 top-4 flex items-center gap-2">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20 text-lg backdrop-blur-md border border-white/20">
+                        {order.vendorLogo}
                       </div>
-                      {/* Label */}
-                      <span
-                        className={`mt-1.5 font-label text-[9px] font-semibold uppercase tracking-wider ${
-                          isComplete
-                            ? 'text-[#4a6410]'
-                            : isCurrent
-                              ? 'text-[#924700]'
-                              : 'text-[#44483a]/30'
-                        }`}
-                      >
-                        {stage.label}
-                      </span>
+                      <div>
+                        <p className="font-display text-base font-bold text-white drop-shadow-md">
+                          {order.vendor}
+                        </p>
+                        <p className="font-label text-[10px] font-extrabold uppercase tracking-wider text-white/80">
+                          {order.orderNumber}
+                        </p>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Countdown + Pickup Code */}
-            <div className="flex items-stretch border-t border-[#1b1c19]/5">
-              {/* Countdown */}
-              <div className="flex flex-1 flex-col items-center justify-center py-5">
-                <span className="font-label text-[10px] font-semibold uppercase tracking-widest text-[#44483a]/50">
-                  Ready in
-                </span>
-                <span
-                  className={`mt-1 font-display text-4xl font-bold tabular-nums tracking-tight ${
-                    isUrgent ? 'text-[#924700]' : 'text-[#1b1c19]'
-                  }`}
-                >
-                  {formatCountdown(countdown)}
-                </span>
-                <span className="mt-0.5 font-label text-[10px] text-[#44483a]/40">
-                  minutes
-                </span>
-              </div>
+                    <div className="absolute right-4 top-4 rounded-md bg-[#4a6410] px-2.5 py-1 font-label text-[10px] font-extrabold uppercase tracking-wider text-white shadow-sm">
+                      Confirmed
+                    </div>
+                  </div>
 
-              {/* Divider */}
-              <div className="w-px bg-[#1b1c19]/5" />
+                  {/* Middle: Order Details */}
+                  <div className="p-5">
+                    <div className="flex items-center justify-between rounded-2xl bg-[#f6f4eb] p-4 border border-[#1b1c19]/5">
+                      <div>
+                        <p className="font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]/60">
+                          Scheduled Pickup
+                        </p>
+                        <div className="mt-1 flex items-center gap-2 text-[#4a6410]">
+                          <ClockIcon className="h-5 w-5" />
+                          <span className="font-display text-xl font-extrabold">{order.pickupTime}</span>
+                        </div>
+                      </div>
+                    </div>
 
-              {/* Pickup Code */}
-              <div className="flex flex-1 flex-col items-center justify-center gap-2 py-5">
-                <span className="font-label text-[10px] font-semibold uppercase tracking-widest text-[#44483a]/50">
-                  Pickup Code
-                </span>
-                <div className="flex items-center gap-2">
-                  <QrCodeIcon className="h-5 w-5 text-[#4a6410]" />
-                  <span className="font-display text-2xl font-bold tracking-wider text-[#4a6410]">
-                    {mockActiveOrder.pickupCode}
-                  </span>
+                    <div className="mt-4 px-2">
+                      <p className="font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]/60">
+                        Order Summary
+                      </p>
+                      <p className="mt-1 font-body text-sm font-semibold text-[#1b1c19]">
+                        {order.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bottom: Action / QR Toggle */}
+                  <div className="border-t border-dashed border-[#1b1c19]/10 p-5 pt-4">
+                    <button 
+                      onClick={() => setSelectedTicket(order)}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#4a6410] py-3.5 font-label text-sm font-bold text-white shadow-sm transition active:scale-95 hover:bg-[#3b500b]"
+                    >
+                      <QrCodeIcon className="h-5 w-5" />
+                      Show Pickup Code
+                    </button>
+                  </div>
                 </div>
-                <span className="font-label text-[10px] text-[#44483a]/40">
-                  Show at counter
-                </span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2 border-t border-[#1b1c19]/5 px-5 py-4">
-              <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#4a6410] py-3 text-sm font-semibold text-white shadow-sm transition active:scale-[0.97]">
-                <MapPinIcon className="h-4 w-4" />
-                I&apos;m Here
-              </button>
-              <button className="flex items-center justify-center rounded-xl border border-[#1b1c19]/10 px-4 py-3 text-[#44483a]/50 transition hover:bg-[#1b1c19]/5 active:scale-[0.97]">
-                <XIcon className="h-4 w-4" />
-              </button>
-            </div>
+              ))
+            )}
           </div>
-        </section>
-      )}
+        )}
 
-      {/* ============================================================ */}
-      {/*  UPCOMING ORDERS                                              */}
-      {/* ============================================================ */}
-      {mockUpcoming.length > 0 && (
-        <section className="mt-8">
-          <h3 className="px-5 font-display text-lg font-semibold text-[#1b1c19]">
-            Upcoming
-          </h3>
-          <ul className="mt-3 space-y-3 px-5">
-            {mockUpcoming.map((order) => (
-              <li
-                key={order.id}
-                className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-organic"
-              >
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-sm font-bold ${order.vendorColor}`}
-                >
-                  {order.vendorInitial}
+        {/* ========================================================= */}
+        {/* PAST ORDERS (Grid Layout / No Lists) */}
+        {/* ========================================================= */}
+        {activeTab === 'Past' && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {PAST_ORDERS.map((order) => (
+              <div key={order.id} className="flex flex-col overflow-hidden rounded-[28px] bg-white shadow-sm border border-[#1b1c19]/5 transition hover:shadow-md">
+                
+                {/* Image Top */}
+                <div className="relative h-28 w-full bg-[#ebe8db]">
+                  <img src={order.coverImage} alt={order.vendor} className="h-full w-full object-cover" />
+                  <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm">
+                    <span className="text-sm">{order.vendorLogo}</span>
+                  </div>
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-sm font-semibold text-[#1b1c19]">
-                    {order.vendor}
-                  </p>
-                  <p className="flex items-center gap-1 font-label text-xs text-[#44483a]/60">
-                    <ClockIcon className="h-3 w-3" />
-                    {order.scheduledFor}
-                  </p>
-                  <p className="mt-0.5 truncate text-xs text-[#44483a]">
-                    {order.items.map((it) => `${it.qty}× ${it.name}`).join(', ')}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className="font-display text-sm font-bold text-[#1b1c19]">
-                    {order.total}
-                  </span>
-                  <span className="rounded-full bg-[#4a6410]/10 px-2 py-0.5 font-label text-[10px] font-semibold text-[#4a6410]">
-                    Scheduled
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
-      {/* ============================================================ */}
-      {/*  PAST ORDERS                                                  */}
-      {/* ============================================================ */}
-      <section className="mt-8">
-        <button
-          onClick={() => setShowPast(!showPast)}
-          className="flex w-full items-center justify-between px-5"
-        >
-          <h3 className="font-display text-lg font-semibold text-[#1b1c19]">
-            Past Orders
-          </h3>
-          <ChevronDown
-            className={`h-5 w-5 text-[#44483a]/40 transition-transform ${
-              showPast ? 'rotate-180' : ''
-            }`}
-          />
-        </button>
-
-        {showPast && (
-          <ul className="mt-3 space-y-2 px-5">
-            {mockPast.map((order) => (
-              <li
-                key={order.id}
-                className="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm transition hover:shadow-organic"
-              >
-                <PackageIcon className="h-5 w-5 shrink-0 text-[#44483a]/25" />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate font-display text-sm font-semibold text-[#1b1c19]">
+                {/* Content */}
+                <div className="flex flex-1 flex-col p-4">
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <h3 className="font-display text-sm font-bold text-[#1b1c19] line-clamp-1">
                       {order.vendor}
-                    </p>
-                    <span className="shrink-0 font-label text-[10px] text-[#44483a]/40">
-                      {order.date}
+                    </h3>
+                    <span className="shrink-0 font-display text-sm font-bold text-[#924700]">
+                      ${order.total.toFixed(2)}
                     </span>
                   </div>
-                  <p className="mt-0.5 truncate text-xs text-[#44483a]/60">
-                    {order.items}
+                  
+                  <p className="font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]/50">
+                    {order.date}
+                  </p>
+                  
+                  <p className="mt-1 font-body text-xs text-[#44483a]/70 line-clamp-2">
+                    {order.items.map(i => i.name).join(', ')}
+                  </p>
+
+                  <div className="mt-auto pt-4 flex gap-2">
+                    <button 
+                      onClick={() => setSelectedTicket(order)}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#ebe8db] text-[#44483a] transition hover:bg-[#1b1c19]/10"
+                    >
+                      <ReceiptIcon className="h-4 w-4" />
+                    </button>
+                    <button className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#4a6410]/10 font-label text-xs font-bold text-[#4a6410] transition hover:bg-[#4a6410]/20 active:scale-95">
+                      <RefreshIcon className="h-3.5 w-3.5" />
+                      Reorder
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================= */}
+      {/* TICKET / RECEIPT MODAL */}
+      {/* ========================================================= */}
+      {selectedTicket && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-5 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-sm overflow-hidden rounded-[32px] bg-[#f6f4eb] shadow-2xl">
+            
+            {/* Modal Header */}
+            <div className="bg-[#4a6410] p-5 pb-8 text-center text-white relative">
+              <button 
+                onClick={() => setSelectedTicket(null)}
+                className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 transition hover:bg-white/30"
+              >
+                <XIcon className="h-5 w-5" />
+              </button>
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-3xl shadow-sm backdrop-blur-md border border-white/20">
+                {selectedTicket.vendorLogo}
+              </div>
+              <h3 className="mt-3 font-display text-xl font-bold">{selectedTicket.vendor}</h3>
+              <p className="font-label text-[10px] font-extrabold uppercase tracking-widest text-white/70">
+                Order #{selectedTicket.orderNumber}
+              </p>
+            </div>
+
+            {/* Ticket Jagged Edge Effect */}
+            <div className="relative -mt-3 h-6 w-full flex items-center overflow-hidden">
+               <div className="absolute -left-3 h-6 w-6 rounded-full bg-black/40" />
+               <div className="w-full border-t-2 border-dashed border-[#1b1c19]/20" />
+               <div className="absolute -right-3 h-6 w-6 rounded-full bg-black/40" />
+            </div>
+
+            {/* Receipt Body */}
+            <div className="p-6 pt-2">
+              {activeTab === 'Active' && (
+                <div className="mb-6 flex flex-col items-center justify-center">
+                  <div className="rounded-2xl bg-white p-4 shadow-sm border border-[#1b1c19]/5">
+                    {/* Fake QR code for UI purposes */}
+                    <QrCodeIcon className="h-32 w-32 text-[#1b1c19]" />
+                  </div>
+                  <p className="mt-3 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]/60">
+                    Scan at counter to pickup
                   </p>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1.5">
-                  <span className="font-display text-sm font-bold text-[#1b1c19]">
-                    {order.total}
-                  </span>
-                  <button className="inline-flex items-center gap-1 rounded-lg bg-[#4a6410]/10 px-2.5 py-1 font-label text-[10px] font-bold text-[#4a6410] transition active:scale-95">
-                    <RefreshIcon className="h-3 w-3" />
-                    Reorder
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+              )}
 
-      {/* ---- Empty state (when no active & no upcoming) ---- */}
-      {countdown === 0 && mockUpcoming.length === 0 && (
-        <div className="mx-5 mt-16 flex flex-col items-center text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#4a6410]/10">
-            <CoffeeIcon className="h-8 w-8 text-[#4a6410]/40" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-[#1b1c19]/10 pb-2">
+                  <span className="font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]">Item</span>
+                  <span className="font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]">Price</span>
+                </div>
+                
+                {selectedTicket.items.map((item, idx) => (
+                  <div key={idx} className="flex justify-between">
+                    <div>
+                      <p className="font-body text-sm font-bold text-[#1b1c19]">
+                        {item.qty}x {item.name}
+                      </p>
+                      {item.modifier && (
+                        <p className="font-body text-xs text-[#44483a]/70">
+                          {item.modifier}
+                        </p>
+                      )}
+                    </div>
+                    <p className="font-display text-sm font-bold text-[#1b1c19]">
+                      ${item.price.toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+
+                <div className="flex items-center justify-between border-t border-[#1b1c19]/10 pt-4">
+                  <span className="font-display text-base font-bold text-[#1b1c19]">Total Paid</span>
+                  <span className="font-display text-xl font-extrabold text-[#924700]">
+                    ${selectedTicket.total.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              
+              {activeTab === 'Past' && (
+                <button 
+                  className="mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#4a6410] py-3.5 font-label text-sm font-bold text-white shadow-sm transition active:scale-95"
+                >
+                  <RefreshIcon className="h-5 w-5" />
+                  Reorder These Items
+                </button>
+              )}
+            </div>
           </div>
-          <h3 className="mt-4 font-display text-lg font-semibold text-[#1b1c19]">
-            No active orders
-          </h3>
-          <p className="mt-1 max-w-[240px] text-sm text-[#44483a]/60">
-            Pre-order your morning coffee and skip the queue.
-          </p>
-          <Link
-            href="/home"
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#4a6410] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition active:scale-[0.97]"
-          >
-            Browse Cafés
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
       )}
 
-      {/* ============================================================ */}
-      {/*  BOTTOM NAVIGATION                                            */}
-      {/* ============================================================ */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[#1b1c19]/5 bg-white/90 backdrop-blur-xl">
+      {/* ========================================================= */}
+      {/* BOTTOM NAVIGATION */}
+      {/* ========================================================= */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-4px_20px_rgb(0,0,0,0.05)]">
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2">
-          <NavItem href="/home" label="Home" icon={<HomeIcon className="h-5 w-5" />} />
-          <NavItem href="/explore" label="Explore" icon={<MapIcon className="h-5 w-5" />} />
-          <NavItem href="/gifts" label="Gifts" icon={<GiftIcon className="h-5 w-5" />} />
-          <NavItem
-            href="/orders"
-            label="Orders"
-            icon={<ReceiptIcon className="h-5 w-5" />}
-            active
-          />
-          <NavItem href="/profile" label="Profile" icon={<UserCircleIcon className="h-5 w-5" />} />
+          <NavItem href="/home" label="Home" icon={<HomeIcon className="h-6 w-6" />} />
+          <NavItem href="/gifts" label="Gifts" icon={<GiftIcon className="h-6 w-6" />} />
+          <NavItem href="/favorites" label="Favs" icon={<HeartIcon className="h-6 w-6" />} />
+          <NavItem href="/orders" label="Orders" icon={<ReceiptIcon className="h-6 w-6" />} active />
+          <NavItem href="/profile" label="Profile" icon={<UserCircleIcon className="h-6 w-6" />} />
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
       </nav>
+      
     </main>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Reusable Nav Item                                                  */
-/* ------------------------------------------------------------------ */
-
 function NavItem({
-  href,
-  label,
-  icon,
-  active = false,
+  href, label, icon, active = false,
 }: {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-  active?: boolean;
+  href: string; label: string; icon: React.ReactNode; active?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 transition ${
-        active ? 'text-[#4a6410]' : 'text-[#44483a]/40 hover:text-[#44483a]/70'
+      className={`flex flex-col items-center gap-1 rounded-xl px-4 py-2 transition ${
+        active ? 'bg-[#4a6410]/10 text-[#4a6410]' : 'text-[#44483a]/40 hover:text-[#44483a]/70'
       }`}
     >
       {icon}
-      <span className="font-label text-[10px] font-semibold">{label}</span>
+      <span className="font-label text-[10px] font-bold">{label}</span>
     </Link>
   );
 }
