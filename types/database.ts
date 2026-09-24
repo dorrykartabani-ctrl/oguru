@@ -9,7 +9,8 @@ export type PromotionType =
   | 'fixed_amount'
   | 'buy_x_get_y'
   | 'free_item'
-  | 'flash_sale';
+  | 'flash_sale'
+  | 'bundle';
 
 export interface Profile {
   id: string;
