@@ -27,7 +27,7 @@ export interface Profile {
   created_at: string;
   updated_at: string;
 }
-
+export type BusinessStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended';
 export interface Business {
   id: string;
   owner_id: string;
