@@ -1,27 +1,35 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import type { Business, Profile } from '@/lib/supabase/types';
-import {
-  LayoutDashboard,
-  BarChart3,
-  UtensilsCrossed,
-  Megaphone,
-  Users,
-  Sparkles,
-  Settings,
-  LogOut,
-} from 'lucide-react';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import type { Business, Profile } from '@/types/database';
+import {
+  HomeIcon,
+  ReceiptIcon,
+  CoffeeIcon,
+  SparklesIcon,
+  UsersIcon,
+  SettingsIcon,
+  LogOutIcon,
+  StoreIcon,
+} from '@/components/icons';
 
-const getInitials = (name: string) => {
-  return name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+const getInitials = (name?: string | null) => {
+  if (!name) return 'V';
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase();
 };
 
 type NavGroup = {
   label: string;
   items: {
-    icon: typeof LayoutDashboard;
+    icon: React.FC<{ className?: string }>;
     label: string;
     href: string;
   }[];
@@ -31,55 +39,56 @@ const navGroups: NavGroup[] = [
   {
     label: 'Daily',
     items: [
-      { icon: LayoutDashboard, label: 'Dashboard', href: '/vendor/dashboard' },
-      { icon: BarChart3, label: 'Insights', href: '/vendor/insights' },
-      { icon: UtensilsCrossed, label: 'Menu', href: '/vendor/menu' },
+      { icon: HomeIcon, label: 'Dashboard', href: '/vendor/dashboard' },
+      { icon: ReceiptIcon, label: 'Insights', href: '/vendor/insights' },
+      { icon: CoffeeIcon, label: 'Menu', href: '/vendor/menu' },
     ],
   },
   {
     label: 'Growth',
     items: [
-      { icon: Megaphone, label: 'Marketing', href: '/vendor/marketing' },
-      { icon: Users, label: 'Community', href: '/vendor/community' },
-      { icon: Sparkles, label: 'AI Assistant', href: '/vendor/ai' },
+      { icon: SparklesIcon, label: 'Marketing', href: '/vendor/marketing' },
+      { icon: UsersIcon, label: 'Community', href: '/vendor/community' },
+      { icon: SparklesIcon, label: 'AI Assistant', href: '/vendor/ai' },
     ],
   },
 ];
 
 const bottomItem = {
-  icon: Settings,
+  icon: SettingsIcon,
   label: 'Settings',
   href: '/vendor/settings',
 };
 
-// Mobile bottom nav — 5 most important items only
+// Mobile bottom nav — 5 core destinations
 const mobileNavItems = [
-  { icon: LayoutDashboard, label: 'Home', href: '/vendor/dashboard' },
-  { icon: UtensilsCrossed, label: 'Menu', href: '/vendor/menu' },
-  { icon: Megaphone, label: 'Market', href: '/vendor/marketing' },
-  { icon: Users, label: 'Community', href: '/vendor/community' },
-  { icon: Settings, label: 'Settings', href: '/vendor/settings' },
+  { icon: HomeIcon, label: 'Home', href: '/vendor/dashboard' },
+  { icon: CoffeeIcon, label: 'Menu', href: '/vendor/menu' },
+  { icon: SparklesIcon, label: 'Market', href: '/vendor/marketing' },
+  { icon: UsersIcon, label: 'Community', href: '/vendor/community' },
+  { icon: SettingsIcon, label: 'Settings', href: '/vendor/settings' },
 ];
 
 interface VendorSidebarProps {
-  business: Business;
+  business?: Business | null;
   profile?: Profile | null;
 }
 
 export default function VendorSidebar({ business, profile }: VendorSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const supabase = createClient();
 
-  const businessInitials = getInitials(business.legal_name);
-  const profileInitials = profile?.full_name ? getInitials(profile.full_name) : 'V';
+  const businessName = business?.trading_name || business?.legal_name || 'My Business';
+  const businessInitials = getInitials(businessName);
+  const profileInitials = getInitials(profile?.full_name);
 
   const handleLogout = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
-    router.push('/');
+    router.push('/login');
+    router.refresh();
   };
 
-  // Check if a nav item is active based on the pathname
   const isActive = (href: string): boolean => {
     if (href === '/vendor/dashboard') {
       return pathname === '/vendor/dashboard';
@@ -90,35 +99,36 @@ export default function VendorSidebar({ business, profile }: VendorSidebarProps)
   return (
     <>
       {/* Desktop/Tablet Sidebar */}
-      <aside className="hidden md:flex flex-col h-screen fixed left-0 top-0 p-4 bg-surface-container-low border-r border-outline-variant w-64 z-40">
+      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col border-r border-[#1b1c19]/10 bg-[#f6f4eb] p-4 font-body md:flex">
+        
         {/* Business Header */}
         <button
           onClick={() => router.push('/vendor/settings')}
-          className="flex items-center gap-3 mb-6 px-2 py-2 rounded-lg hover:bg-surface-container transition-colors text-left"
+          className="mb-6 flex items-center gap-3 rounded-2xl p-2 text-left transition hover:bg-[#1b1c19]/5"
         >
-          <div className="w-10 h-10 rounded-xl bg-primary/10 border-2 border-primary flex items-center justify-center text-primary font-display font-bold text-sm overflow-hidden flex-shrink-0">
-            {business.logo_url ? (
-              <img src={business.logo_url} alt="" className="w-full h-full object-cover" />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-[#4a6410] bg-[#4a6410]/10 font-display text-sm font-extrabold text-[#4a6410]">
+            {business?.logo_url ? (
+              <img src={business.logo_url} alt="" className="h-full w-full object-cover" />
             ) : (
               businessInitials
             )}
           </div>
           <div className="min-w-0">
-            <h1 className="font-display text-sm text-primary font-bold leading-tight truncate">
-              {business.legal_name}
+            <h1 className="truncate font-display text-sm font-bold text-[#1b1c19]">
+              {businessName}
             </h1>
-            <p className="text-xs text-on-surface-variant">Vendor Dashboard</p>
+            <p className="font-label text-[11px] text-[#44483a]/60">Vendor Dashboard</p>
           </div>
         </button>
 
-        {/* Nav Groups */}
-        <nav className="flex-1 space-y-4 overflow-y-auto">
+        {/* Navigation Groups */}
+        <nav className="flex-1 space-y-5 overflow-y-auto scrollbar-hide">
           {navGroups.map((group) => (
             <div key={group.label}>
-              <p className="text-[10px] font-label font-semibold text-on-surface-variant/60 uppercase tracking-widest px-3 mb-1.5">
+              <p className="mb-2 px-3 font-label text-[10px] font-extrabold uppercase tracking-widest text-[#44483a]/50">
                 {group.label}
               </p>
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   const active = isActive(item.href);
@@ -126,13 +136,13 @@ export default function VendorSidebar({ business, profile }: VendorSidebarProps)
                     <button
                       key={item.href}
                       onClick={() => router.push(item.href)}
-                      className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all font-medium text-left text-sm ${
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left font-display text-sm font-bold transition-all ${
                         active
-                          ? 'bg-primary-container text-on-primary-container font-bold'
-                          : 'text-on-surface-variant hover:bg-surface-variant hover:text-on-surface'
+                          ? 'bg-[#4a6410] text-white shadow-sm'
+                          : 'text-[#44483a] hover:bg-[#1b1c19]/5 hover:text-[#1b1c19]'
                       }`}
                     >
-                      <Icon size={18} />
+                      <Icon className="h-5 w-5 shrink-0" />
                       <span>{item.label}</span>
                     </button>
                   );
@@ -142,46 +152,58 @@ export default function VendorSidebar({ business, profile }: VendorSidebarProps)
           ))}
         </nav>
 
-        {/* Settings — bottom before user */}
-        <div className="pt-4 border-t border-outline-variant">
+        {/* Public Storefront Preview Link */}
+        {business?.slug && (
+          <div className="my-2 px-1">
+            <Link
+              href={`/store/${business.slug}`}
+              target="_blank"
+              className="flex items-center gap-2 rounded-xl bg-[#4a6410]/10 px-3 py-2.5 font-label text-xs font-bold text-[#4a6410] transition hover:bg-[#4a6410]/20"
+            >
+              <StoreIcon className="h-4 w-4 shrink-0" />
+              <span className="truncate">View Public Store</span>
+            </Link>
+          </div>
+        )}
+
+        {/* Settings */}
+        <div className="border-t border-[#1b1c19]/10 pt-3">
           <button
             onClick={() => router.push(bottomItem.href)}
-            className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all font-medium text-left text-sm ${
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left font-display text-sm font-bold transition ${
               isActive(bottomItem.href)
-                ? 'bg-primary-container text-on-primary-container font-bold'
-                : 'text-on-surface-variant hover:bg-surface-variant hover:text-on-surface'
+                ? 'bg-[#4a6410] text-white shadow-sm'
+                : 'text-[#44483a] hover:bg-[#1b1c19]/5 hover:text-[#1b1c19]'
             }`}
           >
-            <bottomItem.icon size={18} />
+            <bottomItem.icon className="h-5 w-5 shrink-0" />
             <span>{bottomItem.label}</span>
           </button>
         </div>
 
-        {/* User Profile */}
-        {profile && (
-          <div className="mt-3 pt-3 border-t border-outline-variant flex items-center gap-3 px-2">
-            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold text-xs flex-shrink-0">
-              {profileInitials}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate text-on-surface">
-                {profile.full_name || 'Vendor'}
-              </p>
-              <button
-                onClick={handleLogout}
-                className="text-[10px] text-on-surface-variant hover:text-primary transition-colors font-label uppercase tracking-wider flex items-center gap-1"
-              >
-                <LogOut size={10} />
-                Log out
-              </button>
-            </div>
+        {/* User Profile / Logout */}
+        <div className="mt-3 flex items-center gap-3 border-t border-[#1b1c19]/10 pt-3 px-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#4a6410] font-display text-xs font-bold text-white">
+            {profileInitials}
           </div>
-        )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-display text-xs font-bold text-[#1b1c19]">
+              {profile?.full_name || 'Vendor Owner'}
+            </p>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]/60 hover:text-red-700 transition"
+            >
+              <LogOutIcon className="h-3 w-3" />
+              Log out
+            </button>
+          </div>
+        </div>
       </aside>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-container border-t border-outline-variant rounded-t-2xl shadow-[0_-4px_20px_rgba(93,64,55,0.08)]">
-        <div className="flex justify-around items-center h-20 pb-safe px-2">
+      {/* Mobile Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#1b1c19]/10 md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2">
           {mobileNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
@@ -189,20 +211,19 @@ export default function VendorSidebar({ business, profile }: VendorSidebarProps)
               <button
                 key={item.href}
                 onClick={() => router.push(item.href)}
-                className={`flex flex-col items-center justify-center gap-1 px-2 py-1 rounded-full transition-all active:scale-90 ${
-                  active
-                    ? 'bg-primary-container/40 text-primary'
-                    : 'text-on-surface-variant'
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 transition ${
+                  active ? 'bg-[#4a6410]/10 text-[#4a6410]' : 'text-[#44483a]/40 hover:text-[#44483a]'
                 }`}
               >
-                <Icon size={20} fill={active ? 'currentColor' : 'none'} />
-                <span className="text-[10px] font-label font-semibold uppercase tracking-wider">
+                <Icon className="h-5 w-5" />
+                <span className="font-label text-[10px] font-bold uppercase tracking-wider">
                   {item.label}
                 </span>
               </button>
             );
           })}
         </div>
+        <div className="h-[env(safe-area-inset-bottom)]" />
       </nav>
     </>
   );
