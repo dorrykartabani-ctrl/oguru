@@ -60,7 +60,6 @@ const bottomItem = {
   href: '/vendor/settings',
 };
 
-// Mobile bottom nav — 5 core destinations
 const mobileNavItems = [
   { icon: HomeIcon, label: 'Home', href: '/vendor/dashboard' },
   { icon: CoffeeIcon, label: 'Menu', href: '/vendor/menu' },
