@@ -224,7 +224,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2">
           <NavItem href="/home" label="Home" icon={<HomeIcon className="h-6 w-6" />} active />
           <NavItem href="/gifts" label="Gifts" icon={<GiftIcon className="h-6 w-6" />} />
-          <NavItem href="/explore" label="Favs" icon={<HeartIcon className="h-6 w-6" />} />
+          <NavItem href="/favorites" label="Favs" icon={<HeartIcon className="h-6 w-6" />} />
           <NavItem href="/orders" label="Orders" icon={<ReceiptIcon className="h-6 w-6" />} />
           <NavItem href="/profile" label="Profile" icon={<UserCircleIcon className="h-6 w-6" />} />
         </div>
