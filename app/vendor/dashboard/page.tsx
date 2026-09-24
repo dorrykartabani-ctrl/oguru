@@ -6,15 +6,12 @@ import { useRouter } from 'next/navigation';
 import {
   HomeIcon,
   CoffeeIcon,
-  GiftIcon,
   SparklesIcon,
   ReceiptIcon,
   BellIcon,
   ArrowRight,
   UserCircleIcon,
   StoreIcon,
-  ClockIcon,
-  CheckCircleIcon,
 } from '@/components/icons';
 import {
   getVendorBusiness,
@@ -32,7 +29,7 @@ function getGreeting() {
 }
 
 export default function VendorDashboardPage() {
-  const router = router();
+  const router = useRouter();
   const [business, setBusiness] = useState<Business | null>(null);
   const [location, setLocation] = useState<Location | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
