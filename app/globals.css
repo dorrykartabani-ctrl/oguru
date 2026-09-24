@@ -2,96 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-.material-symbols-outlined {
-  font-family: 'Material Symbols Outlined';
-  font-weight: 400;
-  font-style: normal;
-  font-size: 24px;
-  display: inline-block;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  white-space: nowrap;
-  direction: ltr;
-
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-
-  font-variation-settings:
-    'FILL' 0,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24;
-}
-
-
 @layer base {
-  html {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-tap-highlight-color: transparent;
+  :root {
+    --background: #f6f4eb;
+    --foreground: #1b1c19;
+  }
+
+  * {
+    border-color: rgba(27, 28, 25, 0.1);
   }
 
   body {
-    background-color: #fbf9f4;
+    background-color: #f6f4eb;
     color: #1b1c19;
-    font-family: var(--font-body), system-ui, sans-serif;
-    margin: 0;
-    padding: 0;
+    font-family: var(--font-body), sans-serif;
+    -webkit-tap-highlight-color: transparent;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display), system-ui, sans-serif;
-    color: #1b1c19;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display), sans-serif;
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply bg-primary text-on-primary font-label font-semibold text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all hover:bg-primary-container active:scale-[0.98] disabled:opacity-50;
+/* Custom scrollbar hide for horizontal category chips */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
-
-  .btn-secondary {
-    @apply border-2 border-secondary text-secondary font-label font-semibold text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all hover:bg-secondary-container/30 active:scale-[0.98] disabled:opacity-50;
-  }
-
-  .btn-tertiary {
-    @apply bg-tertiary text-on-tertiary font-label font-semibold text-sm uppercase tracking-wider px-6 py-4 rounded-lg transition-all hover:bg-tertiary-container active:scale-[0.98] disabled:opacity-50;
-  }
-
-  .card-organic {
-    @apply bg-surface-container-lowest border border-secondary/10 rounded-lg shadow-organic-sm transition-all duration-200 hover:shadow-organic;
-  }
-
-  .chip {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-label font-semibold uppercase tracking-wider bg-primary/10 text-primary;
-  }
-
-  .chip-tertiary {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-label font-semibold uppercase tracking-wider bg-tertiary/10 text-tertiary;
-  }
-  /* Hide scrollbar utility */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }                                                                                                                                                                                                                              00000                                                                                                                              
+}
 
-  /* Organic grain texture overlay */
-  .organic-grain {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
-    opacity: 0.04;
-    pointer-events: none;
-  }
-
-  /* Bento card hover effect */
-  .bento-card {
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-  }
-  .bento-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(93, 64, 55, 0.08);
-  }
+/* Organic Tech shadow token */
+.shadow-organic {
+  box-shadow: 0 10px 30px -10px rgba(74, 100, 16, 0.08);
 }
