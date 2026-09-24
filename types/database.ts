@@ -10,6 +10,7 @@ export type UserRole = 'customer' | 'vendor';
 export type PromotionType =
   | 'percentage_off'
   | 'fixed_amount_off'
+  | 'fixed_amount'
   | 'buy_x_get_y'
   | 'free_item'
   | 'flash_sale';
