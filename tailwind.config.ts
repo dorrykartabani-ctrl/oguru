@@ -79,5 +79,20 @@ const config: Config = {
   },
   plugins: [],
 };
+theme: {
+  extend: {
+    fontFamily: {
+      display: ['var(--font-display)', 'sans-serif'],
+      body: ['var(--font-body)', 'sans-serif'],
+      label: ['var(--font-label)', 'sans-serif'],
+    },
+    colors: {
+      surface: '#f6f4eb',
+      primary: '#4a6410',
+      secondary: '#77574d',
+      tertiary: '#924700',
+    },
+  },
+}
 
 export default config;
