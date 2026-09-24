@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useState, useEffect, useCallback, Suspense, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   SearchIcon,
-  MapPinIcon,
   ArrowLeft,
   HomeIcon,
   MapIcon,
@@ -14,7 +13,6 @@ import {
   UserCircleIcon,
   ChevronRight,
   StarIcon,
-  ShareIcon,
   ExternalLinkIcon,
   SendIcon,
   XIcon,
@@ -45,7 +43,7 @@ interface NearbyPin {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Constants                                                          */
+/*  Constants & Helpers                                               */
 /* ------------------------------------------------------------------ */
 
 const DEFAULT_CENTER = { lat: -33.8833, lng: 151.21 };
@@ -69,58 +67,75 @@ function getPinBg(pin: NearbyPin): string {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Inner Component (needs useSearchParams inside Suspense)            */
+/*  Inner Component (uses searchParams)                               */
 /* ------------------------------------------------------------------ */
 
 function ExploreContent() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') ?? '';
 
+  const [query, setQuery] = useState(initialQuery);
   const [pins, setPins] = useState<NearbyPin[]>([]);
   const [selectedPin, setSelectedPin] = useState<NearbyPin | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [meta, setMeta] = useState({ oguru_count: 0, google_count: 0, total: 0 });
 
-  // Invite modal state
+  // Invite Modal States
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteTarget, setInviteTarget] = useState<NearbyPin | null>(null);
   const [inviteStatus, setInviteStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [inviteMessage, setInviteMessage] = useState('');
   const [inviteShareUrl, setInviteShareUrl] = useState('');
 
-  // Load nearby data
-  const loadPins = useCallback(async (q?: string) => {
+  // Fetch pins from /api/nearby
+  const loadPins = useCallback(async (searchQuery?: string) => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams({
         lat: String(DEFAULT_CENTER.lat),
         lng: String(DEFAULT_CENTER.lng),
         radius: '3000',
-        q: q || 'cafe bakery',
+        q: searchQuery || 'cafe bakery',
       });
       const res = await fetch(`/api/nearby?${params}`);
       const data = await res.json();
 
-      if (data.pins && data.pins.length > 0) {
+      if (data.pins && Array.isArray(data.pins)) {
         setPins(data.pins);
-        setMeta(data.meta);
+        if (data.meta) setMeta(data.meta);
       } else {
-        // Fallback if API fails or returns empty
         setPins([]);
       }
     } catch (err) {
-      console.error('Failed to load nearby pins:', err);
+      console.error('Failed to fetch nearby pins:', err);
       setPins([]);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+  // Initial load
   useEffect(() => {
     loadPins(initialQuery);
   }, [initialQuery, loadPins]);
 
-  // Invite handler
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadPins(query);
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        if (query) params.set('q', query);
+        else params.delete('q');
+        const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+        window.history.replaceState(null, '', newUrl);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [query, loadPins]);
+
+  // Invite action
   const handleInvite = async () => {
     if (!inviteTarget) return;
     setInviteStatus('sending');
@@ -141,7 +156,7 @@ function ExploreContent() {
       if (data.success) {
         setInviteStatus('sent');
         setInviteMessage(data.message);
-        setInviteShareUrl(data.share_url);
+        setInviteShareUrl(data.share_url ?? '');
       } else {
         setInviteStatus('error');
         setInviteMessage(data.error ?? 'Something went wrong');
@@ -160,17 +175,16 @@ function ExploreContent() {
     setShowInviteModal(true);
   };
 
-  // Separate pins for rendering
   const oguruPins = pins.filter((p) => p.source === 'oguru');
   const googlePins = pins.filter((p) => p.source === 'google');
 
   return (
-    <main className="relative h-screen bg-[#fbf9f4] font-body">
+    <main className="relative h-screen bg-[#fbf9f4] font-body overflow-hidden">
       {/* ============================================================ */}
       {/*  MAP CANVAS                                                   */}
       {/* ============================================================ */}
       <div className="absolute inset-0 bg-gradient-to-br from-[#e8f0d8]/30 via-[#fbf9f4] to-[#d4e4b8]/20">
-        {/* Grid overlay */}
+        {/* Grid pattern */}
         <div
           className="absolute inset-0 opacity-[0.04]"
           style={{
@@ -180,7 +194,7 @@ function ExploreContent() {
           }}
         />
 
-        {/* Rendered Pins */}
+        {/* Map Pins */}
         {!isLoading &&
           pins.map((pin) => (
             <button
@@ -196,15 +210,11 @@ function ExploreContent() {
             >
               <div
                 className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-base shadow-md ${
-                  pin.source === 'oguru'
-                    ? 'border-white'
-                    : 'border-white/70'
+                  pin.source === 'oguru' ? 'border-white' : 'border-white/70'
                 }`}
                 style={{
                   backgroundColor:
-                    pin.source === 'oguru'
-                      ? `${getPinColor(pin)}25`
-                      : '#f3f4f6',
+                    pin.source === 'oguru' ? `${getPinColor(pin)}25` : '#f3f4f6',
                 }}
               >
                 {pin.chip_icon ?? '📍'}
@@ -216,7 +226,7 @@ function ExploreContent() {
             </button>
           ))}
 
-        {/* "You are here" marker */}
+        {/* Current position */}
         <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
           <div className="relative">
             <div className="absolute -inset-3 animate-ping rounded-full bg-[#4a6410]/20" />
@@ -226,11 +236,11 @@ function ExploreContent() {
       </div>
 
       {/* ============================================================ */}
-      {/*  TOP BAR                                                      */}
+      {/*  TOP SEARCH BAR                                               */}
       {/* ============================================================ */}
       <div className="absolute left-0 right-0 top-0 z-30 px-5 pt-14">
         <Link
-          href={initialQuery ? `/home?q=${initialQuery}` : '/home'}
+          href={query ? `/home?q=${encodeURIComponent(query)}` : '/home'}
           className="mb-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-xs font-semibold text-[#44483a] shadow-sm backdrop-blur-md transition hover:bg-white"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
@@ -241,20 +251,21 @@ function ExploreContent() {
           <SearchIcon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#44483a]/40" />
           <input
             type="text"
-            defaultValue={initialQuery}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Search this area..."
             className="w-full rounded-2xl border border-[#1b1c19]/5 bg-white/90 py-3 pl-11 pr-4 text-sm text-[#1b1c19] shadow-md backdrop-blur-md outline-none placeholder:text-[#44483a]/40 focus:bg-white focus:ring-2 focus:ring-[#4a6410]/10"
           />
         </div>
 
-        {/* Pin Legend */}
+        {/* Count Legend */}
         {!isLoading && (
-          <div className="mt-2 flex items-center gap-3 rounded-xl bg-white/80 px-3 py-1.5 backdrop-blur-md">
-            <span className="flex items-center gap-1 font-label text-[10px] text-[#44483a]/60">
+          <div className="mt-2 inline-flex items-center gap-3 rounded-xl bg-white/80 px-3 py-1.5 backdrop-blur-md">
+            <span className="flex items-center gap-1 font-label text-[10px] text-[#44483a]/70">
               <span className="h-2 w-2 rounded-full bg-[#4a6410]" />
               Oguru ({meta.oguru_count})
             </span>
-            <span className="flex items-center gap-1 font-label text-[10px] text-[#44483a]/60">
+            <span className="flex items-center gap-1 font-label text-[10px] text-[#44483a]/70">
               <span className="h-2 w-2 rounded-full bg-[#9ca3af]" />
               Nearby ({meta.google_count})
             </span>
@@ -263,7 +274,7 @@ function ExploreContent() {
       </div>
 
       {/* ============================================================ */}
-      {/*  SELECTED PIN INFO CARD                                       */}
+      {/*  SELECTED PIN DETAILS                                        */}
       {/* ============================================================ */}
       {selectedPin && (
         <div className="absolute bottom-32 left-4 right-4 z-30 overflow-hidden rounded-2xl bg-white shadow-organic">
@@ -306,7 +317,6 @@ function ExploreContent() {
                 )}
               </div>
 
-              {/* Google rating */}
               {selectedPin.google_rating && (
                 <div className="mt-1 flex items-center gap-1">
                   <StarIcon className="h-3 w-3 fill-amber-400 text-amber-400" />
@@ -321,22 +331,24 @@ function ExploreContent() {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex border-t border-[#1b1c19]/5">
             {selectedPin.source === 'oguru' ? (
               <>
                 <Link
-                  href={selectedPin.slug ? `/vendor/${selectedPin.slug}` : '#'}
+                  href={selectedPin.slug ? `/store/${selectedPin.slug}` : '#'}
                   className="flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold text-[#4a6410] transition hover:bg-[#4a6410]/5"
                 >
                   View Menu
                   <ChevronRight className="h-4 w-4" />
                 </Link>
                 <div className="w-px bg-[#1b1c19]/5" />
-                <button className="flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold text-[#924700] transition hover:bg-[#924700]/5">
+                <Link
+                  href={selectedPin.slug ? `/store/${selectedPin.slug}` : '#'}
+                  className="flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold text-[#924700] transition hover:bg-[#924700]/5"
+                >
                   Pre-order
                   <ExternalLinkIcon className="h-3.5 w-3.5" />
-                </button>
+                </Link>
               </>
             ) : (
               <>
@@ -348,9 +360,11 @@ function ExploreContent() {
                   Invite to Oguru
                 </button>
                 <div className="w-px bg-[#1b1c19]/5" />
-                <button className="flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold text-[#44483a]/50 transition hover:bg-[#1b1c19]/5">
-                  <ExternalLinkIcon className="h-3.5 w-3.5" />
-                  Directions
+                <button
+                  onClick={() => setSelectedPin(null)}
+                  className="flex flex-1 items-center justify-center gap-2 py-3 text-sm font-semibold text-[#44483a]/50 transition hover:bg-[#1b1c19]/5"
+                >
+                  Close
                 </button>
               </>
             )}
@@ -359,7 +373,7 @@ function ExploreContent() {
       )}
 
       {/* ============================================================ */}
-      {/*  BOTTOM VENDOR CAROUSEL                                       */}
+      {/*  BOTTOM CAROUSEL                                              */}
       {/* ============================================================ */}
       <div className="absolute bottom-20 left-0 right-0 z-30">
         <div className="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-hide">
@@ -372,7 +386,6 @@ function ExploreContent() {
             ))
           ) : (
             <>
-              {/* Oguru Partners first */}
               {oguruPins.map((pin) => (
                 <button
                   key={`og-${pin.id}`}
@@ -399,7 +412,6 @@ function ExploreContent() {
                 </button>
               ))}
 
-              {/* Google Places */}
               {googlePins.slice(0, 10).map((pin) => (
                 <button
                   key={`gg-${pin.id}`}
@@ -432,7 +444,6 @@ function ExploreContent() {
       {showInviteModal && inviteTarget && (
         <div className="absolute inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-t-3xl bg-[#fbf9f4] p-6 shadow-2xl">
-            {/* Handle */}
             <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[#1b1c19]/10" />
 
             <div className="flex items-start justify-between">
@@ -441,7 +452,7 @@ function ExploreContent() {
                   Invite to Oguru
                 </h3>
                 <p className="mt-1 text-sm text-[#44483a]">
-                  Help {inviteTarget.name} join the pre-order revolution.
+                  Help {inviteTarget.name} join the pre-order network.
                 </p>
               </div>
               <button
@@ -452,7 +463,6 @@ function ExploreContent() {
               </button>
             </div>
 
-            {/* Vendor Info */}
             <div className="mt-4 flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#9ca3af]/10 text-xl">
                 {inviteTarget.chip_icon ?? '📍'}
@@ -467,7 +477,6 @@ function ExploreContent() {
               </div>
             </div>
 
-            {/* Status */}
             {inviteStatus === 'idle' && (
               <button
                 onClick={handleInvite}
@@ -529,7 +538,6 @@ function ExploreContent() {
               </div>
             )}
 
-            {/* Safe area */}
             <div className="h-[env(safe-area-inset-bottom)]" />
           </div>
         </div>
@@ -553,7 +561,7 @@ function ExploreContent() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Page Wrapper (Suspense boundary for useSearchParams)               */
+/*  Export Page with Suspense                                          */
 /* ------------------------------------------------------------------ */
 
 export default function ExplorePage() {
@@ -570,14 +578,16 @@ export default function ExplorePage() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Nav Item                                                           */
-/* ------------------------------------------------------------------ */
-
 function NavItem({
-  href, label, icon, active = false,
+  href,
+  label,
+  icon,
+  active = false,
 }: {
-  href: string; label: string; icon: React.ReactNode; active?: boolean;
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  active?: boolean;
 }) {
   return (
     <Link
