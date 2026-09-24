@@ -1,98 +1,78 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: ['./app/**/*.{ts,tsx}'],
+  content: [
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
   theme: {
     extend: {
       colors: {
-        surface: '#fbf9f4',
-        'surface-dim': '#dbdad5',
-        'surface-container-lowest': '#ffffff',
-        'surface-container-low': '#f5f3ee',
-        'surface-container': '#f0eee9',
-        'surface-container-high': '#eae8e3',
-        'surface-container-highest': '#e4e2dd',
-        'on-surface': '#1b1c19',
-        'on-surface-variant': '#44483a',
-        outline: '#757969',
-        'outline-variant': '#c5c8b6',
-
+        // Core Organic Tech palette
+        surface: '#f6f4eb',
+        background: '#f6f4eb',
         primary: {
           DEFAULT: '#4a6410',
           container: '#627e29',
-          fixed: '#cdee8c',
         },
-        'on-primary': {
-          DEFAULT: '#ffffff',
-          container: '#faffe7',
-        },
-
         secondary: {
           DEFAULT: '#77574d',
           container: '#fed3c7',
         },
-        'on-secondary': {
-          DEFAULT: '#ffffff',
-          container: '#795950',
-        },
-
         tertiary: {
           DEFAULT: '#924700',
-          container: '#b75b00',
+          container: '#a38036',
         },
-        'on-tertiary': {
-          DEFAULT: '#ffffff',
-          container: '#fffbff',
-        },
-
-        error: {
-          DEFAULT: '#ba1a1a',
-          container: '#ffdad6',
-        },
-        'on-error': {
-          DEFAULT: '#ffffff',
-          container: '#93000a',
-        },
+        'on-surface': '#1b1c19',
+        'on-surface-variant': '#44483a',
+        'on-primary': '#ffffff',
+        'on-primary-container': '#ffffff',
+        'on-secondary-container': '#3b2a25',
+        'outline-variant': 'rgba(27, 28, 25, 0.12)',
+        'surface-container': '#ebe8db',
+        'surface-container-low': '#f1eee3',
+        'surface-container-lowest': '#ffffff',
+        'surface-container-high': '#e4e0d1',
       },
-
       fontFamily: {
-        display: ['Be Vietnam Pro', 'sans-serif'],
-        body: ['Manrope', 'sans-serif'],
-        label: ['Hanken Grotesk', 'sans-serif'],
+        display: ['var(--font-display)', 'sans-serif'],
+        body: ['var(--font-body)', 'sans-serif'],
+        label: ['var(--font-label)', 'sans-serif'],
       },
-
       borderRadius: {
-        sm: '0.25rem',
-        DEFAULT: '0.5rem',
-        md: '0.75rem',
-        lg: '1rem',
-        xl: '1.5rem',
+        '2xl': '1rem',
+        '3xl': '1.5rem',
+        '4xl': '2rem',
       },
-
       boxShadow: {
-        'organic-sm': '0 1px 2px 0 rgba(93, 64, 55, 0.05)',
-        organic: '0 2px 8px 0 rgba(93, 64, 55, 0.08)',
-        'organic-md': '0 4px 12px 0 rgba(93, 64, 55, 0.10)',
-        'organic-lg': '0 8px 24px 0 rgba(93, 64, 55, 0.12)',
+        organic:
+          '0 10px 30px -10px rgba(74, 100, 16, 0.08), 0 4px 12px -4px rgba(27, 28, 25, 0.04)',
+        'organic-sm':
+          '0 4px 16px -6px rgba(74, 100, 16, 0.06), 0 2px 6px -2px rgba(27, 28, 25, 0.03)',
+        'organic-md':
+          '0 16px 40px -12px rgba(74, 100, 16, 0.12), 0 8px 20px -8px rgba(27, 28, 25, 0.06)',
+      },
+      spacing: {
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+      },
+      keyframes: {
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(6px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'pulse-soft': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.6' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.4s ease-out',
+        'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
       },
     },
   },
   plugins: [],
 };
-theme: {
-  extend: {
-    fontFamily: {
-      display: ['var(--font-display)', 'sans-serif'],
-      body: ['var(--font-body)', 'sans-serif'],
-      label: ['var(--font-label)', 'sans-serif'],
-    },
-    colors: {
-      surface: '#f6f4eb',
-      primary: '#4a6410',
-      secondary: '#77574d',
-      tertiary: '#924700',
-    },
-  },
-}
 
 export default config;
