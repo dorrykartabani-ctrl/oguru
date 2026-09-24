@@ -1,7 +1,13 @@
 // types/database.ts
 // Complete Oguru database schema — mapped from Supabase public schema
 
-export type BusinessStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended';
+export type BusinessStatus =
+  | 'draft'
+  | 'pending'
+  | 'under_review'
+  | 'approved'
+  | 'rejected'
+  | 'suspended';
 export type UserRole = 'customer' | 'vendor';
 export type PromotionType =
   | 'percentage_off'
