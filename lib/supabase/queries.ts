@@ -77,7 +77,39 @@ export async function getApprovedVendorsWithLocations(
     };
   });
 }
+/** Fetch vendors matched to a customer's onboarding keywords */
+export async function getPersonalizedVendors(
+  userId: string,
+  limit = 10
+): Promise<VendorCard[]> {
+  const { data, error } = await supabase.rpc('get_personalized_vendors', {
+    target_user_id: userId,
+    result_limit: limit,
+  });
 
+  if (error || !data || data.length === 0) {
+    // Fall back to default approved vendors if no keyword match exists yet
+    return getApprovedVendorsWithLocations(limit);
+  }
+
+  return data.map((row: any) => ({
+    id: row.business_id,
+    trading_name: row.trading_name,
+    tagline: row.tagline,
+    slug: row.slug,
+    logo_url: row.logo_url,
+    chip_icon: row.chip_icon,
+    chip_color: row.chip_color,
+    business_types: row.business_types ?? [],
+    location_id: '',
+    location_name: '',
+    neighborhood: null,
+    suburb: null,
+    latitude: null,
+    longitude: null,
+    is_accepting_orders: true,
+  }));
+}
 // ============================================================
 // 2. MAP PINS (lightweight for /explore Leaflet rendering)
 // ============================================================
