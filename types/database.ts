@@ -68,7 +68,13 @@ export interface Business {
   created_at: string;
   updated_at: string;
 }
-
+export interface CustomerFavorite {
+  id: string;
+  user_id: string;
+  business_id: string;
+  location_id: string | null;
+  created_at: string;
+}
 export interface Location {
   id: string;
   business_id: string;
