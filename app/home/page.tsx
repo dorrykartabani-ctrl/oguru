@@ -15,6 +15,7 @@ import {
   UserCircleIcon,
 } from '@/components/icons';
 import { getApprovedVendorsWithLocations, searchVendors } from '@/lib/supabase/queries';
+import { getFavoriteBusinessIds, toggleFavorite } from '@/lib/favorites';
 import type { VendorCard } from '@/types/database';
 
 function getCoverImage(vendor: VendorCard): string {
@@ -31,6 +32,7 @@ export default function HomePage() {
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
   const [vendors, setVendors] = useState<VendorCard[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const isSearchMode = query.trim().length > 0;
@@ -39,13 +41,12 @@ export default function HomePage() {
     async function loadData() {
       setIsLoading(true);
       try {
-        if (isSearchMode) {
-          const results = await searchVendors(query);
-          setVendors(results);
-        } else {
-          const data = await getApprovedVendorsWithLocations(20);
-          setVendors(data);
-        }
+        const [data, favIds] = await Promise.all([
+          isSearchMode ? searchVendors(query) : getApprovedVendorsWithLocations(20),
+          getFavoriteBusinessIds(),
+        ]);
+        setVendors(data);
+        setFavoriteIds(favIds);
       } catch (err) {
         console.error('Failed to load home data:', err);
       } finally {
@@ -56,27 +57,15 @@ export default function HomePage() {
     return () => clearTimeout(timer);
   }, [query, isSearchMode]);
 
-  <button
-  onClick={async (e) => {
+  const handleFavoriteClick = async (e: React.MouseEvent, businessId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    const nowFav = await toggleFavorite(vendor.id);
+    const nowFav = await toggleFavorite(businessId);
     setFavoriteIds((prev) =>
-      nowFav ? [...prev, vendor.id] : prev.filter((id) => id !== vendor.id)
+      nowFav ? [...prev, businessId] : prev.filter((id) => id !== businessId)
     );
-  }}
-  className="absolute right-3.5 top-3.5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 shadow-sm"
->
-  <HeartIcon
-    className={`h-4 w-4 ${
-      favoriteIds.includes(vendor.id)
-        ? 'fill-[#924700] text-[#924700]'
-        : 'text-[#924700]'
-    }`}
-  />
-</button>
+  };
 
-  // Apply pill filters locally
   const filteredVendors = vendors.filter((v) => {
     if (activeFilter === 'All') return true;
     return v.business_types?.some((t) => t.toLowerCase() === activeFilter.toLowerCase());
@@ -155,8 +144,7 @@ export default function HomePage() {
           </span>
         </div>
 
-        {/* ---- Responsive Vendor Grid ---- */}
-        {/* Mobile: 1 column | Tablet: 2 columns | Desktop: 3 columns | Large Screens: 4 columns */}
+        {/* ---- Vendor Grid ---- */}
         <section>
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -171,69 +159,87 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredVendors.map((vendor) => (
-                <Link
-                  key={vendor.id}
-                  href={vendor.slug ? `/store/${vendor.slug}` : '#'}
-                  className="group relative flex flex-col overflow-hidden rounded-[32px] bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1"
-                >
-                  {/* Image Half */}
-                  <div className="relative h-48 sm:h-52 w-full bg-[#ebe8db] overflow-hidden">
-                    <img
-                      src={getCoverImage(vendor)}
-                      alt={vendor.trading_name ?? 'Vendor cover'}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    {/* Rating Badge */}
-                    <div className="absolute right-3.5 top-3.5 flex items-center gap-1 rounded-lg bg-white/95 px-2.5 py-1 shadow-sm backdrop-blur-sm">
-                      <StarIcon className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      <span className="font-label text-[11px] font-extrabold text-[#1b1c19]">4.9</span>
-                    </div>
-                    {/* Top Rated Badge */}
-                    <div className="absolute bottom-3.5 left-3.5 rounded-md bg-[#4a6410]/90 px-2.5 py-1 font-label text-[10px] font-extrabold uppercase tracking-wider text-white backdrop-blur-sm">
-                      Top Rated
-                    </div>
-                  </div>
-                  
-                  {/* Content Half */}
-                  <div className="relative p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-start justify-between pr-10">
-                        <h3 className="font-display text-lg sm:text-xl font-bold text-[#2d1b14] leading-tight line-clamp-1">
-                          {vendor.trading_name}
-                        </h3>
-                        {vendor.is_accepting_orders ? (
-                          <span className="shrink-0 rounded-md bg-[#4a6410]/10 px-2 py-0.5 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#4a6410]">
-                            Open
-                          </span>
-                        ) : (
-                          <span className="shrink-0 rounded-md bg-[#1b1c19]/5 px-2 py-0.5 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]/50">
-                            Closed
-                          </span>
-                        )}
-                      </div>
-                      
-                      <p className="mt-1.5 font-label text-xs sm:text-sm font-semibold text-[#44483a]/60 line-clamp-1">
-                        <span className="capitalize">{vendor.business_types?.[0] || 'Artisan'}</span>
-                        {vendor.tagline && ` • ${vendor.tagline}`}
-                      </p>
-                    </div>
+              {filteredVendors.map((vendor) => {
+                const isFav = favoriteIds.includes(vendor.id);
+                return (
+                  <Link
+                    key={vendor.id}
+                    href={vendor.slug ? `/store/${vendor.slug}` : '#'}
+                    className="group relative flex flex-col overflow-hidden rounded-[32px] bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1"
+                  >
+                    {/* Image Half */}
+                    <div className="relative h-48 sm:h-52 w-full bg-[#ebe8db] overflow-hidden">
+                      <img
+                        src={getCoverImage(vendor)}
+                        alt={vendor.trading_name ?? 'Vendor cover'}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
 
-                    <div className="mt-4 pt-2 flex items-center justify-between">
-                      <span className="font-label text-xs font-bold uppercase tracking-wider text-[#44483a]/50">
-                        {vendor.distance_km !== undefined
-                          ? `${vendor.distance_km.toFixed(1)} miles away`
-                          : vendor.neighborhood || 'Local Partner'}
-                      </span>
-
-                      {/* Add Button */}
-                      <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#4a6410] text-white shadow-sm transition active:scale-95 group-hover:bg-[#3b500b]">
-                        <PlusIcon className="h-5 w-5" />
+                      {/* Favorite Button (Top Right) */}
+                      <button
+                        onClick={(e) => handleFavoriteClick(e, vendor.id)}
+                        className="absolute right-3.5 top-3.5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-[#924700] shadow-sm backdrop-blur-sm transition active:scale-90"
+                        aria-label={isFav ? 'Unfavorite vendor' : 'Favorite vendor'}
+                      >
+                        <HeartIcon
+                          className={`h-4.5 w-4.5 ${
+                            isFav ? 'fill-[#924700] text-[#924700]' : 'text-[#924700]'
+                          }`}
+                        />
                       </button>
+
+                      {/* Rating Badge */}
+                      <div className="absolute left-3.5 top-3.5 flex items-center gap-1 rounded-lg bg-white/95 px-2.5 py-1 shadow-sm backdrop-blur-sm">
+                        <StarIcon className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        <span className="font-label text-[11px] font-extrabold text-[#1b1c19]">4.9</span>
+                      </div>
+
+                      {/* Top Rated Badge */}
+                      <div className="absolute bottom-3.5 left-3.5 rounded-md bg-[#4a6410]/90 px-2.5 py-1 font-label text-[10px] font-extrabold uppercase tracking-wider text-white backdrop-blur-sm">
+                        Top Rated
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+
+                    {/* Content Half */}
+                    <div className="relative p-5 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-start justify-between pr-10">
+                          <h3 className="font-display text-lg sm:text-xl font-bold text-[#2d1b14] leading-tight line-clamp-1">
+                            {vendor.trading_name}
+                          </h3>
+                          {vendor.is_accepting_orders ? (
+                            <span className="shrink-0 rounded-md bg-[#4a6410]/10 px-2 py-0.5 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#4a6410]">
+                              Open
+                            </span>
+                          ) : (
+                            <span className="shrink-0 rounded-md bg-[#1b1c19]/5 px-2 py-0.5 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]/50">
+                              Closed
+                            </span>
+                          )}
+                        </div>
+                        
+                        <p className="mt-1.5 font-label text-xs sm:text-sm font-semibold text-[#44483a]/60 line-clamp-1">
+                          <span className="capitalize">{vendor.business_types?.[0] || 'Artisan'}</span>
+                          {vendor.tagline && ` • ${vendor.tagline}`}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 pt-2 flex items-center justify-between">
+                        <span className="font-label text-xs font-bold uppercase tracking-wider text-[#44483a]/50">
+                          {vendor.distance_km !== undefined
+                            ? `${vendor.distance_km.toFixed(1)} miles away`
+                            : vendor.neighborhood || 'Local Partner'}
+                        </span>
+
+                        {/* Add Button */}
+                        <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#4a6410] text-white shadow-sm transition active:scale-95 group-hover:bg-[#3b500b]">
+                          <PlusIcon className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </section>
