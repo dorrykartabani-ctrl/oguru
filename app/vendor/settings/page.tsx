@@ -140,10 +140,13 @@ export default function SettingsPage() {
   hours.forEach((h) => { if (hoursByDay[h.day_of_week]) hoursByDay[h.day_of_week].push(h); });
 
   const keywordsByCategory: Record<string, VendorKeyword[]> = {};
-  keywords.forEach((k) => {
-    if (!keywordsByCategory[k.category]) keywordsByCategory[k.category] = [];
-    keywordsByCategory[k.category].push(k);
-  });
+keywords.forEach((k) => {
+  const catKey = k.category || 'General';
+  if (!keywordsByCategory[catKey]) {
+    keywordsByCategory[catKey] = [];
+  }
+  keywordsByCategory[catKey].push(k);
+});
 
   const isPhotosComplete = !!(business.logo_url && business.cover_url);
   const isAboutComplete = !!(business.description && business.description.length > 20 && business.business_types.length > 0);
