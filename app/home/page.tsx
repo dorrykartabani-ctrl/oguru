@@ -64,148 +64,162 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#f6f4eb] pb-28 font-body">
-      {/* ---- Header ---- */}
-      <header className="flex items-center justify-between px-5 pt-12 pb-4">
-        <div className="flex items-center gap-3">
-          <MenuIcon className="h-6 w-6 text-[#4a6410]" />
-          <div className="flex items-center gap-1.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white">
-              <span className="font-display text-[10px] font-bold tracking-widest">OG</span>
-            </div>
-            <span className="font-display text-2xl font-extrabold text-[#4a6410]">OGuru</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/explore"
-            className="flex items-center gap-1.5 rounded-lg bg-[#4a6410]/15 px-3 py-2 font-label text-sm font-bold text-[#4a6410] transition hover:bg-[#4a6410]/25"
-          >
-            <MapIcon className="h-4 w-4" /> Map View
-          </Link>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-white shadow-sm overflow-hidden">
-             {/* Mock Avatar placeholder matching screenshot */}
-             <UserCircleIcon className="h-8 w-8 mt-2 opacity-80" />
-          </div>
-        </div>
-      </header>
-
-      {/* ---- Search Bar ---- */}
-      <section className="px-5 mt-2">
-        <div className="flex items-center rounded-2xl bg-[#ebe8db] px-4 py-3.5 transition-colors focus-within:bg-white focus-within:ring-2 focus-within:ring-[#4a6410]/20">
-          <SearchIcon className="h-5 w-5 text-[#44483a]/60" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search organic vendors..."
-            className="ml-3 w-full bg-transparent font-body text-base text-[#1b1c19] placeholder:text-[#44483a]/50 outline-none"
-          />
-        </div>
-      </section>
-
-      {/* ---- Filter Pills ---- */}
-      <section className="mt-5 px-5">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`shrink-0 rounded-xl px-4 py-1.5 font-label text-sm font-semibold transition-all ${
-                activeFilter === filter
-                  ? 'bg-[#4a6410] text-white shadow-sm'
-                  : 'border border-[#1b1c19]/10 bg-white text-[#44483a] hover:bg-[#f6f4eb]'
-              }`}
-            >
-              {filter}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* ---- Header ---- */}
+        <header className="flex items-center justify-between pt-8 pb-4 md:pt-10">
+          <div className="flex items-center gap-3">
+            <button className="rounded-xl p-1.5 hover:bg-[#1b1c19]/5 transition">
+              <MenuIcon className="h-6 w-6 text-[#4a6410]" />
             </button>
-          ))}
-        </div>
-      </section>
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white shadow-sm">
+                <span className="font-display text-[10px] font-bold tracking-widest">OG</span>
+              </div>
+              <span className="font-display text-2xl font-extrabold text-[#4a6410]">OGuru</span>
+            </div>
+          </div>
 
-      {/* ---- Title Row ---- */}
-      <div className="mt-6 flex items-end justify-between px-5 mb-4">
-        <h2 className="font-display text-[22px] font-extrabold text-[#1b1c19]">
-          {isSearchMode ? 'Search Results' : 'Nearby Vendors'}
-        </h2>
-        <span className="font-label text-sm font-bold text-[#924700]">
-          {filteredVendors.length} found
-        </span>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/explore"
+              className="flex items-center gap-1.5 rounded-xl bg-[#4a6410]/15 px-3.5 py-2 font-label text-sm font-bold text-[#4a6410] transition hover:bg-[#4a6410]/25"
+            >
+              <MapIcon className="h-4 w-4" /> Map View
+            </Link>
+            <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-teal-600 text-white shadow-sm">
+              <UserCircleIcon className="mt-2 h-8 w-8 opacity-80" />
+            </div>
+          </div>
+        </header>
+
+        {/* ---- Search Bar ---- */}
+        <section className="mt-2">
+          <div className="flex items-center rounded-2xl bg-[#ebe8db] px-4 py-3.5 transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-[#4a6410]/20 shadow-sm">
+            <SearchIcon className="h-5 w-5 text-[#44483a]/60 shrink-0" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search organic vendors..."
+              className="ml-3 w-full bg-transparent font-body text-base text-[#1b1c19] placeholder:text-[#44483a]/50 outline-none"
+            />
+          </div>
+        </section>
+
+        {/* ---- Filter Pills ---- */}
+        <section className="mt-5">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`shrink-0 rounded-xl px-4 py-2 font-label text-sm font-semibold transition-all ${
+                  activeFilter === filter
+                    ? 'bg-[#4a6410] text-white shadow-sm'
+                    : 'border border-[#1b1c19]/10 bg-white text-[#44483a] hover:bg-[#ebe8db]'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* ---- Title Row ---- */}
+        <div className="mt-8 flex items-end justify-between mb-5">
+          <h2 className="font-display text-2xl md:text-3xl font-extrabold text-[#1b1c19]">
+            {isSearchMode ? 'Search Results' : 'Nearby Vendors'}
+          </h2>
+          <span className="font-label text-sm font-bold text-[#924700]">
+            {filteredVendors.length} found
+          </span>
+        </div>
+
+        {/* ---- Responsive Vendor Grid ---- */}
+        {/* Mobile: 1 column | Tablet: 2 columns | Desktop: 3 columns | Large Screens: 4 columns */}
+        <section>
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-72 w-full animate-pulse rounded-[32px] bg-[#ebe8db]" />
+              ))}
+            </div>
+          ) : filteredVendors.length === 0 ? (
+            <div className="mt-12 text-center py-12">
+              <p className="font-display text-lg font-bold text-[#1b1c19]">No vendors found.</p>
+              <p className="text-sm text-[#44483a]/60 mt-1">Try searching for something else or clearing filters.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredVendors.map((vendor) => (
+                <Link
+                  key={vendor.id}
+                  href={vendor.slug ? `/store/${vendor.slug}` : '#'}
+                  className="group relative flex flex-col overflow-hidden rounded-[32px] bg-white shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1"
+                >
+                  {/* Image Half */}
+                  <div className="relative h-48 sm:h-52 w-full bg-[#ebe8db] overflow-hidden">
+                    <img
+                      src={getCoverImage(vendor)}
+                      alt={vendor.trading_name ?? 'Vendor cover'}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    {/* Rating Badge */}
+                    <div className="absolute right-3.5 top-3.5 flex items-center gap-1 rounded-lg bg-white/95 px-2.5 py-1 shadow-sm backdrop-blur-sm">
+                      <StarIcon className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                      <span className="font-label text-[11px] font-extrabold text-[#1b1c19]">4.9</span>
+                    </div>
+                    {/* Top Rated Badge */}
+                    <div className="absolute bottom-3.5 left-3.5 rounded-md bg-[#4a6410]/90 px-2.5 py-1 font-label text-[10px] font-extrabold uppercase tracking-wider text-white backdrop-blur-sm">
+                      Top Rated
+                    </div>
+                  </div>
+
+                  {/* Content Half */}
+                  <div className="relative p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-start justify-between pr-10">
+                        <h3 className="font-display text-lg sm:text-xl font-bold text-[#2d1b14] leading-tight line-clamp-1">
+                          {vendor.trading_name}
+                        </h3>
+                        {vendor.is_accepting_orders ? (
+                          <span className="shrink-0 rounded-md bg-[#4a6410]/10 px-2 py-0.5 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#4a6410]">
+                            Open
+                          </span>
+                        ) : (
+                          <span className="shrink-0 rounded-md bg-[#1b1c19]/5 px-2 py-0.5 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]/50">
+                            Closed
+                          </span>
+                        )}
+                      </div>
+                      
+                      <p className="mt-1.5 font-label text-xs sm:text-sm font-semibold text-[#44483a]/60 line-clamp-1">
+                        <span className="capitalize">{vendor.business_types?.[0] || 'Artisan'}</span>
+                        {vendor.tagline && ` • ${vendor.tagline}`}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 pt-2 flex items-center justify-between">
+                      <span className="font-label text-xs font-bold uppercase tracking-wider text-[#44483a]/50">
+                        {vendor.distance_km !== undefined
+                          ? `${vendor.distance_km.toFixed(1)} miles away`
+                          : vendor.neighborhood || 'Local Partner'}
+                      </span>
+
+                      {/* Add Button */}
+                      <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#4a6410] text-white shadow-sm transition active:scale-95 group-hover:bg-[#3b500b]">
+                        <PlusIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
 
-      {/* ---- Vendor Cards ---- */}
-      <section className="px-5">
-        {isLoading ? (
-          <div className="space-y-6">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-72 w-full animate-pulse rounded-[32px] bg-[#ebe8db]" />
-            ))}
-          </div>
-        ) : filteredVendors.length === 0 ? (
-          <div className="mt-12 text-center">
-            <p className="font-display text-lg font-bold text-[#1b1c19]">No vendors found.</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {filteredVendors.map((vendor) => (
-              <Link
-                key={vendor.id}
-                href={vendor.slug ? `/store/${vendor.slug}` : '#'}
-                className="group relative block overflow-hidden rounded-[32px] bg-white shadow-sm transition hover:shadow-md"
-              >
-                {/* Image Half */}
-                <div className="relative h-[200px] w-full bg-[#ebe8db]">
-                  <img
-                    src={getCoverImage(vendor)}
-                    alt={vendor.trading_name}
-                    className="h-full w-full object-cover"
-                  />
-                  {/* Rating Badge */}
-                  <div className="absolute right-4 top-4 flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1 shadow-sm">
-                    <StarIcon className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                    <span className="font-label text-[11px] font-extrabold text-[#1b1c19]">4.9</span>
-                  </div>
-                  {/* Top Rated Badge */}
-                  <div className="absolute bottom-4 left-4 rounded-md bg-[#4a6410]/90 px-2.5 py-1 font-label text-[10px] font-extrabold uppercase tracking-wider text-white backdrop-blur-sm">
-                    Top Rated
-                  </div>
-                </div>
-
-                {/* Content Half */}
-                <div className="relative p-5">
-                  <div className="flex items-start justify-between pr-14">
-                    <h3 className="font-display text-xl font-bold text-[#2d1b14] leading-tight">
-                      {vendor.trading_name}
-                    </h3>
-                    {vendor.is_accepting_orders ? (
-                      <span className="shrink-0 rounded-md bg-[#4a6410]/10 px-2 py-1 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#4a6410]">
-                        Open
-                      </span>
-                    ) : (
-                      <span className="shrink-0 rounded-md bg-[#1b1c19]/5 px-2 py-1 font-label text-[10px] font-extrabold uppercase tracking-wider text-[#44483a]/50">
-                        Closed
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1.5 font-label text-sm font-semibold text-[#44483a]/60">
-                    <span className="capitalize">{vendor.business_types?.[0] || 'Artisan'}</span>
-                    {vendor.tagline && ` • ${vendor.tagline.split(' ')[0]}...`}
-                    {vendor.distance_km !== undefined && (
-                       <span className="float-right">{vendor.distance_km.toFixed(1)} MILES AWAY</span>
-                    )}
-                  </p>
-
-                  {/* Add Button */}
-                  <button className="absolute bottom-4 right-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#4a6410] text-white shadow-sm transition active:scale-95">
-                    <PlusIcon className="h-6 w-6" />
-                  </button>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* ---- Bottom Navigation (Matching Screenshot layout) ---- */}
+      {/* ---- Bottom Navigation ---- */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-4px_20px_rgb(0,0,0,0.05)]">
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2">
           <NavItem href="/home" label="Home" icon={<HomeIcon className="h-6 w-6" />} active />
