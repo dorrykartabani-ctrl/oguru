@@ -1,641 +1,296 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import type { Business, Location, Product, Profile } from '@/lib/supabase/types';
-import VendorSidebar from '@/components/VendorSidebar';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
-  UtensilsCrossed,
-  Bell,
-  Search,
-  SlidersHorizontal,
-  Grid3x3,
-  List,
-  Upload,
-  Plus,
-  Gift,
-  Pin,
-  MoreVertical,
-  Leaf,
-  Wheat,
-  Nut,
-  Milk,
-  ChevronDown,
-  Loader2,
-  RefreshCw,
-  LayoutTemplate,
-  Pencil,
-  MessageCircle,
-  FileSpreadsheet,
+  CoffeeIcon,
+  CheckCircleIcon,
+  XIcon,
+  SparklesIcon,
   ArrowRight,
-} from 'lucide-react';
-
-
-const setupOptions = [
-  {
-    icon: RefreshCw,
-    title: 'Sync from POS',
-    subtitle: 'Import from Square, Toast, Lightspeed, Clover',
-    time: '2 min',
-    highlight: true,
-    href: '/vendor/menu/sync',
-  },
-  {
-    icon: FileSpreadsheet,
-    title: 'Import a CSV file',
-    subtitle: 'Upload your existing menu spreadsheet',
-    time: '3 min',
-    highlight: false,
-    href: '/vendor/menu/import',
-  },
-  {
-    icon: LayoutTemplate,
-    title: 'Use a template',
-    subtitle: 'Café · Bakery · Custom starting points',
-    time: '15 min',
-    highlight: false,
-    href: '/vendor/menu/templates',
-  },
-  {
-    icon: Pencil,
-    title: 'Build from scratch',
-    subtitle: 'Full control with reusable blocks',
-    time: '45 min',
-    highlight: false,
-    href: '/vendor/menu/product/new',
-  },
-  {
-    icon: MessageCircle,
-    title: 'Not sure? Chat with our assistant',
-    subtitle: 'Get a personalised recommendation',
-    time: 'Chat',
-    highlight: false,
-    href: '#',
-  },
-];
-
-type DietaryTag = 'vegan' | 'gf' | 'dairy-free' | 'nut-warning';
-
-const dietaryConfig: Record<
-  string,
-  { label: string; icon: typeof Leaf; bg: string; text: string; iconColor: string }
-> = {
-  vegan: {
-    label: 'Vegan',
-    icon: Leaf,
-    bg: 'bg-primary/10',
-    text: 'text-primary',
-    iconColor: 'text-primary',
-  },
-  gf: {
-    label: 'GF',
-    icon: Wheat,
-    bg: 'bg-secondary-container/60',
-    text: 'text-secondary',
-    iconColor: 'text-secondary',
-  },
-  'dairy-free': {
-    label: 'Dairy-free',
-    icon: Milk,
-    bg: 'bg-blue-100',
-    text: 'text-blue-800',
-    iconColor: 'text-blue-700',
-  },
-  'nut-warning': {
-    label: 'Contains nuts',
-    icon: Nut,
-    bg: 'bg-tertiary-container/30',
-    text: 'text-tertiary',
-    iconColor: 'text-tertiary',
-  },
-};
-
-// Format currency
-const formatPrice = (cents: number, currency: string = 'AUD') => {
-  return new Intl.NumberFormat('en-AU', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(cents / 100);
-};
-
-// Get initials
-const getInitials = (name: string) => {
-  return name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
-};
+  HomeIcon,
+  UserCircleIcon,
+} from '@/components/icons';
+import {
+  getVendorBusiness,
+  getVendorProducts,
+  toggleProductAvailability,
+  createProduct,
+  deleteProduct,
+} from '@/lib/supabase/vendor-queries';
+import type { Business, Product, Location } from '@/types/database';
 
 export default function VendorMenuPage() {
-  const router = useRouter();
-  const supabase = createClient();
-
-  const [loading, setLoading] = useState(true);
   const [business, setBusiness] = useState<Business | null>(null);
   const [location, setLocation] = useState<Location | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
 
-  // Menu list view state
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
-  const [searchQuery, setSearchQuery] = useState('');
+  // New product form state
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [priceDollars, setPriceDollars] = useState('5.50');
+  const [category, setCategory] = useState('Coffee');
+  const [isGiftable, setIsGiftable] = useState(true);
+  const [dietaryTags, setDietaryTags] = useState<string[]>(['vegetarian']);
 
   useEffect(() => {
-    loadData();
+    async function loadMenu() {
+      try {
+        const { business: biz, location: loc } = await getVendorBusiness();
+        if (biz) {
+          setBusiness(biz);
+          setLocation(loc);
+          const prods = await getVendorProducts(biz.id);
+          setProducts(prods);
+        }
+      } catch (err) {
+        console.error('Failed to load menu:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadMenu();
   }, []);
 
-  const loadData = async () => {
-    try {
-      // Auth check
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-
-      // Load business
-      const { data: businessData } = await supabase
-        .from('businesses')
-        .select('*')
-        .eq('owner_id', user.id)
-        .single();
-
-      if (!businessData) {
-        router.push('/vendor/apply');
-        return;
-      }
-
-      if (businessData.status !== 'approved') {
-        router.push('/vendor/pending');
-        return;
-      }
-
-      setBusiness(businessData);
-
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      if (profileData) setProfile(profileData);
-
-      // Load location
-      const { data: locationData } = await supabase
-        .from('locations')
-        .select('*')
-        .eq('business_id', businessData.id)
-        .eq('is_primary', true)
-        .single();
-
-      if (locationData) {
-        setLocation(locationData);
-
-        // Load products for this location
-        const { data: productsData } = await supabase
-          .from('products')
-          .select('*')
-          .eq('location_id', locationData.id)
-          .order('sort_order', { ascending: true });
-
-        setProducts(productsData || []);
-      }
-    } catch (err) {
-      console.error('Error loading menu:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleAvailability = async (productId: string, currentValue: boolean) => {
-    const { error } = await supabase
-      .from('products')
-      .update({ is_available: !currentValue })
-      .eq('id', productId);
-
-    if (!error) {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === productId ? { ...p, is_available: !currentValue } : p
-        )
-      );
-    }
-  };
-
-  // Loading state
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-surface flex flex-col items-center justify-center">
-        <Loader2 size={40} className="text-primary animate-spin mb-4" />
-        <p className="text-on-surface-variant">Loading your menu...</p>
-      </main>
+  const handleToggle = async (productId: string, current: boolean) => {
+    // Optimistic UI update
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, is_available: !current } : p))
     );
-  }
+    await toggleProductAvailability(productId, !current);
+  };
 
-  if (!business || !location) {
-    return null;
-  }
+  const handleDelete = async (productId: string) => {
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
+    await deleteProduct(productId);
+  };
 
-  const businessInitials = getInitials(business.legal_name);
-  const hasProducts = products.length > 0;
+  const handleAddProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!business || !location) return;
 
-  // Categories for filter tabs (if we have products)
-  const categoryList = ['All', ...Array.from(new Set(products.map((p) => p.category)))];
-  const categoriesWithCount = categoryList.map((cat) => ({
-    name: cat,
-    count: cat === 'All' ? products.length : products.filter((p) => p.category === cat).length,
-  }));
+    const priceCents = Math.round(parseFloat(priceDollars) * 100);
 
-  const filteredProducts = products.filter((p) => {
-    const matchesCategory = activeCategory === 'All' || p.category === activeCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+    const newProd = await createProduct({
+      business_id: business.id,
+      location_id: location.id,
+      name,
+      description,
+      price_cents: priceCents,
+      category,
+      is_available: true,
+      is_giftable: isGiftable,
+      dietary_tags: dietaryTags,
+      image_url: null,
+      pos_item_id: null,
+      sort_order: products.length + 1,
+    });
 
-  // Shared shell (nav + sidebar)
-  const Shell = ({ children }: { children: React.ReactNode }) => (
-    <>
-      {/* Top App Bar — mobile */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-40 flex justify-between items-center px-4 h-16 bg-surface/95 backdrop-blur-md border-b border-outline-variant">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-display font-bold text-sm">
-            {businessInitials}
-          </div>
-          <h1 className="font-display text-lg font-bold text-primary truncate max-w-[180px]">
-            {business.legal_name}
+    if (newProd) {
+      setProducts((prev) => [...prev, newProd]);
+      setShowAddModal(false);
+      setName('');
+      setDescription('');
+    }
+  };
+
+  // Group by category
+  const categories = Array.from(new Set(products.map((p) => p.category)));
+
+  return (
+    <main className="min-h-screen bg-[#fbf9f4] pb-28 font-body md:pb-10">
+      {/* Header */}
+      <header className="flex items-center justify-between px-5 pt-14 pb-4 md:px-10">
+        <div>
+          <h1 className="font-display text-3xl font-bold tracking-tight text-[#1b1c19]">
+            Menu Management
           </h1>
+          <p className="mt-1 text-sm text-[#44483a]">
+            {products.length} items total · Live pre-order catalog
+          </p>
         </div>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full text-primary hover:bg-surface-container transition-colors active:scale-95 relative">
-          <Bell size={20} />
-          <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-tertiary-container" />
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="inline-flex items-center gap-2 rounded-2xl bg-[#4a6410] px-4 py-2.5 font-label text-xs font-bold text-white shadow-sm transition active:scale-95"
+        >
+          + Add Item
         </button>
       </header>
 
-      <VendorSidebar business={business} profile={profile} />
-
-      {children}
-    </>
-  );
-
-  // ═════════════════════════════════════════
-  // EMPTY STATE — No products yet
-  // ═════════════════════════════════════════
-  if (!hasProducts) {
-    return (
-      <main className="min-h-screen bg-surface text-on-surface pb-24 md:pb-8">
-        <Shell>
-          <div className="md:ml-64 pt-20 md:pt-12 px-4 md:px-8 lg:px-12 max-w-3xl mx-auto">
-            {/* Progress */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-label font-semibold text-on-surface-variant uppercase tracking-wider">
-                  Step 1 of 3 — Setting up your store
-                </span>
-                <span className="text-xs font-label font-semibold text-primary">
-                  33%
-                </span>
-              </div>
-              <div className="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full transition-all duration-700"
-                  style={{ width: '33%' }}
-                />
-              </div>
-            </div>
-
-            {/* Header */}
-            <section className="mb-8">
-              <h1 className="font-display text-3xl md:text-4xl font-semibold text-on-surface leading-tight tracking-tight mb-2">
-                Let&apos;s build your menu
-              </h1>
-              <p className="text-base text-on-surface-variant leading-relaxed">
-                Choose how you&apos;d like to start. You can switch approaches anytime.
-              </p>
-            </section>
-
-            {/* Options — Clean rows */}
-            <div className="space-y-3">
-              {setupOptions.map((option, i) => {
-                const Icon = option.icon;
-                return (
-                  <button
-                    key={i}
-                    onClick={() => option.href !== '#' && router.push(option.href)}
-                    className={`w-full flex items-center gap-4 p-5 rounded-xl border transition-all text-left group ${
-                      option.highlight
-                        ? 'bg-primary-container border-primary text-white hover:brightness-105'
-                        : 'bg-surface-container-lowest border-outline-variant hover:border-primary/40 hover:bg-surface-container-low'
-                    }`}
-                  >
-                    <div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        option.highlight ? 'bg-white/20' : 'bg-primary/10 text-primary'
-                      }`}
-                    >
-                      <Icon size={22} />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <h3
-                        className={`font-display font-semibold text-base md:text-lg leading-tight mb-0.5 ${
-                          option.highlight ? 'text-white' : 'text-on-surface'
-                        }`}
-                      >
-                        {option.title}
-                      </h3>
-                      <p
-                        className={`text-sm truncate ${
-                          option.highlight ? 'text-white/80' : 'text-on-surface-variant'
-                        }`}
-                      >
-                        {option.subtitle}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-label font-semibold uppercase tracking-wider flex-shrink-0 ${
-                        option.highlight
-                          ? 'bg-white/20 text-white'
-                          : 'bg-surface-container-high text-on-surface-variant'
-                      }`}
-                    >
-                      {option.time}
-                    </span>
-
-                    <ArrowRight
-                      size={20}
-                      className={`flex-shrink-0 transition-transform group-hover:translate-x-1 ${
-                        option.highlight ? 'text-white' : 'text-on-surface-variant'
-                      }`}
-                    />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </Shell>
-      </main>
-    );
-  }
-
-  // ═════════════════════════════════════════
-  // PRODUCT LIST — Vendor has products
-  // ═════════════════════════════════════════
-  return (
-    <main className="min-h-screen bg-surface text-on-surface pb-24 md:pb-8">
-      <Shell>
-        <div className="md:ml-64 pt-20 md:pt-8 px-4 md:px-8 lg:px-12 max-w-screen-xl mx-auto">
-          {/* Page Header */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="font-display text-3xl md:text-4xl font-semibold text-on-surface leading-tight tracking-tight">
-                Menu
-              </h1>
-              <p className="text-sm text-on-surface-variant mt-1">
-                {products.length} {products.length === 1 ? 'product' : 'products'} · {location.city}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => router.push('/vendor/menu/import')}
-                className="hidden sm:flex items-center gap-2 px-4 py-2.5 border border-outline-variant text-on-surface rounded-xl hover:bg-surface-container transition-colors text-sm font-label font-semibold"
-              >
-                <Upload size={16} />
-                Import CSV
-              </button>
-              <button
-                onClick={() => router.push('/vendor/menu/product/new')}
-                className="flex items-center gap-2 px-4 md:px-5 py-2.5 bg-primary text-on-primary rounded-xl hover:opacity-90 transition-all text-sm font-label font-semibold shadow-sm active:scale-[0.98]"
-              >
-                <Plus size={16} />
-                Add Product
-              </button>
-              <button className="w-10 h-10 flex items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-colors">
-                <MoreVertical size={18} />
-              </button>
-            </div>
-          </div>
-
-          {/* Search + Filters Bar */}
-          <div className="flex flex-col md:flex-row gap-3 mb-5">
-            <div className="relative flex-1">
-              <Search
-                size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant"
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant/50"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <button className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-sm hover:bg-surface-container transition-colors">
-                <span>All availability</span>
-                <ChevronDown size={14} />
-              </button>
-
-              <button className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-xl text-sm hover:bg-surface-container transition-colors">
-                <SlidersHorizontal size={14} />
-                <span>Dietary</span>
-              </button>
-
-              <button className="md:hidden flex items-center justify-center w-10 h-10 bg-surface-container-lowest border border-outline-variant rounded-xl">
-                <SlidersHorizontal size={18} className="text-on-surface-variant" />
-              </button>
-
-              <div className="flex bg-surface-container-high p-1 rounded-xl">
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-lg transition-all ${
-                    viewMode === 'list'
-                      ? 'bg-surface-container-lowest shadow-sm text-primary'
-                      : 'text-on-surface-variant'
-                  }`}
-                >
-                  <List size={18} />
-                </button>
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-lg transition-all ${
-                    viewMode === 'grid'
-                      ? 'bg-surface-container-lowest shadow-sm text-primary'
-                      : 'text-on-surface-variant'
-                  }`}
-                >
-                  <Grid3x3 size={18} />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Category Tabs */}
-          {categoriesWithCount.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-              {categoriesWithCount.map((cat) => {
-                const isActive = activeCategory === cat.name;
-                return (
-                  <button
-                    key={cat.name}
-                    onClick={() => setActiveCategory(cat.name)}
-                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full whitespace-nowrap font-label font-semibold text-xs uppercase tracking-wider transition-all ${
-                      isActive
-                        ? 'bg-primary text-on-primary'
-                        : 'bg-surface-container-lowest border border-outline-variant text-on-surface-variant hover:border-primary/40'
-                    }`}
-                  >
-                    <span>{cat.name}</span>
-                    <span className={`text-[10px] ${isActive ? 'opacity-80' : 'text-on-surface-variant opacity-60'}`}>
-                      {cat.count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Gift Voucher Pinned Row */}
-          <div className="bg-secondary-container/40 border border-secondary/20 rounded-2xl p-4 md:p-5 flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-secondary flex items-center justify-center text-on-secondary flex-shrink-0">
-              <Gift size={24} fill="currentColor" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="font-display font-semibold text-base md:text-lg text-on-secondary-container">
-                  Gift Voucher
-                </h3>
-                <Pin size={12} className="text-secondary" fill="currentColor" />
-              </div>
-              <p className="text-xs md:text-sm text-on-secondary-container/70">
-                From {formatPrice(1000, business.currency)} · Auto-enabled
-              </p>
-            </div>
-            <button
-              onClick={() => router.push('/vendor/menu/voucher')}
-              className="px-3 md:px-4 py-2 bg-secondary text-on-secondary rounded-lg font-label font-semibold text-xs uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all flex-shrink-0"
-            >
-              Configure
-            </button>
-          </div>
-
-          {/* Product Rows */}
-          <div className="space-y-2">
-            {filteredProducts.map((product) => (
-              <ProductRow
-                key={product.id}
-                product={product}
-                currency={business.currency}
-                onToggle={() => toggleAvailability(product.id, product.is_available)}
-                onClick={() => router.push(`/vendor/menu/product/${product.id}`)}
-              />
+      {/* Menu Categories */}
+      <div className="mx-auto max-w-5xl px-5 md:px-10">
+        {loading ? (
+          <div className="mt-6 space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 animate-pulse rounded-2xl bg-[#1b1c19]/5" />
             ))}
           </div>
+        ) : products.length === 0 ? (
+          <div className="mt-12 text-center">
+            <CoffeeIcon className="mx-auto h-12 w-12 text-[#44483a]/30" />
+            <p className="mt-3 font-display text-base font-semibold text-[#1b1c19]">
+              Your menu is empty
+            </p>
+            <p className="mt-1 text-xs text-[#44483a]">
+              Add your signature coffee or bakes to start receiving pre-orders.
+            </p>
+          </div>
+        ) : (
+          categories.map((cat) => (
+            <section key={cat} className="mt-8">
+              <h2 className="font-display text-lg font-bold text-[#1b1c19] border-b border-[#1b1c19]/10 pb-2">
+                {cat}
+              </h2>
+              <ul className="mt-3 space-y-3">
+                {products
+                  .filter((p) => p.category === cat)
+                  .map((product) => (
+                    <li
+                      key={product.id}
+                      className="flex items-center justify-between rounded-2xl bg-white p-4 shadow-sm"
+                    >
+                      <div className="min-w-0 flex-1 pr-4">
+                        <div className="flex items-center gap-2">
+                          <p className="font-display text-base font-bold text-[#1b1c19]">
+                            {product.name}
+                          </p>
+                          {product.is_giftable && (
+                            <span className="rounded-full bg-[#fed3c7] px-2 py-0.5 font-label text-[9px] font-bold text-[#77574d]">
+                              Giftable 🎁
+                            </span>
+                          )}
+                        </div>
+                        {product.description && (
+                          <p className="mt-0.5 truncate text-xs text-[#44483a]/70">
+                            {product.description}
+                          </p>
+                        )}
+                        <p className="mt-1 font-display text-sm font-bold text-[#4a6410]">
+                          ${(product.price_cents / 100).toFixed(2)}
+                        </p>
+                      </div>
 
-          {filteredProducts.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-on-surface-variant">
-                No products found. Try adjusting your search or filters.
-              </p>
+                      {/* Controls */}
+                      <div className="flex items-center gap-3 shrink-0">
+                        {/* Availability Toggle */}
+                        <button
+                          onClick={() => handleToggle(product.id, product.is_available)}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                            product.is_available ? 'bg-[#4a6410]' : 'bg-[#1b1c19]/15'
+                          }`}
+                        >
+                          <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                              product.is_available ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          className="p-1 text-[#44483a]/30 hover:text-red-600 transition"
+                        >
+                          <XIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          ))
+        )}
+      </div>
+
+      {/* Add Product Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-5 backdrop-blur-sm">
+          <form
+            onSubmit={handleAddProduct}
+            className="w-full max-w-md rounded-3xl bg-[#fbf9f4] p-6 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-xl font-bold text-[#1b1c19]">
+                Add Menu Item
+              </h3>
+              <button type="button" onClick={() => setShowAddModal(false)}>
+                <XIcon className="h-5 w-5 text-[#44483a]" />
+              </button>
             </div>
-          )}
-        </div>
-      </Shell>
-    </main>
-  );
-}
 
-// ────────────────────────────────────────
-// PRODUCT ROW COMPONENT
-// ────────────────────────────────────────
-function ProductRow({
-  product,
-  currency,
-  onToggle,
-  onClick,
-}: {
-  product: Product;
-  currency: string;
-  onToggle: () => void;
-  onClick: () => void;
-}) {
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onToggle();
-  };
+            <div>
+              <label className="font-label text-xs font-bold text-[#44483a]">Item Name</label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Cardamom Bun"
+                className="mt-1 w-full rounded-xl border border-[#1b1c19]/10 bg-white p-3 text-sm outline-none"
+              />
+            </div>
 
-  return (
-    <div
-      onClick={onClick}
-      className={`bg-surface-container-lowest border border-outline-variant rounded-xl p-3 md:p-4 flex items-center gap-3 md:gap-4 cursor-pointer hover:border-primary/40 hover:shadow-organic-sm transition-all ${
-        !product.is_available ? 'opacity-60' : ''
-      }`}
-    >
-      <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center flex-shrink-0">
-        <UtensilsCrossed size={20} className="text-on-surface-variant/40" />
-      </div>
+            <div>
+              <label className="font-label text-xs font-bold text-[#44483a]">Description</label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. Laminated, pearl sugar crust"
+                className="mt-1 w-full rounded-xl border border-[#1b1c19]/10 bg-white p-3 text-sm outline-none"
+              />
+            </div>
 
-      <div className="flex-1 min-w-0">
-        <h4 className="font-display font-semibold text-on-surface text-sm md:text-base truncate">
-          {product.name}
-        </h4>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <span className="text-xs text-on-surface-variant">{product.category}</span>
-          {product.dietary_tags?.length > 0 &&
-            product.dietary_tags.slice(0, 2).map((tag) => {
-              const config = dietaryConfig[tag];
-              if (!config) return null;
-              const Icon = config.icon;
-              return (
-                <span
-                  key={tag}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-label font-semibold uppercase tracking-wider ${config.bg} ${config.text}`}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-label text-xs font-bold text-[#44483a]">Price ($)</label>
+                <input
+                  type="number"
+                  step="0.10"
+                  required
+                  value={priceDollars}
+                  onChange={(e) => setPriceDollars(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-[#1b1c19]/10 bg-white p-3 text-sm outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-label text-xs font-bold text-[#44483a]">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-[#1b1c19]/10 bg-white p-3 text-sm outline-none"
                 >
-                  <Icon size={10} className={config.iconColor} />
-                  {config.label}
-                </span>
-              );
-            })}
+                  <option value="Coffee">Coffee</option>
+                  <option value="Pastry">Pastry</option>
+                  <option value="Bakery">Bakery</option>
+                  <option value="Breakfast">Breakfast</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between rounded-xl bg-white p-3">
+              <span className="font-label text-xs font-semibold text-[#1b1c19]">
+                Enable Social Gifting 🎁
+              </span>
+              <input
+                type="checkbox"
+                checked={isGiftable}
+                onChange={(e) => setIsGiftable(e.target.checked)}
+                className="h-4 w-4 rounded accent-[#4a6410]"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full rounded-2xl bg-[#4a6410] py-3.5 font-label text-xs font-bold text-white shadow-sm transition active:scale-98"
+            >
+              Save to Menu
+            </button>
+          </form>
         </div>
-      </div>
-
-      <div className="text-right flex-shrink-0">
-        <p className="font-display font-bold text-on-surface text-sm md:text-base">
-          {new Intl.NumberFormat('en-AU', {
-            style: 'currency',
-            currency,
-            minimumFractionDigits: 2,
-          }).format(product.price_cents / 100)}
-        </p>
-      </div>
-
-      <button
-        onClick={handleToggle}
-        className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
-          product.is_available ? 'bg-primary' : 'bg-surface-container-highest'
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${
-            product.is_available ? 'translate-x-5' : 'translate-x-0'
-          }`}
-        />
-      </button>
-
-      <button
-        onClick={(e) => e.stopPropagation()}
-        className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors flex-shrink-0"
-      >
-        <MoreVertical size={18} />
-      </button>
-    </div>
+      )}
+    </main>
   );
 }
