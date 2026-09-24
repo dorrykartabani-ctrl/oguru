@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   GiftIcon,
   HomeIcon,
-  MapIcon,
   ReceiptIcon,
   UserCircleIcon,
   AlertTriangleIcon,
@@ -15,18 +14,20 @@ import {
   XIcon,
   ChevronDown,
   ArchiveIcon,
-  MoreVerticalIcon,
   CalendarIcon,
   PlusIcon,
+  HeartIcon,
 } from '@/components/icons';
 
-// --- Types & Mock Data ---
+// --- Types ---
 type Tab = 'Received' | 'Sent';
-type SentFilter = 'All' | 'Pending' | 'Claimed' | 'Expired';
+type SentFilter = 'All (12)' | 'Pending (4)' | 'Claimed (7)' | 'Expired (1)';
+
+const SENT_FILTERS: SentFilter[] = ['All (12)', 'Pending (4)', 'Claimed (7)', 'Expired (1)'];
 
 export default function GiftsPage() {
   const [activeTab, setActiveTab] = useState<Tab>('Received');
-  const [sentFilter, setSentFilter] = useState<SentFilter>('All');
+  const [sentFilter, setSentFilter] = useState<SentFilter>('All (12)');
 
   return (
     <main className="min-h-screen bg-[#f6f4eb] pb-32 font-body selection:bg-[#4a6410] selection:text-white relative">
@@ -285,7 +286,7 @@ export default function GiftsPage() {
 
           {/* Filters */}
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pt-2">
-            {(['All (12)', 'Pending (4)', 'Claimed (7)', 'Expired (1)'] as SentFilter[]).map((f) => (
+            {SENT_FILTERS.map((f) => (
               <button
                 key={f}
                 onClick={() => setSentFilter(f)}
@@ -387,7 +388,7 @@ export default function GiftsPage() {
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center justify-center bg-[#ebe8db] rounded-xl p-4 aspect-square relative">
-                {/* Mock Diamond Chart */}
+                {/* Diamond Chart */}
                 <div className="w-24 h-24 border-[12px] border-[#ebe8db] border-t-[#4a6410] border-l-[#4a6410] border-b-[#4a6410] rotate-45 rounded-sm bg-white flex items-center justify-center shadow-sm">
                   <span className="font-display text-lg font-bold text-[#1b1c19] -rotate-45 block">8/12</span>
                 </div>
@@ -425,7 +426,7 @@ export default function GiftsPage() {
             </div>
           </div>
 
-          {/* Floating Action Button (Only on Sent tab based on screenshot layout) */}
+          {/* Floating Action Button */}
           <button className="fixed bottom-24 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#4a6410] text-white shadow-lg transition active:scale-90 hover:bg-[#3b500b]">
             <PlusIcon className="h-6 w-6" />
           </button>
@@ -433,7 +434,7 @@ export default function GiftsPage() {
       )}
 
       {/* ========================================================= */}
-      {/* BOTTOM NAVIGATION (Standard Oguru pattern) */}
+      {/* BOTTOM NAVIGATION */}
       {/* ========================================================= */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white shadow-[0_-4px_20px_rgb(0,0,0,0.05)]">
         <div className="mx-auto flex max-w-lg items-center justify-around px-2 py-2">
