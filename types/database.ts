@@ -270,3 +270,5 @@ export interface PromotionCard extends Promotion {
   business: Pick<Business, 'trading_name' | 'slug' | 'chip_icon' | 'chip_color'>;
   location_name: string;
 }
+// Inside export interface Location { ... }
+pos_preorder_url: string | null;
