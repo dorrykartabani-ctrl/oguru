@@ -292,3 +292,12 @@ export const ServerIcon = ({ className = 'h-6 w-6', ...props }: IconProps) => (
     <line x1="6" x2="6.01" y1="18" y2="18" />
   </svg>
 );
+
+// 34. Restaurant / Utensils Icon
+export const RestaurantIcon = ({ className = 'h-6 w-6', ...props }: IconProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+    <path d="M7 2v20" />
+    <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+  </svg>
+);
