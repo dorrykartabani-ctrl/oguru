@@ -1,10 +1,6 @@
 // types/database.ts
 // Complete Oguru database schema — mapped from Supabase public schema
 
-// ============================================================
-// ENUMS
-// ============================================================
-
 export type BusinessStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended';
 export type UserRole = 'customer' | 'vendor';
 export type PromotionType =
@@ -15,10 +11,6 @@ export type PromotionType =
   | 'free_item'
   | 'flash_sale';
 
-// ============================================================
-// CORE TABLES
-// ============================================================
-
 export interface Profile {
   id: string;
   full_name: string | null;
@@ -28,6 +20,7 @@ export interface Profile {
   created_at: string;
   updated_at: string;
 }
+
 export interface Business {
   id: string;
   owner_id: string;
@@ -68,13 +61,7 @@ export interface Business {
   created_at: string;
   updated_at: string;
 }
-export interface CustomerFavorite {
-  id: string;
-  user_id: string;
-  business_id: string;
-  location_id: string | null;
-  created_at: string;
-}
+
 export interface Location {
   id: string;
   business_id: string;
@@ -135,10 +122,6 @@ export interface Product {
   updated_at: string;
 }
 
-// ============================================================
-// SEARCH & DISCOVERY
-// ============================================================
-
 export interface CustomerKeyword {
   id: string;
   user_id: string;
@@ -154,10 +137,6 @@ export interface VendorKeyword {
   category: string | null;
   created_at: string;
 }
-
-// ============================================================
-// MARKETING & LOYALTY
-// ============================================================
 
 export interface Promotion {
   id: string;
@@ -220,10 +199,6 @@ export interface WaitlistSignup {
   created_at: string;
 }
 
-// ============================================================
-// COMPOSITE / UI-READY TYPES
-// ============================================================
-
 export interface VendorCard {
   id: string;
   trading_name: string;
@@ -271,4 +246,12 @@ export interface GiftableProduct extends Product {
 export interface PromotionCard extends Promotion {
   business: Pick<Business, 'trading_name' | 'slug' | 'chip_icon' | 'chip_color'>;
   location_name: string;
+}
+
+export interface CustomerFavorite {
+  id: string;
+  user_id: string;
+  business_id: string;
+  location_id: string | null;
+  created_at: string;
 }
