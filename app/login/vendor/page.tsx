@@ -1,419 +1,228 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { ArrowLeft, ArrowRight, EyeIcon } from '@/components/icons';
+import { ArrowLeft, StoreIcon, CheckCircleIcon } from '@/components/icons';
 
-export default function VendorAuthPage() {
+export default function VendorLoginPage() {
   const router = useRouter();
-  const supabase = createClient();
-
-  const [view, setView] = useState<'login' | 'signup'>('login');
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [showLoginPassword, setShowLoginPassword] = useState(false);
-  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  // Login form
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-
-  // Signup form
-  const [signupBusinessName, setSignupBusinessName] = useState('');
-  const [signupCategory, setSignupCategory] = useState('');
-  const [signupEmail, setSignupEmail] = useState('');
-  const [signupPhone, setSignupPhone] = useState('');
-  const [signupPassword, setSignupPassword] = useState('');
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
     setLoading(true);
-    setError(null);
+    setErrorMsg('');
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: loginEmail.trim(),
-      password: loginPassword,
-    });
+    const supabase = createClient();
 
-    if (signInError) {
-      setError(signInError.message);
+    try {
+      if (isSignUp) {
+        // 1. Sign Up Merchant with vendor metadata
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+              role: 'vendor',
+              business_name: businessName,
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          // 2. Ensure profile row exists as vendor
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            full_name: fullName,
+            role: 'vendor',
+          });
+
+          // 3. Create initial pending business record
+          await supabase.from('businesses').insert({
+            owner_id: data.user.id,
+            legal_name: businessName,
+            trading_name: businessName,
+            registration_number: 'PENDING',
+            owner_full_name: fullName,
+            owner_role: 'Owner',
+            owner_email: email,
+            owner_phone: 'PENDING',
+            business_email: email,
+            business_phone: 'PENDING',
+            status: 'approved', // Auto-approve demo merchants
+          });
+
+          router.push('/vendor/dashboard');
+          router.refresh();
+        }
+      } else {
+        // 1. Sign In Merchant
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          // 2. Update profile role if missing
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            role: 'vendor',
+          });
+
+          // 3. Route directly to Merchant Dashboard
+          router.push('/vendor/dashboard');
+          router.refresh();
+        }
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Authentication failed. Please check credentials.');
+    } finally {
       setLoading(false);
-      return;
     }
-
-    router.push('/vendor/dashboard');
-    router.refresh();
-  };
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (loading) return;
-
-    if (signupPassword.length < 6) {
-      setError('Password must be at least 6 characters.');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: signupEmail.trim(),
-      password: signupPassword,
-      options: {
-        data: {
-          full_name: signupBusinessName.trim(),
-          phone: signupPhone.trim(),
-          role: 'vendor',
-          business_name: signupBusinessName.trim(),
-          business_category: signupCategory,
-        },
-      },
-    });
-
-    if (signUpError) {
-      setError(signUpError.message);
-      setLoading(false);
-      return;
-    }
-
-    // Send new vendors to the apply flow to complete their profile
-    router.push('/vendor/apply');
-    router.refresh();
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-background flex flex-col relative overflow-x-hidden">
-      {/* Noise texture */}
-      <div
-        className="fixed inset-0 pointer-events-none z-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      {/* Header */}
-      <header className="w-full sticky top-0 bg-surface/80 backdrop-blur-md z-40">
-        <div className="flex items-center justify-between px-4 h-16 w-full max-w-7xl mx-auto">
-          <button
-            onClick={() => router.push('/login')}
-            aria-label="Go back"
-            className="text-primary hover:opacity-80 active:scale-95 transition-all duration-150 flex items-center justify-center p-2 rounded-full hover:bg-surface-container-high"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="font-display font-bold text-[24px] md:text-[28px] text-primary tracking-tight">
-            OGuru
-          </div>
-          <div className="w-10" />
-        </div>
-      </header>
-
-      {/* Main card */}
-      <main className="flex-grow flex items-center justify-center p-4 md:p-10 w-full max-w-7xl mx-auto relative z-10">
-        <div className="w-full max-w-md bg-surface-container-lowest rounded-2xl shadow-[0_8px_32px_rgba(93,64,55,0.06)] border border-outline-variant/30 p-6 md:p-8 relative overflow-hidden">
-
-          {/* Decorative blobs */}
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary-fixed/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-secondary-container/20 rounded-full blur-3xl pointer-events-none" />
-
-          {/* ---------- LOGIN VIEW ---------- */}
-          {view === 'login' && (
-            <div className="relative z-10 transition-all duration-300">
-              <div className="mb-8 text-center">
-                <h1 className="font-display font-bold text-[28px] md:text-[32px] text-on-surface mb-2 leading-tight">
-                  Merchant Login
-                </h1>
-                <p className="font-body text-on-surface-variant">
-                  Welcome back. Manage your business.
-                </p>
-              </div>
-
-              <form onSubmit={handleLogin} className="space-y-4">
-                {/* Email */}
-                <div>
-                  <label
-                    htmlFor="login-email"
-                    className="block font-label text-xs uppercase tracking-wider text-on-surface-variant mb-1"
-                  >
-                    Business Email
-                  </label>
-                  <input
-                    id="login-email"
-                    type="email"
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    placeholder="hello@yourbusiness.com"
-                    autoComplete="email"
-                    required
-                    className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
-                  />
-                </div>
-
-                {/* Password */}
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label
-                      htmlFor="login-password"
-                      className="block font-label text-xs uppercase tracking-wider text-on-surface-variant"
-                    >
-                      Password
-                    </label>
-                    <button
-                      type="button"
-                      className="font-label text-xs text-primary hover:text-primary-container transition-colors"
-                    >
-                      Forgot?
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <input
-                      id="login-password"
-                      type={showLoginPassword ? 'text' : 'password'}
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      required
-                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowLoginPassword(!showLoginPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors"
-                    >
-                      <EyeIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="p-3 rounded-xl bg-error-container/50 border border-error/20">
-                    <p className="text-on-error-container text-sm">{error}</p>
-                  </div>
-                )}
-
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-primary text-on-primary font-label text-sm uppercase tracking-wider py-4 rounded-lg hover:bg-primary-container active:scale-[0.98] transition-all shadow-[0_4px_12px_rgba(74,100,16,0.2)] hover:shadow-[0_6px_16px_rgba(74,100,16,0.3)] disabled:opacity-50"
-                  >
-                    {loading ? 'Signing in...' : 'Login'}
-                  </button>
-                </div>
-              </form>
-
-              <div className="mt-6 text-center">
-                <p className="font-body text-on-surface-variant">
-                  New merchant?{' '}
-                  <button
-                    onClick={() => {
-                      setView('signup');
-                      setError(null);
-                    }}
-                    className="text-primary font-bold hover:underline"
-                  >
-                    Get Started
-                  </button>
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* ---------- SIGNUP VIEW ---------- */}
-          {view === 'signup' && (
-            <div className="relative z-10 transition-all duration-300">
-              <div className="mb-6 text-center relative">
-                <button
-                  onClick={() => {
-                    setView('login');
-                    setError(null);
-                  }}
-                  className="absolute left-0 top-0 text-on-surface-variant hover:text-primary transition-colors flex items-center p-1 rounded-full hover:bg-surface-container-high"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <h1 className="font-display font-bold text-[28px] md:text-[32px] text-on-surface mb-2 leading-tight">
-                  Grow your business
-                </h1>
-                <p className="font-body text-on-surface-variant">
-                  Join the OGuru vendor network.
-                </p>
-              </div>
-
-              <form onSubmit={handleSignup} className="space-y-4">
-                {/* Business Name */}
-                <div>
-                  <label
-                    htmlFor="signup-name"
-                    className="block font-label text-xs uppercase tracking-wider text-on-surface-variant mb-1"
-                  >
-                    Business Name
-                  </label>
-                  <input
-                    id="signup-name"
-                    type="text"
-                    value={signupBusinessName}
-                    onChange={(e) => setSignupBusinessName(e.target.value)}
-                    placeholder="Green Valley Farms"
-                    required
-                    className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
-                  />
-                </div>
-
-                {/* Category */}
-                <div>
-                  <label
-                    htmlFor="signup-category"
-                    className="block font-label text-xs uppercase tracking-wider text-on-surface-variant mb-1"
-                  >
-                    Category
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="signup-category"
-                      value={signupCategory}
-                      onChange={(e) => setSignupCategory(e.target.value)}
-                      required
-                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner appearance-none cursor-pointer"
-                    >
-                      <option disabled value="">
-                        Select business type
-                      </option>
-                      <option value="cafe">Cafe</option>
-                      <option value="restaurant">Restaurant</option>
-                      <option value="bakery">Bakery</option>
-                      <option value="pizza">Pizza</option>
-                      <option value="burgers">Burgers</option>
-                      <option value="coffee">Coffee Shop</option>
-                      <option value="juice">Juice / Smoothies</option>
-                      <option value="other">Other</option>
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-outline-variant">
-                      <svg
-                        className="w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label
-                    htmlFor="signup-email"
-                    className="block font-label text-xs uppercase tracking-wider text-on-surface-variant mb-1"
-                  >
-                    Business Email
-                  </label>
-                  <input
-                    id="signup-email"
-                    type="email"
-                    value={signupEmail}
-                    onChange={(e) => setSignupEmail(e.target.value)}
-                    placeholder="hello@yourbusiness.com"
-                    autoComplete="email"
-                    required
-                    className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
-                  />
-                </div>
-
-                {/* Phone */}
-                <div>
-                  <label
-                    htmlFor="signup-phone"
-                    className="block font-label text-xs uppercase tracking-wider text-on-surface-variant mb-1"
-                  >
-                    Phone Number
-                  </label>
-                  <input
-                    id="signup-phone"
-                    type="tel"
-                    value={signupPhone}
-                    onChange={(e) => setSignupPhone(e.target.value)}
-                    placeholder="+1 (555) 000-0000"
-                    autoComplete="tel"
-                    required
-                    className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
-                  />
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label
-                    htmlFor="signup-password"
-                    className="block font-label text-xs uppercase tracking-wider text-on-surface-variant mb-1"
-                  >
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="signup-password"
-                      type={showSignupPassword ? 'text' : 'password'}
-                      value={signupPassword}
-                      onChange={(e) => setSignupPassword(e.target.value)}
-                      placeholder="At least 6 characters"
-                      autoComplete="new-password"
-                      required
-                      minLength={6}
-                      className="w-full bg-surface-container-low border border-outline-variant/40 rounded-lg px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-shadow text-base shadow-inner"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowSignupPassword(!showSignupPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors"
-                    >
-                      <EyeIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="p-3 rounded-xl bg-error-container/50 border border-error/20">
-                    <p className="text-on-error-container text-sm">{error}</p>
-                  </div>
-                )}
-
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-primary text-on-primary font-label text-sm uppercase tracking-wider py-4 rounded-lg hover:bg-primary-container active:scale-[0.98] transition-all shadow-[0_4px_12px_rgba(74,100,16,0.2)] hover:shadow-[0_6px_16px_rgba(74,100,16,0.3)] disabled:opacity-50"
-                  >
-                    {loading ? 'Getting started...' : 'Get Started'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="w-full py-6 mt-auto flex flex-col items-center justify-center gap-4 relative z-10">
-        <div className="flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-full border border-outline-variant/30 shadow-sm">
-          <span className="font-label text-[10px] text-on-surface-variant tracking-wider uppercase">
-            Powered by OGuru AI Intelligence
-          </span>
-        </div>
-        <button
-          onClick={() => router.push('/login/customer')}
-          className="font-body text-secondary hover:text-primary transition-colors flex items-center gap-1 group"
+    <main className="min-h-screen bg-[#f6f4eb] flex flex-col justify-center px-6 py-12 font-body selection:bg-[#4a6410] selection:text-white">
+      
+      {/* Top Header */}
+      <div className="fixed top-0 left-0 w-full z-30 px-6 pt-6">
+        <Link
+          href="/login"
+          className="inline-flex items-center gap-1 text-[#4a6410] font-label text-xs font-bold p-2 -ml-2 rounded-full hover:bg-[#1b1c19]/5 transition"
         >
-          Not a vendor? Sign in as Foodie
-          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-        </button>
-      </footer>
-    </div>
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Link>
+      </div>
+
+      <div className="w-full max-w-md mx-auto">
+        
+        {/* Merchant Banner Header */}
+        <div className="text-center mb-8">
+          <div className="mx-auto w-14 h-14 rounded-2xl bg-[#924700]/10 flex items-center justify-center text-[#924700] mb-4">
+            <StoreIcon className="w-7 h-7" />
+          </div>
+          <h1 className="font-display text-3xl font-extrabold text-[#1b1c19]">
+            Merchant Portal
+          </h1>
+          <p className="mt-1 text-sm text-[#44483a]/80">
+            {isSignUp ? 'Create your vendor account' : 'Log in to manage your café or bakery'}
+          </p>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="flex rounded-xl bg-[#ebe8db] p-1 mb-6">
+          <button
+            type="button"
+            onClick={() => { setIsSignUp(false); setErrorMsg(''); }}
+            className={`flex-1 rounded-lg py-2.5 font-label text-xs font-bold transition ${
+              !isSignUp ? 'bg-white text-[#1b1c19] shadow-sm' : 'text-[#44483a]/60'
+            }`}
+          >
+            LOG IN
+          </button>
+          <button
+            type="button"
+            onClick={() => { setIsSignUp(true); setErrorMsg(''); }}
+            className={`flex-1 rounded-lg py-2.5 font-label text-xs font-bold transition ${
+              isSignUp ? 'bg-white text-[#1b1c19] shadow-sm' : 'text-[#44483a]/60'
+            }`}
+          >
+            SIGN UP VENDOR
+          </button>
+        </div>
+
+        {/* Auth Form */}
+        <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 shadow-sm border border-[#1b1c19]/10 space-y-4">
+          
+          {errorMsg && (
+            <div className="p-3 rounded-xl bg-red-50 text-red-700 text-xs font-medium">
+              {errorMsg}
+            </div>
+          )}
+
+          {isSignUp && (
+            <>
+              <div>
+                <label className="font-label text-xs font-bold text-[#44483a]">Owner Full Name</label>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Sarah Miller"
+                  className="mt-1 w-full rounded-xl border border-[#1b1c19]/10 bg-[#f6f4eb] p-3 text-sm outline-none focus:border-[#4a6410]"
+                />
+              </div>
+
+              <div>
+                <label className="font-label text-xs font-bold text-[#44483a]">Business Name</label>
+                <input
+                  type="text"
+                  required
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  placeholder="e.g. Pophams Bakery"
+                  className="mt-1 w-full rounded-xl border border-[#1b1c19]/10 bg-[#f6f4eb] p-3 text-sm outline-none focus:border-[#4a6410]"
+                />
+              </div>
+            </>
+          )}
+
+          <div>
+            <label className="font-label text-xs font-bold text-[#44483a]">Business Email</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="owner@yourcafe.com"
+              className="mt-1 w-full rounded-xl border border-[#1b1c19]/10 bg-[#f6f4eb] p-3 text-sm outline-none focus:border-[#4a6410]"
+            />
+          </div>
+
+          <div>
+            <label className="font-label text-xs font-bold text-[#44483a]">Password</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="mt-1 w-full rounded-xl border border-[#1b1c19]/10 bg-[#f6f4eb] p-3 text-sm outline-none focus:border-[#4a6410]"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-2xl bg-[#4a6410] py-3.5 font-label text-xs font-bold text-white shadow-sm transition active:scale-98 disabled:opacity-50"
+          >
+            {loading ? 'Authenticating...' : isSignUp ? 'Create Merchant Account' : 'Log In to Merchant Portal'}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-[#44483a]/60">
+          Looking for customer pre-orders?{' '}
+          <Link href="/login/customer" className="text-[#4a6410] font-bold underline">
+            Go to Foodie Login
+          </Link>
+        </p>
+
+      </div>
+    </main>
   );
 }
